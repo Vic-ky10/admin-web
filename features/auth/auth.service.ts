@@ -1,10 +1,14 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 export async function login(email: string, password: string) {
-  const response = await supabase.auth.signInWithPassword({
+  return await supabase.auth.signInWithPassword({
     email,
     password,
   });
+}
 
-  return response;
+export async function logout() {
+  return await supabase.auth.signOut();
 }

@@ -23,7 +23,11 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    const redirectTo =
+      new URLSearchParams(window.location.search).get("next") ??
+      "/dashboard";
+
+    router.push(redirectTo);
   }
 
   return (
@@ -35,7 +39,7 @@ export default function LoginPage() {
         </h1>
 
         <p className="mt-2 text-slate-500">
-          Admin Login
+          Portal Login
         </p>
 
         <div className="mt-8">
