@@ -9,7 +9,7 @@ export function Table({
   children: ReactNode;
 }) {
   return (
-    <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <table className="min-w-full">
         {children}
       </table>
@@ -23,7 +23,7 @@ export function TableHead({
   children: ReactNode;
 }) {
   return (
-    <thead className="bg-slate-100">
+    <thead className="bg-slate-50">
       {children}
     </thead>
   );
@@ -47,7 +47,7 @@ export function TableRow({
   return (
     <tr
       className={[
-        "border-b transition hover:bg-slate-50",
+        "border-b border-slate-100 transition hover:bg-blue-50/50",
         className,
       ]
         .filter(Boolean)
@@ -65,7 +65,7 @@ export function TableHeader({
   children: ReactNode;
 }) {
   return (
-    <th className="px-5 py-4 text-left text-sm font-semibold text-slate-700">
+    <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
       {children}
     </th>
   );

@@ -16,15 +16,15 @@ export default function Button({
     <button
       {...props}
       className={clsx(
-        "rounded-lg px-4 py-2 font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
+        "rounded-lg px-4 py-2 font-semibold shadow-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50",
         {
-          "bg-emerald-600 text-white hover:bg-emerald-700":
+          "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20":
             variant === "primary",
 
-          "bg-slate-200 text-slate-800 hover:bg-slate-300":
+          "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50":
             variant === "secondary",
 
-          "bg-red-600 text-white hover:bg-red-700":
+          "bg-red-600 text-white hover:bg-red-700 hover:shadow-md hover:shadow-red-600/20":
             variant === "danger",
         },
         className
