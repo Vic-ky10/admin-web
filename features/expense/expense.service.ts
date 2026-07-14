@@ -1,0 +1,567 @@
+import { adminClient } from "@/lib/supabase/admin";
+import { ActionResponse } from "@/types/action";
+import { getCurrentEmployeeProfile } from "@/features/employee-portal/employee-portal.service";
+
+import {
+  EXPENSE_STATUS,
+  PAYMENT_STATUS,
+  Expense,
+  ExpenseFilters,
+  ExpenseWithEmployee,
+} from "./expense.types";
+
+import {
+  ExpenseInput,
+  UpdateExpenseInput,
+  ReviewExpenseInput
+ 
+} from "./expense.validation";
+
+const EXPENSE_SELECT = `
+id,
+profile_id,
+expense_code,
+expense_type,
+amount,
+approved_amount,
+currency,
+description,
+receipt_url,
+expense_date,
+status,
+payment_status,
+reviewed_by,
+reviewed_at,
+review_comment,
+created_at,
+updated_at
+`;
+
+
+const EXPENSE_WITH_EMPLOYEE_SELECT =
+`
+id,
+profile_id,
+title,
+description,
+category,
+amount,
+approved_amount,
+expense_date,
+receipt_url,
+status,
+payment_status,
+review_comment,
+reviewed_by,
+reviewed_at,
+created_at,
+updated_at,
+employee:profiles!expenses_profile_id_fkey
+(
+employee_id,
+full_name,
+email,
+department,
+designation
+)
+`;
+
+
+export async function createExpense(
+  profileId: string,
+  values: ExpenseInput
+): Promise<ActionResponse<Expense>> {
+  const { data, error } = await adminClient
+    .from("expenses")
+    .insert({
+      profile_id: profileId,
+
+      expense_type: values.expense_type,
+
+      amount: values.amount,
+
+      currency: "INR",
+
+      description: values.description,
+
+      receipt_url: values.receipt_url ?? null,
+
+      expense_date: values.expense_date,
+
+      status: EXPENSE_STATUS.PENDING,
+
+      payment_status: PAYMENT_STATUS.PENDING,
+
+      approved_amount: null,
+
+      reviewed_by: null,
+
+      reviewed_at: null,
+
+      review_comment: null,
+    })
+    .select(EXPENSE_SELECT)
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+  await notifyAdmins({
+  title: "New Expense Request",
+  message: "A new expense request has been submitted for review.",
+  referenceId: data.id,
+  actionUrl: "/expenses",
+  createdBy: profileId,
+});
+
+  return {
+    success: true,
+    message: "Expense submitted successfully.",
+    data: data as Expense,
+  };
+}
+export async function updateExpense(
+  expenseId: string,
+  profileId: string,
+  values: UpdateExpenseInput
+): Promise<ActionResponse<Expense>> {
+  const { data: existingExpense, error: fetchError } = await adminClient
+    .from("expenses")
+    .select("id, profile_id, status")
+    .eq("id", expenseId)
+    .single();
+
+  if (fetchError) {
+    return {
+      success: false,
+      error: fetchError.message,
+    };
+  }
+
+  if (!existingExpense) {
+    return {
+      success: false,
+      error: "Expense not found.",
+    };
+  }
+
+  if (existingExpense.profile_id !== profileId) {
+    return {
+      success: false,
+      error: "You are not allowed to update this expense.",
+    };
+  }
+
+  if (existingExpense.status !== EXPENSE_STATUS.PENDING) {
+    return {
+      success: false,
+      error: "Only pending expenses can be updated.",
+    };
+  }
+
+  const { data, error } = await adminClient
+    .from("expenses")
+    .update({
+      expense_type: values.expense_type,
+      amount: values.amount,
+      description: values.description,
+      receipt_url: values.receipt_url ?? null,
+      expense_date: values.expense_date,
+    })
+    .eq("id", expenseId)
+    .select(EXPENSE_SELECT)
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    message: "Expense updated successfully.",
+    data: data as Expense,
+  };
+}
+
+// export async function reviewExpense(
+//   reviewerId: string,
+//   values: ReviewExpenseInput
+// ): Promise<ActionResponse<Expense>> {
+//   const existing = await getExpenseById(values.expenseId);
+
+//   if (!existing) {
+//     return {
+//       success: false,
+//       error: "Expense not found.",
+//     };
+//   }
+
+//   if (existing.status !== EXPENSE_STATUS.PENDING) {
+//     return {
+//       success: false,
+//       error: "Only pending expenses can be reviewed.",
+//     };
+//   }
+
+//   const { data, error } = await adminClient
+//     .from("expenses")
+//     .update({
+//       status: values.status,
+//       approved_amount: values.approved_amount,
+//       review_comment: values.review_comment || null,
+//       reviewed_by: reviewerId,
+//       reviewed_at: new Date().toISOString(),
+//     })
+//     .eq("id", values.expenseId)
+//     .eq("status", EXPENSE_STATUS.PENDING)
+//     .select(EXPENSE_SELECT)
+//     .single();
+
+//   if (error) {
+//     return {
+//       success: false,
+//       error: error.message,
+//     };
+//   }
+
+//   await createNotification({
+//     profileId: existing.profile_id,
+//     title: "Expense Request Updated",
+//     message: `Your expense request has been ${values.status.toLowerCase()}.`,
+//     notificationType: "expense",
+//     referenceId: existing.id,
+//     actionUrl: "/employee/expenses",
+//     createdBy: reviewerId,
+//   });
+
+//   return {
+//     success: true,
+//     message: `Expense ${values.status.toLowerCase()} successfully.`,
+//     data: data as Expense,
+//   };
+// }
+
+export async function getEmployeeExpenses(
+  profileId: string,
+  filters: ExpenseFilters = {}
+): Promise<Expense[]> {
+  let query = adminClient
+    .from("expenses")
+    .select(EXPENSE_SELECT)
+    .eq("profile_id", profileId) //Returns only the logged-in employee's expenses.
+    .order("created_at", { ascending: false }); //Returns only the logged-in employee's expenses.
+
+  if (filters.status) {
+    query = query.eq("status", filters.status);
+  }
+
+  if (filters.paymentStatus) {
+    query = query.eq("payment_status", filters.paymentStatus);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data as Expense[];
+} 
+
+
+export async function getExpenses(
+  filters: ExpenseFilters = {}
+): Promise<ExpenseWithEmployee[]> {
+  let query = adminClient
+    .from("expenses")
+    .select(EXPENSE_WITH_EMPLOYEE_SELECT)
+    .order("created_at", { ascending: false });
+
+  if (filters.profileId) {
+    query = query.eq("profile_id", filters.profileId);
+  }
+
+  if (filters.status) {
+    query = query.eq("status", filters.status);
+  }
+
+  if (filters.paymentStatus) {
+    query = query.eq("payment_status", filters.paymentStatus);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return (data as unknown as SupabaseExpenseRecord[]).map((record) => ({
+    ...record,
+    employee: Array.isArray(record.employee)
+      ? record.employee[0] ?? null
+      : record.employee,
+  }));
+}
+
+async function getExpenseById(id: string) {
+  const { data, error } = await adminClient
+    .from("expenses")
+    .select(EXPENSE_SELECT)
+    .eq("id", id) // search using primary Key(id)
+    .maybeSingle();// return only one record 
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data as Expense | null;
+}
+
+
+export async function deletePendingExpense(
+  profileId: string,
+  expenseId: string
+): Promise<ActionResponse<Expense>> {
+  const existing = await getExpenseById(expenseId);
+
+  if (!existing || existing.profile_id !== profileId) {
+    return {
+      success: false,
+      error: "Expense was not found.",
+    };
+  }
+
+  if (existing.status !== EXPENSE_STATUS.PENDING) {
+    return {
+      success: false,
+      error: "Only pending expenses can be deleted.",
+    };
+  }
+
+  const { data, error } = await adminClient
+    .from("expenses")
+    .delete()
+    .eq("id", expenseId)
+    .eq("profile_id", profileId)
+    .eq("status", EXPENSE_STATUS.PENDING)
+    .select(EXPENSE_SELECT)
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    message: "Expense deleted successfully.",
+    data: data as Expense,
+  };
+}
+
+export async function reviewExpense(
+  reviewerId: string,
+  values: ReviewExpenseInput
+): Promise<ActionResponse<Expense>> {
+  const existing = await getExpenseById(values.expenseId);
+
+  if (!existing) {
+    return {
+      success: false,
+      error: "Expense was not found.",
+    };
+  }
+
+  if (existing.status !== EXPENSE_STATUS.PENDING) {
+    return {
+      success: false,
+      error: "Only pending expenses can be reviewed.",
+    };
+  }
+
+  const { data, error } = await adminClient
+    .from("expenses")
+    .update({
+      status: values.status,
+      approved_amount: values.approved_amount,
+      reviewed_by: reviewerId,
+      reviewed_at: new Date().toISOString(),
+      review_comment: values.review_comment || null,
+    })
+    .eq("id", values.expenseId)
+    .eq("status", EXPENSE_STATUS.PENDING)
+    .select(EXPENSE_SELECT)
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    message: `Expense ${values.status.toLowerCase()} successfully.`,
+    data: data as Expense,
+  };
+}
+
+type SupabaseExpenseRecord = ExpenseWithEmployee & {
+  employee:
+    | ExpenseWithEmployee["employee"]
+    | NonNullable<ExpenseWithEmployee["employee"]>[];
+};
+
+export async function markExpensePaid(
+  expenseId: string
+): Promise<ActionResponse<Expense>> {
+  const existing = await getExpenseById(expenseId);
+
+  if (!existing) {
+    return {
+      success: false,
+      error: "Expense was not found.",
+    };
+  }
+
+  if (existing.status !== EXPENSE_STATUS.APPROVED) {  // only approved expenses can become Paid.
+    return { 
+      success: false,
+      error: "Only approved expenses can be marked as paid.",
+    };
+  }
+
+  const { data, error } = await adminClient
+    .from("expenses")
+    .update({
+      payment_status: PAYMENT_STATUS.PAID,
+    })
+    .eq("id", expenseId)
+    .eq("status", EXPENSE_STATUS.APPROVED)
+    .select(EXPENSE_SELECT)
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    message: "Expense marked as paid.",
+    data: data as Expense,
+  };
+}
+
+export async function getAuthenticatedProfileId() {
+  const profile = await getCurrentEmployeeProfile();
+  return profile?.id ?? null;
+}
+
+// async function getExpenseById(id: string) {
+//   const { data, error } = await adminClient
+//     .from("expenses")
+//     .select(EXPENSE_SELECT)
+//     .eq("id", id)
+//     .maybeSingle();
+
+//   if (error) {
+//     console.error(error);
+//     return null;
+//   }
+
+//   return data as Expense | null;
+// }
+async function notifyAdmins({
+  title,
+  message,
+  referenceId,
+  actionUrl,
+  createdBy,
+}: {
+  title: string;
+  message: string;
+  referenceId?: string;
+  actionUrl?: string;
+  createdBy?: string;
+}) {
+  const { data, error } = await adminClient
+    .from("profiles")
+    .select("id")
+    .eq("role", "Admin");
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  await Promise.all(
+    (data ?? []).map((admin) =>
+      createNotification({
+        profileId: admin.id,
+        title,
+        message,
+        notificationType: "expense",
+        referenceId,
+        actionUrl,
+        createdBy,
+      })
+    )
+  );
+}
+async function createNotification({
+  profileId,
+  title,
+  message,
+  notificationType,
+  referenceId,
+  actionUrl,
+  createdBy,
+}: {
+  profileId: string;
+  title: string;
+  message: string;
+  notificationType: string;
+  referenceId?: string;
+  actionUrl?: string;
+  createdBy?: string;
+}) {
+  const { error } = await adminClient
+    .from("notifications")
+    .insert({
+  profile_id: profileId,
+  title,
+  message,
+  notification_type: notificationType,
+  reference_id: referenceId ?? null,
+  action_url: actionUrl ?? null,
+  is_read: false,
+  created_by: createdBy ?? null,
+});
+
+  if (error) {
+    console.error(error);
+  }
+}
+
+// function isSchemaMismatch(message: string) {
+//   return (
+//     message.includes("column") ||
+//     message.includes("schema cache") ||
+//     message.includes("Could not find")
+//   );
+// }
