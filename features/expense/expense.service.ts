@@ -17,6 +17,15 @@ import {
  
 } from "./expense.validation";
 
+      const EXPENSE_CODE_PREFIX = "EXP";
+
+      function formatExpenseCode(value: number) {
+      return `${EXPENSE_CODE_PREFIX}${value
+        .toString()
+        .padStart(6, "0")}`;
+      }
+
+
 const EXPENSE_SELECT = `
 id,
 profile_id,
@@ -38,17 +47,17 @@ updated_at
 `;
 
 
-const EXPENSE_WITH_EMPLOYEE_SELECT =
-`
+const EXPENSE_WITH_EMPLOYEE_SELECT = `
 id,
 profile_id,
-title,
-description,
-category,
+expense_code,
+expense_type,
 amount,
 approved_amount,
-expense_date,
+currency,
+description,
 receipt_url,
+expense_date,
 status,
 payment_status,
 review_comment,
@@ -56,8 +65,7 @@ reviewed_by,
 reviewed_at,
 created_at,
 updated_at,
-employee:profiles!expenses_profile_id_fkey
-(
+employee:profiles!expenses_profile_id_fkey(
 employee_id,
 full_name,
 email,
@@ -67,14 +75,61 @@ designation
 `;
 
 
+        export async function generateExpenseCode(): Promise<string> {
+          const { data, error } = await adminClient
+            .from("expenses")
+            .select("expense_code")
+            .like("expense_code", `${EXPENSE_CODE_PREFIX}%`)
+            .order("created_at", {
+              ascending: false,
+            })
+            .limit(1)
+            .maybeSingle();
+
+          if (error) {
+            throw new Error("Unable to generate expense code.");
+          }
+
+          if (!data?.expense_code) {
+            return formatExpenseCode(1);
+          }
+
+          const current = Number(
+            data.expense_code.replace(EXPENSE_CODE_PREFIX, "")
+          );
+
+          if (Number.isNaN(current)) {
+            throw new Error("Latest expense code is invalid.");
+          }
+
+          return formatExpenseCode(current + 1);
+        }
+
+
 export async function createExpense(
   profileId: string,
   values: ExpenseInput
 ): Promise<ActionResponse<Expense>> {
+  let expenseCode: string;
+
+  try {
+    expenseCode = await generateExpenseCode();
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to generate expense code.",
+    };
+  }
+
   const { data, error } = await adminClient
     .from("expenses")
     .insert({
       profile_id: profileId,
+      
+        expense_code: expenseCode,
 
       expense_type: values.expense_type,
 
@@ -299,7 +354,7 @@ export async function getExpenses(
   const { data, error } = await query;
 
   if (error) {
-    console.error(error);
+    throw error;
     return [];
   }
 
@@ -410,7 +465,16 @@ export async function reviewExpense(
       error: error.message,
     };
   }
-
+   
+  await createNotification({
+    profileId: existing.profile_id,
+    title: "Expense Request Updated",
+    message: `Your expense request has been ${values.status.toLowerCase()}.`,
+    notificationType: "expense",
+    referenceId: existing.id,
+    actionUrl: "/employee/expenses",
+    createdBy: reviewerId,
+});
   return {
     success: true,
     message: `Expense ${values.status.toLowerCase()} successfully.`,

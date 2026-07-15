@@ -34,17 +34,18 @@ export const reviewExpenseSchema = z.object({
     EXPENSE_STATUS.REJECTED,
   ]),
 
-  approved_amount: z
-    .number({
-      error: "Approved amount is required.",
-    })
-    .min(0, "Approved amount cannot be negative."),
+ approved_amount: z.coerce
+  .number({
+    error: "Approved amount is required.",
+  })
+  .min(0, "Approved amount cannot be negative."),
 
   review_comment: z
     .string()
     .trim()
     .max(500, "Comment cannot exceed 500 characters.")
-    .optional(),
+    .optional()
+.or(z.literal(""))
 });
 
 export type ExpenseInput = z.infer<typeof expenseSchema>;

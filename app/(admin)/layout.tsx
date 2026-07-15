@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import AdminShell from "@/components/layout/AdminShell";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getNotifications } from "@/features/notification/notification.service";
 
 interface LayoutProps {
   children: ReactNode;
@@ -22,7 +23,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
     redirect("/login");
   }
 
-  const [profileResponse, notificationsResponse] = await Promise.all([
+  const [profileResponse, notificationsResponse, notifications] = await Promise.all([
     adminClient
       .from("profiles")
       .select(PROFILE_SELECT)
@@ -33,6 +34,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
       .select("id", { count: "exact", head: true })
       .eq("profile_id", user.id)
       .eq("is_read", false),
+      getNotifications(user.id)
   ]);
 
   if (profileResponse.error) {
@@ -44,10 +46,11 @@ export default async function AdminLayout({ children }: LayoutProps) {
   }
 
   return (
-    <AdminShell
-      profile={profileResponse.data}
-      unreadNotifications={notificationsResponse.count ?? 0}
-    >
+   <AdminShell
+  profile={profileResponse.data}
+  unreadNotifications={notificationsResponse.count ?? 0}
+  notifications={notifications}
+>
       {children}
     </AdminShell>
   );

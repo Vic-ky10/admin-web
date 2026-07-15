@@ -1,6 +1,8 @@
 "use client";
 
-import { Bell, CheckCircle2, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
+import NotificationDropdown from "@/features/notification/components/NotificationDropdown";
+import { Notification } from "@/features/notification/notification.types";
 import { usePathname } from "next/navigation";
 
 import { Employee } from "@/features/employee/employee.types";
@@ -8,6 +10,7 @@ import { Employee } from "@/features/employee/employee.types";
 interface HeaderProps {
   profile: Employee | null;
   unreadNotifications: number;
+  notifications : Notification[]
   onOpenSidebar: () => void;
 }
 
@@ -24,6 +27,7 @@ const routeLabels: Record<string, string> = {
 export default function Header({
   profile,
   unreadNotifications,
+  notifications,
   onOpenSidebar,
 }: HeaderProps) {
   const pathname = usePathname();
@@ -75,38 +79,10 @@ export default function Header({
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
-          <details className="relative">
-            <summary
-              className="relative inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-700 hover:shadow"
-              aria-label={`${unreadNotifications} unread notifications`}
-            >
-              <Bell className="h-5 w-5" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">
-                  {unreadNotifications}
-                </span>
-              )}
-            </summary>
-            <div className="absolute right-0 mt-2 w-80 rounded-lg border border-slate-200 bg-white p-3 shadow-xl shadow-slate-900/10">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <p className="font-semibold text-slate-900">Notifications</p>
-                <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
-                  {unreadNotifications} unread
-                </span>
-              </div>
-              <div className="py-4 text-center">
-                <span className="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                  <CheckCircle2 className="h-5 w-5" />
-                </span>
-                <p className="mt-3 text-sm font-medium text-slate-900">
-                  Notification center ready
-                </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  New project, leave, attendance, and expense alerts appear here.
-                </p>
-              </div>
-            </div>
-          </details>
+         <NotificationDropdown
+  notifications={notifications}
+  unreadCount={unreadNotifications}
+/>
 
           <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
             {profile?.avatar_url ? (

@@ -54,5 +54,5 @@ export function formatWorkingHours(value: number | null) {
     return "-";
   }
 
-  return `${value.toFixed(2)} hrs`;
+  return `${value.toFixed(1)} hrs`;
 }

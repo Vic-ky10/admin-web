@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
-
+import { getNotifications } from "@/features/notification/notification.service";
 import EmployeeShell from "@/components/layout/employee/EmployeeShell";
 import {
   getCurrentEmployeeProfile,
@@ -20,13 +20,18 @@ export default async function EmployeePortalLayout({
     redirect("/employee/login");
   }
 
-  const unreadNotifications = await getUnreadNotificationCount(profile.id);
+ const [unreadNotifications, notifications] =
+  await Promise.all([
+    getUnreadNotificationCount(profile.id),
+    getNotifications(profile.id),
+  ]);
 
   return (
     <EmployeeShell
-      profile={profile}
-      unreadNotifications={unreadNotifications}
-    >
+  profile={profile}
+  unreadNotifications={unreadNotifications}
+  notifications={notifications}
+>
       {children}
     </EmployeeShell>
   );

@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { ReactNode, useState } from "react";
-
+import { Notification } from "@/features/notification/notification.types";
 import { Employee } from "@/features/employee/employee.types";
 
 import Header from "./Header";
@@ -11,12 +11,14 @@ import Sidebar from "./Sidebar";
 interface AdminShellProps {
   profile: Employee | null;
   unreadNotifications: number;
+  notifications: Notification[]
   children: ReactNode;
 }
 
 export default function AdminShell({
   profile,
   unreadNotifications,
+  notifications,
   children,
 }: AdminShellProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -40,6 +42,7 @@ export default function AdminShell({
         <Header
           profile={profile}
           unreadNotifications={unreadNotifications}
+          notifications ={notifications}
           onOpenSidebar={() => setMobileOpen(true)}
         />
 

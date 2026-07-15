@@ -74,7 +74,7 @@ export function TableHeader({
 export function TableCell({
   children,
 }: {
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <td className="px-5 py-4 text-sm text-slate-700">

@@ -6,7 +6,7 @@ import { Toaster } from "sonner";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 
 export const metadata: Metadata = {
-  title: "InfiniGoal Admin Portal",
+  title: "InfiniGoal Employee Portal",
   description: "Employee Management System",
 };
 

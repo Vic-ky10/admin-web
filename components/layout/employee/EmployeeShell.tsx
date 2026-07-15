@@ -1,9 +1,10 @@
 "use client";
-
+import NotificationDropdown from "@/features/notification/components/NotificationDropdown";
+import { Notification } from "@/features/notification/notification.types";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Bell,
+
   BriefcaseBusiness,
   CalendarCheck,
   ClipboardList,
@@ -36,12 +37,14 @@ const employeeNavItems = [
 interface EmployeeShellProps {
   profile: Employee;
   unreadNotifications: number;
+  notifications: Notification[];
   children: ReactNode;
 }
 
 export default function EmployeeShell({
   profile,
   unreadNotifications,
+  notifications,
   children,
 }: EmployeeShellProps) {
   const pathname = usePathname();
@@ -63,10 +66,7 @@ export default function EmployeeShell({
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-slate-200 bg-white lg:block">
-        <EmployeeSidebar
-          pathname={pathname}
-          onLogout={handleLogout}
-        />
+        <EmployeeSidebar pathname={pathname} onLogout={handleLogout} />
       </aside>
 
       {mobileOpen && (
@@ -102,25 +102,15 @@ export default function EmployeeShell({
               <p className="text-sm font-medium text-slate-500">
                 Employee Portal
               </p>
-              <h1 className="text-lg font-semibold sm:text-xl">
-                InfiniGoal
-              </h1>
+              <h1 className="text-lg font-semibold sm:text-xl">InfiniGoal</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700"
-              aria-label={`${unreadNotifications} unread notifications`}
-            >
-              <Bell className="h-5 w-5" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">
-                  {unreadNotifications}
-                </span>
-              )}
-            </button>
+            <NotificationDropdown
+              notifications={notifications}
+              unreadCount={unreadNotifications}
+            />
 
             <details className="relative">
               <summary className="flex cursor-pointer list-none items-center gap-3 rounded-lg border border-slate-200 px-2 py-1.5">
@@ -141,7 +131,8 @@ export default function EmployeeShell({
                     {profile.full_name}
                   </span>
                   <span className="block text-xs text-slate-500">
-                    {profile.employee_id} • {profile.department ?? "No department"}
+                    {profile.employee_id} •{" "}
+                    {profile.department ?? "No department"}
                   </span>
                 </span>
               </summary>
@@ -149,7 +140,8 @@ export default function EmployeeShell({
                 <p className="font-semibold">{profile.full_name}</p>
                 <p className="text-sm text-slate-500">{profile.email}</p>
                 <p className="mt-2 text-sm text-slate-600">
-                  {profile.employee_id} • {profile.department ?? "No department"}
+                  {profile.employee_id} •{" "}
+                  {profile.department ?? "No department"}
                 </p>
                 <div className="mt-3 grid gap-2">
                   <Link
@@ -220,7 +212,7 @@ function EmployeeSidebar({
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
                 active
                   ? "bg-emerald-50 text-emerald-700"
-                  : "text-slate-700 hover:bg-slate-100"
+                  : "text-slate-700 hover:bg-slate-100",
               )}
             >
               <Icon className="h-5 w-5" />
