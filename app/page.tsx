@@ -1,73 +1,83 @@
 import Link from "next/link";
-
-const portalGroups = [
-  {
-    title: "Admin Portal",
-    description: "Manage employees and verify attendance records.",
-    primary: ["Admin Login", "/login?next=/dashboard"],
-    links: [
-      ["Dashboard", "/dashboard"],
-      ["Employees", "/employees"],
-      ["Attendance", "/attendance"],
-    ],
-  },
-  {
-    title: "Employee Portal",
-    description: "Login as an employee and mark daily attendance.",
-    primary: ["Employee Login", "/login?next=/employee/attendance"],
-    links: [
-      ["Dashboard", "/employee/dashboard"],
-      ["Attendance", "/employee/attendance"],
-      ["Profile", "/employee/profile"],
-    ],
-  },
-];
+import { ShieldCheck, UserRound } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-slate-100 p-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold">
-            InfiniGoal Portal
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-white to-slate-200 p-6">
+      <div className="w-full max-w-4xl">
+
+        {/* Header */}
+        <div className="mb-12 text-center">
+          <h1 className="text-5xl font-bold text-slate-900">
+            InfiniGoal
           </h1>
-          <p className="mt-2 text-slate-600">
-            Development navigation for admin and employee workflows.
+
+          <p className="mt-3 text-lg text-slate-600">
+            Employee Management System
+          </p>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Secure portal for administrators and employees.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {portalGroups.map((group) => (
-            <section
-              key={group.title}
-              className="rounded-xl border bg-white p-6 shadow-sm"
+        {/* Portal Cards */}
+        <div className="grid gap-8 md:grid-cols-2">
+
+          {/* Admin */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+
+            <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+              <ShieldCheck className="h-7 w-7" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Admin Portal
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Manage employees, attendance, leave requests,
+              expenses, notifications and system operations.
+            </p>
+
+            <Link
+              href="/login"
+              className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
             >
-              <h2 className="text-2xl font-semibold">
-                {group.title}
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">
-                {group.description}
-              </p>
-              <Link
-                href={group.primary[1]}
-                className="mt-5 inline-flex w-full justify-center rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
-              >
-                {group.primary[0]}
-              </Link>
-              <div className="mt-5 grid gap-3">
-                {group.links.map(([label, href]) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="rounded-lg border border-slate-200 px-4 py-3 font-medium text-slate-800 hover:border-emerald-500 hover:text-emerald-700"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ))}
+              Admin Login
+            </Link>
+
+          </section>
+
+          {/* Employee */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+
+            <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+              <UserRound className="h-7 w-7" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Employee Portal
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Mark attendance, apply leave, submit expenses,
+              view projects, announcements and manage your profile.
+            </p>
+
+            <Link
+              href="/login?next=/employee/attendance"
+              className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700"
+            >
+              Employee Login
+            </Link>
+
+          </section>
+
         </div>
+
+        
+
       </div>
     </main>
   );

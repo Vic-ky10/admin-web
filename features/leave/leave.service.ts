@@ -1,6 +1,10 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { ActionResponse } from "@/types/action";
 import { getCurrentEmployeeProfile } from "@/features/employee-portal/employee-portal.service";
+import {
+  createNotification,
+  notifyAdmins,
+} from "@/features/notification/notification.helper";
 
 import {
   LEAVE_DURATION,
@@ -55,6 +59,10 @@ export async function createLeaveRequest(
   await notifyAdmins({
     title: "New Leave Request",
     message: "A new leave request has been submitted for review.",
+    notificationType : "Leave",
+    referenceId :  data.id,
+    actionUrl : '/leave',
+    createdBy: profileId,
   });
 
   return {
@@ -203,10 +211,14 @@ export async function reviewLeaveRequest(
   }
 
   await createNotification({
-    profileId: existing.profile_id,
-    title: "Leave Request Updated",
-    message: `Your leave request has been ${values.status.toLowerCase()}.`,
-  });
+  profileId: existing.profile_id,
+  title: "Leave Request Updated",
+  message: `Your leave request has been ${values.status.toLowerCase()}.`,
+  notificationType: "Leave",
+  referenceId: existing.id,
+  actionUrl: "/employee/leave",
+  createdBy: reviewerId,
+});
 
   return {
     success: true,
@@ -235,87 +247,88 @@ async function getLeaveRequestById(id: string) {
   return data as LeaveRequest | null;
 }
 
-async function notifyAdmins({
-  title,
-  message,
-}: {
-  title: string;
-  message: string;
-}) {
-  const { data, error } = await adminClient
-    .from("profiles")
-    .select("id")
-    .eq("role", "Admin");
+// async function notifyAdmins({
+//   title,
+//   message,
+//   notificationType,
+//   referenceId,
+//   actionUrl,
+//   createdBy,
+// }: {
+//   title: string;
+//   message: string;
+//   notificationType: string;
+//   referenceId?: string;
+//   actionUrl?: string;
+//   createdBy?: string;
+// }) {
+//   const { data, error } = await adminClient
+//     .from("profiles")
+//     .select("id")
+//     .eq("role", "Admin");
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+//   if (error) {
+//     console.error(error);
+//     return;
+//   }
 
-  await Promise.all(
-    (data ?? []).map((admin) =>
-      createNotification({
-        profileId: admin.id,
-        title,
-        message,
-      })
-    )
-  );
-}
+//   await Promise.all(
+//     (data ?? []).map((admin) =>
+//       createNotification({
+//         profileId: admin.id,
+//         title,
+//         message,
+//         notificationType,
+//         referenceId,
+//         actionUrl,
+//         createdBy,
+//       })
+//     )
+//   );
+// }
 
-async function createNotification({
-  profileId,
-  title,
-  message,
-}: {
-  profileId: string;
-  title: string;
-  message: string;
-}) {
-  const payloads: Record<string, string | boolean>[] = [
-    {
-      profile_id: profileId,
-      title,
-      message,
-      type: "leave",
-      is_read: false,
-    },
-    {
-      recipient_id: profileId,
-      title,
-      message,
-      type: "leave",
-      is_read: false,
-    },
-  ];
+// async function createNotification({
+//   profileId,
+//   title,
+//   message,
+//   notificationType,
+//   referenceId,
+//   actionUrl,
+//   createdBy,
+// }: {
+//   profileId: string;
+//   title: string;
+//   message: string;
+//   notificationType: string;
+//   referenceId?: string;
+//   actionUrl?: string;
+//   createdBy?: string;
+// }) {
+//   const { error } = await adminClient
+//     .from("notifications")
+//     .insert({
+//       profile_id: profileId,
+//       title,
+//       message,
+//       notification_type: notificationType,
+//       reference_id: referenceId ?? null,
+//       action_url: actionUrl ?? null,
+//       is_read: false,
+//       created_by: createdBy ?? null,
+//     });
 
-  for (const payload of payloads) {
-    const { error } = await adminClient
-      .from("notifications")
-      .insert(payload);
+//   if (error) {
+//     console.error(error);
+//   }
+// }
 
-    if (!error) {
-      return;
-    }
-
-    if (!isSchemaMismatch(error.message)) {
-      console.error(error);
-      return;
-    }
-  }
-
-  console.error(
-    "Unable to create notification. Please verify notifications table recipient column."
-  );
-}
-
-function isSchemaMismatch(message: string) {
-  return (
-    message.includes("column") ||
-    message.includes("schema cache") ||
-    message.includes("Could not find")
-  );
-}
+// function isSchemaMismatch(message: string) {
+//   return (
+//     message.includes("column") ||
+//     message.includes("schema cache") ||
+//     message.includes("Could not find")
+//   );
+// }
 
 type SupabaseLeaveRecord = LeaveRequestWithEmployee & {
   employee:

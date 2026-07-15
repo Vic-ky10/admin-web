@@ -1,6 +1,11 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { ActionResponse } from "@/types/action";
 import { getCurrentEmployeeProfile } from "@/features/employee-portal/employee-portal.service";
+import {
+  createNotification,
+  notifyAdmins,
+} from "@/features/notification/notification.helper";
+
 
 import {
   EXPENSE_STATUS,
@@ -164,14 +169,14 @@ export async function createExpense(
       error: error.message,
     };
   }
-  await notifyAdmins({
-  title: "New Expense Request",
-  message: "A new expense request has been submitted for review.",
+await notifyAdmins({
+  title: "New Expense Submitted",
+  message: "...",
+  notificationType: "Expense",
   referenceId: data.id,
   actionUrl: "/expenses",
   createdBy: profileId,
 });
-
   return {
     success: true,
     message: "Expense submitted successfully.",
@@ -470,7 +475,7 @@ export async function reviewExpense(
     profileId: existing.profile_id,
     title: "Expense Request Updated",
     message: `Your expense request has been ${values.status.toLowerCase()}.`,
-    notificationType: "expense",
+    notificationType: "Expense",
     referenceId: existing.id,
     actionUrl: "/employee/expenses",
     createdBy: reviewerId,
@@ -550,77 +555,77 @@ export async function getAuthenticatedProfileId() {
 
 //   return data as Expense | null;
 // }
-async function notifyAdmins({
-  title,
-  message,
-  referenceId,
-  actionUrl,
-  createdBy,
-}: {
-  title: string;
-  message: string;
-  referenceId?: string;
-  actionUrl?: string;
-  createdBy?: string;
-}) {
-  const { data, error } = await adminClient
-    .from("profiles")
-    .select("id")
-    .eq("role", "Admin");
+// async function notifyAdmins({
+//   title,
+//   message,
+//   referenceId,
+//   actionUrl,
+//   createdBy,
+// }: {
+//   title: string;
+//   message: string;
+//   referenceId?: string;
+//   actionUrl?: string;
+//   createdBy?: string;
+// }) {
+//   const { data, error } = await adminClient
+//     .from("profiles")
+//     .select("id")
+//     .eq("role", "Admin");
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+//   if (error) {
+//     console.error(error);
+//     return;
+//   }
 
-  await Promise.all(
-    (data ?? []).map((admin) =>
-      createNotification({
-        profileId: admin.id,
-        title,
-        message,
-        notificationType: "expense",
-        referenceId,
-        actionUrl,
-        createdBy,
-      })
-    )
-  );
-}
-async function createNotification({
-  profileId,
-  title,
-  message,
-  notificationType,
-  referenceId,
-  actionUrl,
-  createdBy,
-}: {
-  profileId: string;
-  title: string;
-  message: string;
-  notificationType: string;
-  referenceId?: string;
-  actionUrl?: string;
-  createdBy?: string;
-}) {
-  const { error } = await adminClient
-    .from("notifications")
-    .insert({
-  profile_id: profileId,
-  title,
-  message,
-  notification_type: notificationType,
-  reference_id: referenceId ?? null,
-  action_url: actionUrl ?? null,
-  is_read: false,
-  created_by: createdBy ?? null,
-});
+//   await Promise.all(
+//     (data ?? []).map((admin) =>
+//       createNotification({
+//         profileId: admin.id,
+//         title,
+//         message,
+//         notificationType: "expense",
+//         referenceId,
+//         actionUrl,
+//         createdBy,
+//       })
+//     )
+//   );
+// }
+// async function createNotification({
+//   profileId,
+//   title,
+//   message,
+//   notificationType,
+//   referenceId,
+//   actionUrl,
+//   createdBy,
+// }: {
+//   profileId: string;
+//   title: string;
+//   message: string;
+//   notificationType: string;
+//   referenceId?: string;
+//   actionUrl?: string;
+//   createdBy?: string;
+// }) {
+//   const { error } = await adminClient
+//     .from("notifications")
+//     .insert({
+//   profile_id: profileId,
+//   title,
+//   message,
+//   notification_type: notificationType,
+//   reference_id: referenceId ?? null,
+//   action_url: actionUrl ?? null,
+//   is_read: false,
+//   created_by: createdBy ?? null,
+// });
 
-  if (error) {
-    console.error(error);
-  }
-}
+//   if (error) {
+//     console.error(error);
+//   }
+// }
 
 // function isSchemaMismatch(message: string) {
 //   return (
