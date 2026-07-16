@@ -6,7 +6,6 @@ import {
   notifyAdmins,
 } from "@/features/notification/notification.helper";
 
-
 import {
   EXPENSE_STATUS,
   PAYMENT_STATUS,
@@ -18,18 +17,14 @@ import {
 import {
   ExpenseInput,
   UpdateExpenseInput,
-  ReviewExpenseInput
- 
+  ReviewExpenseInput,
 } from "./expense.validation";
 
-      const EXPENSE_CODE_PREFIX = "EXP";
+const EXPENSE_CODE_PREFIX = "EXP";
 
-      function formatExpenseCode(value: number) {
-      return `${EXPENSE_CODE_PREFIX}${value
-        .toString()
-        .padStart(6, "0")}`;
-      }
-
+function formatExpenseCode(value: number) {
+  return `${EXPENSE_CODE_PREFIX}${value.toString().padStart(6, "0")}`;
+}
 
 const EXPENSE_SELECT = `
 id,
@@ -50,7 +45,6 @@ review_comment,
 created_at,
 updated_at
 `;
-
 
 const EXPENSE_WITH_EMPLOYEE_SELECT = `
 id,
@@ -79,41 +73,37 @@ designation
 )
 `;
 
+export async function generateExpenseCode(): Promise<string> {
+  const { data, error } = await adminClient
+    .from("expenses")
+    .select("expense_code")
+    .like("expense_code", `${EXPENSE_CODE_PREFIX}%`)
+    .order("created_at", {
+      ascending: false,
+    })
+    .limit(1)
+    .maybeSingle();
 
-        export async function generateExpenseCode(): Promise<string> {
-          const { data, error } = await adminClient
-            .from("expenses")
-            .select("expense_code")
-            .like("expense_code", `${EXPENSE_CODE_PREFIX}%`)
-            .order("created_at", {
-              ascending: false,
-            })
-            .limit(1)
-            .maybeSingle();
+  if (error) {
+    throw new Error("Unable to generate expense code.");
+  }
 
-          if (error) {
-            throw new Error("Unable to generate expense code.");
-          }
+  if (!data?.expense_code) {
+    return formatExpenseCode(1);
+  }
 
-          if (!data?.expense_code) {
-            return formatExpenseCode(1);
-          }
+  const current = Number(data.expense_code.replace(EXPENSE_CODE_PREFIX, ""));
 
-          const current = Number(
-            data.expense_code.replace(EXPENSE_CODE_PREFIX, "")
-          );
+  if (Number.isNaN(current)) {
+    throw new Error("Latest expense code is invalid.");
+  }
 
-          if (Number.isNaN(current)) {
-            throw new Error("Latest expense code is invalid.");
-          }
-
-          return formatExpenseCode(current + 1);
-        }
-
+  return formatExpenseCode(current + 1);
+}
 
 export async function createExpense(
   profileId: string,
-  values: ExpenseInput
+  values: ExpenseInput,
 ): Promise<ActionResponse<Expense>> {
   let expenseCode: string;
 
@@ -133,8 +123,8 @@ export async function createExpense(
     .from("expenses")
     .insert({
       profile_id: profileId,
-      
-        expense_code: expenseCode,
+
+      expense_code: expenseCode,
 
       expense_type: values.expense_type,
 
@@ -169,14 +159,14 @@ export async function createExpense(
       error: error.message,
     };
   }
-await notifyAdmins({
-  title: "New Expense Submitted",
-  message: "...",
-  notificationType: "Expense",
-  referenceId: data.id,
-  actionUrl: "/expenses",
-  createdBy: profileId,
-});
+  await notifyAdmins({
+    title: "New Expense Submitted",
+    message: "...",
+    notificationType: "Expense",
+    referenceId: data.id,
+    actionUrl: "/expenses",
+    createdBy: profileId,
+  });
   return {
     success: true,
     message: "Expense submitted successfully.",
@@ -186,7 +176,7 @@ await notifyAdmins({
 export async function updateExpense(
   expenseId: string,
   profileId: string,
-  values: UpdateExpenseInput
+  values: UpdateExpenseInput,
 ): Promise<ActionResponse<Expense>> {
   const { data: existingExpense, error: fetchError } = await adminClient
     .from("expenses")
@@ -309,7 +299,7 @@ export async function updateExpense(
 
 export async function getEmployeeExpenses(
   profileId: string,
-  filters: ExpenseFilters = {}
+  filters: ExpenseFilters = {},
 ): Promise<Expense[]> {
   let query = adminClient
     .from("expenses")
@@ -333,11 +323,10 @@ export async function getEmployeeExpenses(
   }
 
   return data as Expense[];
-} 
-
+}
 
 export async function getExpenses(
-  filters: ExpenseFilters = {}
+  filters: ExpenseFilters = {},
 ): Promise<ExpenseWithEmployee[]> {
   let query = adminClient
     .from("expenses")
@@ -366,7 +355,7 @@ export async function getExpenses(
   return (data as unknown as SupabaseExpenseRecord[]).map((record) => ({
     ...record,
     employee: Array.isArray(record.employee)
-      ? record.employee[0] ?? null
+      ? (record.employee[0] ?? null)
       : record.employee,
   }));
 }
@@ -376,7 +365,7 @@ async function getExpenseById(id: string) {
     .from("expenses")
     .select(EXPENSE_SELECT)
     .eq("id", id) // search using primary Key(id)
-    .maybeSingle();// return only one record 
+    .maybeSingle(); // return only one record
 
   if (error) {
     console.error(error);
@@ -386,10 +375,9 @@ async function getExpenseById(id: string) {
   return data as Expense | null;
 }
 
-
 export async function deletePendingExpense(
   profileId: string,
-  expenseId: string
+  expenseId: string,
 ): Promise<ActionResponse<Expense>> {
   const existing = await getExpenseById(expenseId);
 
@@ -432,7 +420,7 @@ export async function deletePendingExpense(
 
 export async function reviewExpense(
   reviewerId: string,
-  values: ReviewExpenseInput
+  values: ReviewExpenseInput,
 ): Promise<ActionResponse<Expense>> {
   const existing = await getExpenseById(values.expenseId);
 
@@ -470,7 +458,7 @@ export async function reviewExpense(
       error: error.message,
     };
   }
-   
+
   await createNotification({
     profileId: existing.profile_id,
     title: "Expense Request Updated",
@@ -479,7 +467,7 @@ export async function reviewExpense(
     referenceId: existing.id,
     actionUrl: "/employee/expenses",
     createdBy: reviewerId,
-});
+  });
   return {
     success: true,
     message: `Expense ${values.status.toLowerCase()} successfully.`,
@@ -494,7 +482,7 @@ type SupabaseExpenseRecord = ExpenseWithEmployee & {
 };
 
 export async function markExpensePaid(
-  expenseId: string
+  expenseId: string,
 ): Promise<ActionResponse<Expense>> {
   const existing = await getExpenseById(expenseId);
 
@@ -505,8 +493,9 @@ export async function markExpensePaid(
     };
   }
 
-  if (existing.status !== EXPENSE_STATUS.APPROVED) {  // only approved expenses can become Paid.
-    return { 
+  if (existing.status !== EXPENSE_STATUS.APPROVED) {
+    // only approved expenses can become Paid.
+    return {
       success: false,
       error: "Only approved expenses can be marked as paid.",
     };

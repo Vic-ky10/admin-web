@@ -9,6 +9,7 @@ import {
   assignProjectMembers,
   createProject,
   getAuthenticatedProfileId,
+  getProjectMembers,
   removeProjectMember,
   updateProject,
 } from "./project.service";
@@ -19,6 +20,14 @@ import {
   projectSchema,
   removeProjectMemberSchema,
 } from "./project.validation";
+
+
+
+export async function getProjectMembersAction(
+  projectId: string
+) {
+  return await getProjectMembers(projectId);
+}
 
 export async function createProjectAction(
   values: unknown

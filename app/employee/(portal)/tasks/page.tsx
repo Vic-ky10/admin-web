@@ -1,15 +1,31 @@
-export default function EmployeeTasksPage() {
+import EmployeeTaskTable from "@/features/task/components/EmployeeTaskTable";
+import {
+  getAuthenticatedProfileId,
+  getEmployeeTasks,
+} from "@/features/task/task.service";
+
+export default async function EmployeeTasksPage() {
+  const profileId = await getAuthenticatedProfileId();
+
+  if (!profileId) {
+    return null;
+  }
+
+  const tasks = await getEmployeeTasks(profileId);
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">My Tasks</h1>
+        <h1 className="text-3xl font-bold">
+          My Tasks
+        </h1>
+
         <p className="text-slate-500">
-          Assigned tasks will appear here when the Tasks module is implemented.
+          View and update your assigned tasks.
         </p>
       </div>
-      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-        No records available.
-      </div>
+
+      <EmployeeTaskTable tasks={tasks} />
     </div>
   );
 }

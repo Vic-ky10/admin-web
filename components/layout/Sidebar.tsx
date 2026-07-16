@@ -7,7 +7,9 @@ import {
   CalendarCheck,
   ChevronLeft,
   CreditCard,
+  Gift,
   LayoutDashboard,
+  ListTodo,
   Megaphone,
   Settings,
   UsersRound,
@@ -24,6 +26,12 @@ const adminNavItems = [
   { label: "Projects", href: "/projects", icon: BriefcaseBusiness },
   { label: "Leave", href: "/leave", icon: BarChart3 },
   { label: "Expenses", href: "/expenses", icon: CreditCard },
+  { label: "Incentives", href: "/incentives", icon: Gift },
+  {
+    label: "Tasks",
+    href: "/tasks",
+    icon: ListTodo,
+  },
   {
     label: "Announcements",
     href: "/announcements",

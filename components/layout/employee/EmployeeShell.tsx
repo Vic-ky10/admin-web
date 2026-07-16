@@ -9,6 +9,7 @@ import {
   CalendarCheck,
   ClipboardList,
   CreditCard,
+  Gift,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -30,6 +31,7 @@ const employeeNavItems = [
   { label: "Projects", href: "/employee/projects", icon: BriefcaseBusiness },
   { label: "My Tasks", href: "/employee/tasks", icon: ClipboardList },
   { label: "Expenses", href: "/employee/expenses", icon: CreditCard },
+  { label: "Incentives", href: "/employee/incentives", icon: Gift },
   { label: "Announcements", href: "/employee/announcements", icon: Megaphone },
   { label: "Profile", href: "/employee/profile", icon: UserRound },
 ];
