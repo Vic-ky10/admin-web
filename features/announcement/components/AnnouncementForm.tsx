@@ -9,7 +9,7 @@ import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import LoadingButton from "@/components/feedback/LoadingButton";
-
+import { useWatch } from "react-hook-form";
 import {
   Announcement,
   ANNOUNCEMENT_STATUS,
@@ -26,6 +26,7 @@ import {
   createAnnouncementAction,
   updateAnnouncementAction,
 } from "../announcement.action";
+import { useRouter } from "next/navigation";
 
 interface AnnouncementFormProps {
   open: boolean;
@@ -38,13 +39,14 @@ export default function AnnouncementForm({
   announcement,
   onClose,
 }: AnnouncementFormProps) {
+  const router = useRouter();
   const {
-    register,
-    handleSubmit,
-    
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<AnnouncementInput>({
+  register,
+  handleSubmit,
+  control,
+  reset,
+  formState: { errors, isSubmitting },
+} = useForm<AnnouncementInput>({
     resolver: zodResolver(announcementSchema),
     defaultValues: {
       title: "",
@@ -60,24 +62,32 @@ export default function AnnouncementForm({
     },
   });
 
+  const targetAudience = useWatch({
+  control,
+  name: "target_audience",
+});
+
   useEffect(() => {
     if (announcement) {
       reset({
-  title: announcement.title,
-  message: announcement.message,
-  announcement_type: announcement.announcement_type as AnnouncementInput["announcement_type"],
-  target_audience: announcement.target_audience as AnnouncementInput["target_audience"],
-  department: announcement.department ?? "",
-  attachment_url: announcement.attachment_url ?? "",
-  status: announcement.status as AnnouncementInput["status"],
-  is_pinned: announcement.is_pinned,
-  publish_at: announcement.publish_at ?? "",
-  expires_at: announcement.expires_at ?? "",
-});
+        title: announcement.title,
+        message: announcement.message,
+        announcement_type:
+          announcement.announcement_type as AnnouncementInput["announcement_type"],
+        target_audience:
+          announcement.target_audience as AnnouncementInput["target_audience"],
+        department: announcement.department ?? "",
+        attachment_url: announcement.attachment_url ?? "",
+        status: announcement.status as AnnouncementInput["status"],
+        is_pinned: announcement.is_pinned,
+        publish_at: announcement.publish_at ?? "",
+        expires_at: announcement.expires_at ?? "",
+      });
     }
   }, [announcement, reset]);
 
-  async function onSubmit(values: AnnouncementInput) {
+  async function onSubmit(values: AnnouncementInput) { 
+    
     const result = announcement
       ? await updateAnnouncementAction(announcement.id, values)
       : await createAnnouncementAction(values);
@@ -90,7 +100,9 @@ export default function AnnouncementForm({
     toast.success(result.message);
 
     reset();
-    onClose();
+    onClose(); 
+    router.refresh();
+
   }
 
   return (
@@ -99,10 +111,7 @@ export default function AnnouncementForm({
       title={announcement ? "Edit Announcement" : "New Announcement"}
       onClose={onClose}
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
           label="Title"
           {...register("title")}
@@ -122,7 +131,6 @@ export default function AnnouncementForm({
         />
 
         <div className="grid grid-cols-2 gap-4">
-
           <select {...register("announcement_type")}>
             {Object.values(ANNOUNCEMENT_TYPE).map((type) => (
               <option key={type}>{type}</option>
@@ -134,15 +142,35 @@ export default function AnnouncementForm({
               <option key={target}>{target}</option>
             ))}
           </select>
-
         </div>
 
+        {targetAudience === TARGET_AUDIENCE.DEPARTMENT && (
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-slate-700">
+              Department
+            </label>
+
+            <select
+              {...register("department")}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+            >
+              <option value="">Select Department</option>
+              <option value="Developer">Developer</option>
+              <option value="Sales">Sales</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Analytics">Analytics</option>
+            </select>
+
+            {errors.department && (
+              <p className="text-sm text-red-500">
+                {errors.department.message}
+              </p>
+            )}
+          </div>
+        )}
 
         <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            {...register("is_pinned")}
-          />
+          <input type="checkbox" {...register("is_pinned")} />
           Pin Announcement
         </label>
 
@@ -161,18 +189,11 @@ export default function AnnouncementForm({
         </div>
 
         <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onClose}
-          >
+          <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
           </Button>
 
-          <LoadingButton
-            type="submit"
-            loading={isSubmitting}
-          >
+          <LoadingButton type="submit" loading={isSubmitting}>
             {announcement ? "Update" : "Save Draft"}
           </LoadingButton>
         </div>

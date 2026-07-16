@@ -21,7 +21,7 @@ const announcementBaseSchema = z.object({
 
   announcement_type: z.enum([
     ANNOUNCEMENT_TYPE.GENERAL,
-    ANNOUNCEMENT_TYPE.HR,
+  
     ANNOUNCEMENT_TYPE.HOLIDAY,
     ANNOUNCEMENT_TYPE.EVENT,
     ANNOUNCEMENT_TYPE.MEETING,

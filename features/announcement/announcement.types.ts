@@ -1,6 +1,5 @@
 export const ANNOUNCEMENT_TYPE = {
   GENERAL: "General",
-  HR: "HR",
   HOLIDAY: "Holiday",
   EVENT: "Event",
   MEETING: "Meeting",

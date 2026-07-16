@@ -13,11 +13,7 @@ import {
   UpdateAnnouncementInput,
 } from "./announcement.validation";
 
-import {
-  createNotification,
-  
-} from "@/features/notification/notification.helper";
-
+import { createNotification } from "@/features/notification/notification.helper";
 
 const ANNOUNCEMENT_SELECT = `
 id,
@@ -42,10 +38,7 @@ department
 )
 `;
 
-
-export async function getAnnouncements(): Promise<
-  AnnouncementWithCreator[]
-> {
+export async function getAnnouncements(): Promise<AnnouncementWithCreator[]> {
   const { data, error } = await adminClient
     .from("announcements")
     .select(ANNOUNCEMENT_SELECT)
@@ -65,9 +58,8 @@ export async function getAnnouncements(): Promise<
   return (data ?? []) as AnnouncementWithCreator[];
 }
 
-
 export async function getAnnouncementById(
-  id: string
+  id: string,
 ): Promise<AnnouncementWithCreator | null> {
   const { data, error } = await adminClient
     .from("announcements")
@@ -84,22 +76,22 @@ export async function getAnnouncementById(
   return data as AnnouncementWithCreator | null;
 }
 
-
 export async function createAnnouncement(
   createdBy: string,
-  values: AnnouncementInput
+  values: AnnouncementInput,
 ): Promise<ActionResponse<Announcement>> {
+  console.log(values);
   const { data, error } = await adminClient
+
     .from("announcements")
+
     .insert({
       title: values.title,
       message: values.message,
       announcement_type: values.announcement_type,
       target_audience: values.target_audience,
       department:
-        values.target_audience === "Department"
-          ? values.department
-          : null,
+        values.target_audience === "Department" ? values.department : null,
       attachment_url: values.attachment_url || null,
       status: ANNOUNCEMENT_STATUS.DRAFT,
       is_pinned: values.is_pinned,
@@ -124,10 +116,9 @@ export async function createAnnouncement(
   };
 }
 
-
 export async function updateAnnouncement(
   id: string,
-  values: UpdateAnnouncementInput
+  values: UpdateAnnouncementInput,
 ): Promise<ActionResponse<Announcement>> {
   const { data, error } = await adminClient
     .from("announcements")
@@ -153,9 +144,7 @@ export async function updateAnnouncement(
   };
 }
 
-export async function deleteAnnouncement(
-  id: string
-): Promise<ActionResponse> {
+export async function deleteAnnouncement(id: string): Promise<ActionResponse> {
   const { error } = await adminClient
     .from("announcements")
     .delete()
@@ -174,9 +163,7 @@ export async function deleteAnnouncement(
   };
 }
 
-export async function publishAnnouncement(
-  id: string
-): Promise<ActionResponse> {
+export async function publishAnnouncement(id: string): Promise<ActionResponse> {
   const announcement = await getAnnouncementById(id);
 
   if (!announcement) {
@@ -208,9 +195,7 @@ export async function publishAnnouncement(
       error: error.message,
     };
   }
-    let query = adminClient
-    .from("profiles")
-    .select("id");
+  let query = adminClient.from("profiles").select("id");
 
   switch (announcement.target_audience) {
     case "Admin":
@@ -222,10 +207,7 @@ export async function publishAnnouncement(
       break;
 
     case "Department":
-      query = query.eq(
-        "department",
-        announcement.department
-      );
+      query = query.eq("department", announcement.department);
       break;
 
     default:
@@ -234,6 +216,11 @@ export async function publishAnnouncement(
 
   const { data: recipients, error: recipientError } = await query;
 
+  console.log("Target:", announcement.target_audience);
+  console.log("Department:", announcement.department);
+  console.log("Recipients:", recipients);
+
+  
   if (recipientError) {
     return {
       success: false,
@@ -251,8 +238,8 @@ export async function publishAnnouncement(
         referenceId: announcement.id,
         actionUrl: "/employee/announcements",
         createdBy: announcement.created_by,
-      })
-    )
+      }),
+    ),
   );
 
   return {

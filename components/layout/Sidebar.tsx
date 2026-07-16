@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   CreditCard,
   LayoutDashboard,
+  Megaphone,
   Settings,
   UsersRound,
   X,
@@ -23,6 +24,11 @@ const adminNavItems = [
   { label: "Projects", href: "/projects", icon: BriefcaseBusiness },
   { label: "Leave", href: "/leave", icon: BarChart3 },
   { label: "Expenses", href: "/expenses", icon: CreditCard },
+  {
+    label: "Announcements",
+    href: "/announcements",
+    icon: Megaphone,
+  },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -44,7 +50,7 @@ export default function Sidebar({
       <aside
         className={clsx(
           "fixed inset-y-0 left-0 z-40 hidden border-r border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-200/60 transition-all duration-300 lg:block",
-          collapsed ? "w-20" : "w-72"
+          collapsed ? "w-20" : "w-72",
         )}
       >
         <SidebarContent
@@ -145,14 +151,14 @@ function SidebarContent({
                 collapsed && "justify-center",
                 active
                   ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 shadow-sm"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
               )}
               title={collapsed ? item.label : undefined}
             >
               <Icon
                 className={clsx(
                   "h-5 w-5 shrink-0 transition-transform group-hover:scale-105",
-                  active ? "text-blue-700" : "text-slate-400"
+                  active ? "text-blue-700" : "text-slate-400",
                 )}
               />
               {!collapsed && <span>{item.label}</span>}
@@ -165,7 +171,7 @@ function SidebarContent({
         <div
           className={clsx(
             "rounded-lg border border-slate-200 bg-slate-50 p-3",
-            collapsed && "px-2"
+            collapsed && "px-2",
           )}
         >
           <p className="text-center text-xs font-medium text-slate-500">
