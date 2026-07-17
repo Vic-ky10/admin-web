@@ -9,6 +9,8 @@ export interface EmployeeDashboardStats {
   completedProjects: number;
   pendingTasks: number;
   pendingExpenses: number;
+  leaveBalance: number;
+  unreadNotifications: number;
 }
 
 export type EmployeeProfile = Employee;

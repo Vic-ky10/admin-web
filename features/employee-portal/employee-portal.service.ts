@@ -2,6 +2,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getTodayDate } from "@/features/attendance/attendance.utils";
 import { Employee } from "@/features/employee/employee.types";
+import { TOTAL_DEFAULT_LEAVE_ALLOWANCE } from "@/features/leave/leave.types";
 
 import { EmployeeDashboardStats } from "./employee-portal.types";
 
@@ -66,6 +67,8 @@ export async function getEmployeeDashboardStats(
     assignedProjects,
     projectMemberships,
     pendingExpenses,
+    approvedLeaves,
+    unreadNotifications,
   ] = await Promise.all([
     adminClient
       .from("attendance")
@@ -95,6 +98,13 @@ export async function getEmployeeDashboardStats(
       .select("id", { count: "exact", head: true })
       .eq("profile_id", profileId)
       .eq("status", "Pending"),
+    adminClient
+      .from("leave_requests")
+      .select("total_days")
+      .eq("profile_id", profileId)
+      .eq("status", "Approved")
+      .gte("start_date", `${new Date().getFullYear()}-01-01`),
+    getUnreadNotificationCount(profileId),
   ]);
 
   const memberIds =
@@ -138,11 +148,22 @@ export async function getEmployeeDashboardStats(
     pendingTasks,
     activeProjects,
     completedProjects,
+    approvedLeaves,
   ]) {
     if (response.error) {
       console.error(response.error);
     }
   }
+
+  const approvedDaysSum =
+    approvedLeaves.data?.reduce(
+      (sum, item) => sum + Number(item.total_days || 0),
+      0
+    ) ?? 0;
+  const leaveBalance = Math.max(
+    0,
+    TOTAL_DEFAULT_LEAVE_ALLOWANCE - approvedDaysSum
+  );
 
   return {
     todayAttendance: todayAttendance.data ?? null,
@@ -152,5 +173,118 @@ export async function getEmployeeDashboardStats(
     completedProjects: completedProjects.count ?? 0,
     pendingTasks: pendingTasks.count ?? 0,
     pendingExpenses: pendingExpenses.count ?? 0,
+    leaveBalance,
+    unreadNotifications,
   } as EmployeeDashboardStats;
+}
+
+export interface EmployeeActivity {
+  id: string;
+  type: "Leave" | "Expense" | "Attendance" | "Task" | "Incentive";
+  title: string;
+  description: string;
+  status?: string;
+  createdAt: string;
+}
+
+export async function getEmployeeRecentActivity(
+  profileId: string
+): Promise<EmployeeActivity[]> {
+  const leavesPromise = adminClient
+    .from("leave_requests")
+    .select("id, leave_type, status, total_days, created_at")
+    .eq("profile_id", profileId)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const expensesPromise = adminClient
+    .from("expenses")
+    .select("id, title, amount, status, created_at")
+    .eq("profile_id", profileId)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const incentivesPromise = adminClient
+    .from("incentives")
+    .select("id, title, amount, status, created_at")
+    .eq("profile_id", profileId)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const membersRes = await adminClient
+    .from("project_members")
+    .select("id")
+    .eq("profile_id", profileId);
+
+  const memberIds = membersRes.data?.map((m) => m.id) ?? [];
+
+  const tasksPromise =
+    memberIds.length > 0
+      ? adminClient
+          .from("tasks")
+          .select("id, title, status, created_at")
+          .in("project_member_id", memberIds)
+          .order("created_at", { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: [] });
+
+  const [leavesRes, expensesRes, incentivesRes, tasksRes] = await Promise.all([
+    leavesPromise,
+    expensesPromise,
+    incentivesPromise,
+    tasksPromise,
+  ]);
+
+  const activities: EmployeeActivity[] = [];
+
+  (leavesRes.data ?? []).forEach((item) => {
+    activities.push({
+      id: item.id,
+      type: "Leave",
+      title: `${item.leave_type} Requested`,
+      description: `${item.total_days} day(s) requested (${item.status})`,
+      status: item.status,
+      createdAt: item.created_at,
+    });
+  });
+
+  (expensesRes.data ?? []).forEach((item) => {
+    activities.push({
+      id: item.id,
+      type: "Expense",
+      title: `Expense Claim Submitted`,
+      description: `${item.title} - ₹${item.amount} (${item.status})`,
+      status: item.status,
+      createdAt: item.created_at,
+    });
+  });
+
+  (incentivesRes.data ?? []).forEach((item) => {
+    activities.push({
+      id: item.id,
+      type: "Incentive",
+      title: `Incentive Reward`,
+      description: `${item.title} - ₹${item.amount} (${item.status})`,
+      status: item.status,
+      createdAt: item.created_at,
+    });
+  });
+
+  (tasksRes.data ?? []).forEach((item) => {
+    activities.push({
+      id: item.id,
+      type: "Task",
+      title: `Task Assignment`,
+      description: `${item.title} (${item.status})`,
+      status: item.status,
+      createdAt: item.created_at,
+    });
+  });
+
+  return activities
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, 5);
 }

@@ -61,3 +61,14 @@ export interface LeaveFilters {
   profileId?: string;
   status?: LeaveStatus | "";
 }
+
+/**
+ * Temporary business configuration for yearly leave allowances.
+ * TODO: Replace with a database-driven HR leave policy module when implemented.
+ */
+export const DEFAULT_LEAVE_ALLOWANCE = {
+  [LEAVE_TYPE.CASUAL]: 12,
+  [LEAVE_TYPE.SICK]: 10,
+} as const;
+
+export const TOTAL_DEFAULT_LEAVE_ALLOWANCE = 22;
