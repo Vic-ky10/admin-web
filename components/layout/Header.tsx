@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import NotificationDropdown from "@/features/notification/components/NotificationDropdown";
 import { Notification } from "@/features/notification/notification.types";
 import { usePathname } from "next/navigation";
@@ -64,18 +64,6 @@ export default function Header({
               {currentLabel}
             </h2>
           </div>
-        </div>
-
-        <div className="hidden min-w-0 flex-1 justify-center px-6 md:flex">
-          <label className="relative w-full max-w-xl">
-            <span className="sr-only">Search admin portal</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="search"
-              placeholder="Search people, projects, attendance..."
-              className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-            />
-          </label>
         </div>
 
         <div className="flex shrink-0 items-center gap-3">

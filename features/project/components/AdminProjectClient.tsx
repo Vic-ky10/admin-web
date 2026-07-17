@@ -14,6 +14,7 @@ import {
   archiveProjectAction,
   assignProjectMembersAction,
   createProjectAction,
+  deleteProjectAction,
   updateProjectAction,
 } from "../project.actions";
 import {
@@ -52,6 +53,8 @@ export default function AdminProjectClient({
   const [selectedProject, setSelectedProject] =
     useState<ProjectWithMembers | null>(null);
   const [assignProject, setAssignProject] =
+    useState<ProjectWithMembers | null>(null);
+  const [projectToDelete, setProjectToDelete] =
     useState<ProjectWithMembers | null>(null);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [memberRole, setMemberRole] = useState<ProjectMemberRole>(
@@ -125,6 +128,22 @@ export default function AdminProjectClient({
       }
 
       toast.success(result.message ?? "Project archived.");
+      router.refresh();
+    });
+  }
+
+  function handleConfirmDelete() {
+    if (!projectToDelete) return;
+    startTransition(async () => {
+      const result = await deleteProjectAction(projectToDelete.id);
+
+      if (!result.success) {
+        toast.error(result.error ?? "Unable to delete project.");
+        return;
+      }
+
+      toast.success(result.message ?? "Project deleted.");
+      setProjectToDelete(null);
       router.refresh();
     });
   }
@@ -235,9 +254,44 @@ export default function AdminProjectClient({
             onView={setSelectedProject}
             onEdit={openEdit}
             onArchive={handleArchive}
+            onDelete={setProjectToDelete}
           />
         </>
       )}
+
+      <Modal
+        open={projectToDelete !== null}
+        title="Delete Project"
+        onClose={() => setProjectToDelete(null)}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-500">
+            Are you sure you want to permanently delete the project{" "}
+            <strong className="text-slate-900">
+              &quot;{projectToDelete?.project_name}&quot;
+            </strong>
+            ? This action cannot be undone and will delete all project tasks and
+            memberships.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setProjectToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={handleConfirmDelete}
+              disabled={isPending}
+            >
+              Delete Project
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         open={formOpen}

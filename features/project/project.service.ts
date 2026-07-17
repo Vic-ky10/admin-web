@@ -502,3 +502,42 @@ function normalizeProjectMembers(
       : record.employee,
   }));
 }
+
+export async function deleteProject(id: string): Promise<ActionResponse<null>> {
+  const { data: project, error: checkError } = await adminClient
+    .from("projects")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (checkError) {
+    return {
+      success: false,
+      error: checkError.message,
+    };
+  }
+
+  if (!project) {
+    return {
+      success: false,
+      error: "Project was not found or has already been deleted.",
+    };
+  }
+
+  const { error } = await adminClient
+    .from("projects")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    message: "Project deleted successfully.",
+  };
+}

@@ -8,6 +8,7 @@ import {
   archiveProject,
   assignProjectMembers,
   createProject,
+  deleteProject,
   getAuthenticatedProfileId,
   getProjectMembers,
   removeProjectMember,
@@ -153,6 +154,27 @@ export async function removeProjectMemberAction(
   }
 
   const response = await removeProjectMember(result.data.projectMemberId);
+
+  if (response.success) {
+    revalidateProjectPaths();
+  }
+
+  return response;
+}
+
+export async function deleteProjectAction(
+  projectId: string
+): Promise<ActionResponse<null>> {
+  const idResult = projectIdSchema.safeParse({ projectId });
+
+  if (!idResult.success) {
+    return {
+      success: false,
+      error: idResult.error.issues[0]?.message ?? "Invalid project.",
+    };
+  }
+
+  const response = await deleteProject(idResult.data.projectId);
 
   if (response.success) {
     revalidateProjectPaths();

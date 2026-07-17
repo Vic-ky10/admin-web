@@ -129,10 +129,26 @@ export async function getTasks(): Promise<TaskWithProject[]> {
 export async function getEmployeeTasks(
   profileId: string
 ): Promise<TaskWithProject[]> {
+  const { data: memberRecords, error: memberError } = await adminClient
+    .from("project_members")
+    .select("id")
+    .eq("profile_id", profileId);
+
+  if (memberError) {
+    console.error(memberError);
+    return [];
+  }
+
+  const memberIds = memberRecords?.map((m) => m.id) ?? [];
+
+  if (memberIds.length === 0) {
+    return [];
+  }
+
   const { data, error } = await adminClient
     .from("tasks")
     .select(TASK_SELECT)
-    .eq("member.profile_id", profileId)
+    .in("project_member_id", memberIds)
     .order("created_at", {
       ascending: false,
     });

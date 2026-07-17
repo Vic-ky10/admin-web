@@ -22,6 +22,7 @@ interface ProjectTableProps {
   onView: (project: ProjectWithMembers) => void;
   onEdit: (project: ProjectWithMembers) => void;
   onArchive: (project: ProjectWithMembers) => void;
+  onDelete: (project: ProjectWithMembers) => void;
 }
 
 export default function ProjectTable({
@@ -29,6 +30,7 @@ export default function ProjectTable({
   onView,
   onEdit,
   onArchive,
+  onDelete,
 }: ProjectTableProps) {
   return (
     <Table>
@@ -84,6 +86,13 @@ export default function ProjectTable({
                   onClick={() => onArchive(project)}
                 >
                   Archive
+                </Button>
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() => onDelete(project)}
+                >
+                  Delete
                 </Button>
               </div>
             </TableCell>
