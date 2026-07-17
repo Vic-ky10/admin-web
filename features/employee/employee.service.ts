@@ -394,3 +394,35 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 }
+
+export async function updateSelfProfile(
+  profileId: string,
+  fullName: string,
+  phone: string | null,
+  avatarUrl: string | null
+): Promise<ActionResponse<Employee>> {
+  const { data, error } = await adminClient
+    .from("profiles")
+    .update({
+      full_name: fullName,
+      phone: phone || null,
+      avatar_url: avatarUrl || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", profileId)
+    .select(EMPLOYEE_SELECT)
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    message: "Profile updated successfully.",
+    data: data as Employee,
+  };
+}

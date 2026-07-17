@@ -8,6 +8,7 @@ import {
   deleteEmployeeAccount,
   onboardEmployee,
   updateEmployeeProfile,
+  updateSelfProfile,
 } from "./employee.service";
 import {
   Employee,
@@ -16,7 +17,10 @@ import {
 import {
   EmployeeFormData,
   employeeSchema,
+  profileSchema,
+  ProfileFormData,
 } from "./employee.validation";
+import { getCurrentEmployeeProfile } from "../employee-portal/employee-portal.service";
 
 export async function createEmployee(
   values: EmployeeFormData
@@ -102,6 +106,52 @@ export async function deleteEmployee(
         error instanceof Error
           ? error.message
           : "Unable to delete employee.",
+    };
+  }
+}
+
+export async function updateSelfProfileAction(
+  values: ProfileFormData
+): Promise<ActionResponse<Employee>> {
+  const profile = await getCurrentEmployeeProfile();
+  if (!profile) {
+    return {
+      success: false,
+      error: "You must be authenticated to perform this action.",
+    };
+  }
+
+  const result = profileSchema.safeParse(values);
+  if (!result.success) {
+    return {
+      success: false,
+      error: result.error.issues[0]?.message ?? "Invalid profile details.",
+    };
+  }
+
+  try {
+    const response = await updateSelfProfile(
+      profile.id,
+      result.data.full_name,
+      result.data.phone || null,
+      result.data.avatar_url || null
+    );
+
+    if (response.success) {
+      revalidatePath("/employee/profile");
+      revalidatePath("/settings");
+      revalidatePath("/dashboard");
+      revalidatePath("/employee/dashboard");
+    }
+
+    return response;
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to update profile.",
     };
   }
 }
