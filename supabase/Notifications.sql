@@ -42,6 +42,7 @@ create table if not exists public.notifications (
         'Task',
         'Attendance',
         'Announcement',
+        'Incentive',
         'General'
       )
     )

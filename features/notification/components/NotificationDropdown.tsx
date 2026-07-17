@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTransition } from "react";
+import { useTransition, useState, useEffect, useRef } from "react";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ import Button from "@/components/ui/Button";
 import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
+  getNotificationsAction,
 } from "../notification.action";
 
 import { Notification } from "../notification.types";
@@ -21,16 +22,98 @@ interface NotificationDropdownProps {
 
 export default function NotificationDropdown({
   notifications,
-  unreadCount,
 }: NotificationDropdownProps) {
   const [pending, startTransition] = useTransition();
+  const [prevNotifications, setPrevNotifications] = useState<Notification[]>(notifications);
+  const [localNotifications, setLocalNotifications] = useState<Notification[]>(notifications);
+  const isFetchingRef = useRef(false);
+  const pendingReadIdsRef = useRef<Set<string>>(new Set());
+  const pendingAllReadRef = useRef(false);
+
+  // Sync state during render phase if prop notifications updates
+  if (notifications !== prevNotifications) {
+    setPrevNotifications(notifications);
+    setLocalNotifications(notifications);
+  }
+
+  // Dynamic unread count based on current local/optimistic state
+  const localUnreadCount = localNotifications.filter((n) => !n.is_read).length;
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const poll = async () => {
+      if (document.hidden || isFetchingRef.current) return;
+      isFetchingRef.current = true;
+      try {
+        const fresh = await getNotificationsAction();
+        // Merge fetched notifications with optimistic local updates
+        const merged = fresh.map((n) => {
+          if (pendingAllReadRef.current || pendingReadIdsRef.current.has(n.id)) {
+            return { ...n, is_read: true };
+          }
+          return n;
+        });
+        setLocalNotifications(merged);
+      } catch (error) {
+        console.error("Failed to poll notifications in background:", error);
+      } finally {
+        isFetchingRef.current = false;
+      }
+    };
+
+    const startPolling = () => {
+      if (!intervalId) {
+        intervalId = setInterval(poll, 5000);
+      }
+    };
+
+    const stopPolling = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        poll(); // Fetch immediately when tab becomes visible
+        startPolling();
+      }
+    };
+
+    if (!document.hidden) {
+      startPolling();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   function markRead(id: string) {
+    // Add to optimistic pending reads
+    pendingReadIdsRef.current.add(id);
+    setLocalNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+    );
+
     startTransition(async () => {
       const result = await markNotificationReadAction(id);
 
+      // Remove from optimistic pending reads
+      pendingReadIdsRef.current.delete(id);
+
       if (!result.success) {
         toast.error(result.error ?? "Unable to update notification.");
+        // Fetch to restore actual state
+        const fresh = await getNotificationsAction();
+        setLocalNotifications(fresh);
         return;
       }
 
@@ -39,11 +122,23 @@ export default function NotificationDropdown({
   }
 
   function markAllRead() {
+    // Add to optimistic pending all read
+    pendingAllReadRef.current = true;
+    setLocalNotifications((prev) =>
+      prev.map((n) => ({ ...n, is_read: true }))
+    );
+
     startTransition(async () => {
       const result = await markAllNotificationsReadAction();
 
+      // Reset optimistic pending all read
+      pendingAllReadRef.current = false;
+
       if (!result.success) {
         toast.error(result.error ?? "Unable to update notifications.");
+        // Fetch to restore actual state
+        const fresh = await getNotificationsAction();
+        setLocalNotifications(fresh);
         return;
       }
 
@@ -56,9 +151,9 @@ export default function NotificationDropdown({
       <summary className="relative inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-700">
         <Bell className="h-5 w-5" />
 
-        {unreadCount > 0 && (
+        {localUnreadCount > 0 && (
           <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">
-            {unreadCount}
+            {localUnreadCount}
           </span>
         )}
       </summary>
@@ -68,10 +163,10 @@ export default function NotificationDropdown({
           <div>
             <h3 className="font-semibold text-slate-900">Notifications</h3>
 
-            <p className="text-xs text-slate-500">{unreadCount} unread</p>
+            <p className="text-xs text-slate-500">{localUnreadCount} unread</p>
           </div>
 
-          {unreadCount > 0 && (
+          {localUnreadCount > 0 && (
             <Button
               type="button"
               variant="secondary"
@@ -85,7 +180,7 @@ export default function NotificationDropdown({
         </div>
 
         <div className="max-h-96 overflow-y-auto">
-          {notifications.length === 0 ? (
+          {localNotifications.length === 0 ? (
             <div className="p-6 text-center">
               <Bell className="mx-auto h-10 w-10 text-slate-300" />
 
@@ -96,7 +191,7 @@ export default function NotificationDropdown({
               <p className="text-sm text-slate-500">You&apos;re all caught up..</p>
             </div>
           ) : (
-            notifications.map((notification) => (
+            localNotifications.map((notification) => (
               <div
                 key={notification.id}
                 className={[

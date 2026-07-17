@@ -10,6 +10,7 @@ import Modal from "@/components/ui/Modal";
 
 import {
   markIncentivePaidAction,
+  markIncentivePendingAction,
   reviewIncentiveAction,
 } from "../incentive.action";
 import {
@@ -72,6 +73,21 @@ export default function ApproveIncentiveModal({
       }
 
       toast.success(result.message ?? "Incentive marked as paid.");
+      onClose();
+      router.refresh();
+    });
+  }
+
+  function handleMarkPending() {
+    startTransition(async () => {
+      const result = await markIncentivePendingAction(currentIncentive.id);
+
+      if (!result.success) {
+        toast.error(result.error ?? "Unable to update payment.");
+        return;
+      }
+
+      toast.success(result.message ?? "Incentive marked as pending.");
       onClose();
       router.refresh();
     });
@@ -140,6 +156,17 @@ export default function ApproveIncentiveModal({
                 onClick={handleMarkPaid}
               >
                 Mark Paid
+              </LoadingButton>
+            )}
+          {incentive.status === INCENTIVE_STATUS.APPROVED &&
+            incentive.payment_status === INCENTIVE_PAYMENT_STATUS.PAID && (
+              <LoadingButton
+                type="button"
+                variant="secondary"
+                loading={isPending}
+                onClick={handleMarkPending}
+              >
+                Mark Pending
               </LoadingButton>
             )}
         </div>

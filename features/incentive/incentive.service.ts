@@ -294,6 +294,16 @@ export async function createIncentive(
     };
   }
 
+  await createNotification({
+    profileId: values.profile_id,
+    title: "New Incentive Assigned",
+    message: `A new incentive ${incentiveCode} of amount ₹${values.amount} has been created for you.`,
+    notificationType: "Incentive",
+    referenceId: data.id,
+    actionUrl: "/employee/incentives",
+    createdBy: createdBy,
+  });
+
   return {
     success: true,
     message: "Incentive created successfully.",
@@ -502,6 +512,68 @@ export async function markIncentivePaid(
   return {
     success: true,
     message: "Incentive marked as paid.",
+    data: data as Incentive,
+  };
+}
+
+export async function markIncentivePending(
+  id: string,
+  updatedBy: string,
+): Promise<ActionResponse<Incentive>> {
+  const existing = await getIncentiveById(id);
+
+  if (!existing) {
+    return {
+      success: false,
+      error: "Incentive was not found.",
+    };
+  }
+
+  if (existing.status !== INCENTIVE_STATUS.APPROVED) {
+    return {
+      success: false,
+      error: "Only approved incentives can be marked as pending payment.",
+    };
+  }
+
+  if (existing.payment_status === INCENTIVE_PAYMENT_STATUS.PENDING) {
+    return {
+      success: false,
+      error: "Incentive payment status is already pending.",
+    };
+  }
+
+  const { data, error } = await adminClient
+    .from("incentives")
+    .update({
+      payment_status: INCENTIVE_PAYMENT_STATUS.PENDING,
+      paid_at: null,
+    })
+    .eq("id", id)
+    .eq("status", INCENTIVE_STATUS.APPROVED)
+    .select(INCENTIVE_SELECT)
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  await createNotification({
+    profileId: existing.profile_id,
+    title: "Incentive Payment Pending",
+    message: `Your incentive ${existing.incentive_code} payment status has been set to pending.`,
+    notificationType: "Incentive",
+    referenceId: existing.id,
+    actionUrl: "/employee/incentives",
+    createdBy: updatedBy,
+  });
+
+  return {
+    success: true,
+    message: "Incentive marked as pending.",
     data: data as Incentive,
   };
 }

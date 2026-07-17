@@ -9,6 +9,7 @@ import {
   deleteIncentive,
   getAuthenticatedProfileId,
   markIncentivePaid,
+  markIncentivePending,
   reviewIncentive,
   updateIncentive,
 } from "./incentive.service";
@@ -44,7 +45,8 @@ export async function createIncentiveAction(
   const response = await createIncentive(profileId, result.data);
 
   if (response.success) {
-    revalidateIncentivePaths();
+    revalidatePath("/incentives");
+    revalidatePath("/employee/incentives");
   }
 
   return response;
@@ -77,7 +79,8 @@ export async function updateIncentiveAction(
   );
 
   if (response.success) {
-    revalidateIncentivePaths();
+    revalidatePath("/incentives");
+    revalidatePath("/employee/incentives");
   }
 
   return response;
@@ -98,7 +101,8 @@ export async function deleteIncentiveAction(
   const response = await deleteIncentive(result.data.incentiveId);
 
   if (response.success) {
-    revalidateIncentivePaths();
+    revalidatePath("/incentives");
+    revalidatePath("/employee/incentives");
   }
 
   return response;
@@ -128,7 +132,8 @@ export async function reviewIncentiveAction(
   const response = await reviewIncentive(profileId, result.data);
 
   if (response.success) {
-    revalidateIncentivePaths();
+    revalidatePath("/incentives");
+    revalidatePath("/employee/incentives");
   }
 
   return response;
@@ -161,15 +166,43 @@ export async function markIncentivePaidAction(
   );
 
   if (response.success) {
-    revalidateIncentivePaths();
+    revalidatePath("/incentives");
+    revalidatePath("/employee/incentives");
   }
 
   return response;
 }
 
-function revalidateIncentivePaths() {
-  revalidatePath("/incentives");
-  revalidatePath("/dashboard");
-  revalidatePath("/employee/incentives");
-  revalidatePath("/employee/dashboard");
+export async function markIncentivePendingAction(
+  incentiveId: string,
+): Promise<ActionResponse<Incentive>> {
+  const result = incentiveIdSchema.safeParse({ incentiveId });
+
+  if (!result.success) {
+    return {
+      success: false,
+      error: result.error.issues[0]?.message ?? "Invalid incentive.",
+    };
+  }
+
+  const profileId = await getAuthenticatedProfileId();
+
+  if (!profileId) {
+    return {
+      success: false,
+      error: "Admin profile was not found.",
+    };
+  }
+
+  const response = await markIncentivePending(
+    result.data.incentiveId,
+    profileId,
+  );
+
+  if (response.success) {
+    revalidatePath("/incentives");
+    revalidatePath("/employee/incentives");
+  }
+
+  return response;
 }
