@@ -5,23 +5,23 @@ import ProfileForm from "@/features/employee/components/ProfileForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function EmployeeProfilePage() {
+export default async function AdminSettingsPage() {
   const profile = await getCurrentEmployeeProfile();
 
   if (!profile) {
-    redirect("/employee/login");
+    redirect("/login");
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">My Profile</h1>
+        <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-slate-500">
-          View and update your personal information.
+          Manage your administrator profile information.
         </p>
       </div>
 
-      <ProfileForm profile={profile} theme="employee" />
+      <ProfileForm profile={profile} theme="admin" />
     </div>
   );
 }
