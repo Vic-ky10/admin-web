@@ -283,9 +283,9 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column: Quick Actions, Pending Approvals, Recent Activity */}
+        {/* Left Column: quick Actions, ending Approvals, recent Activity */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Quick Actions */}
+          {/* quick Actions */}
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-bold text-slate-950">Quick Actions</h2>
             <div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-4">
@@ -328,9 +328,9 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Pending Approvals Overview */}
+          
           <div className="grid gap-6 sm:grid-cols-2">
-            {/* Leave Approvals */}
+            
             <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <h3 className="font-bold text-slate-950 text-sm">
@@ -368,7 +368,7 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            {/* Expense Approvals */}
+             {/* Expense Approvals */}
             <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <h3 className="font-bold text-slate-950 text-sm">

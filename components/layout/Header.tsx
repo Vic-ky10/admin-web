@@ -1,16 +1,17 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import {  Menu } from "lucide-react";
 import NotificationDropdown from "@/features/notification/components/NotificationDropdown";
 import { Notification } from "@/features/notification/notification.types";
 import { usePathname } from "next/navigation";
 
 import { Employee } from "@/features/employee/employee.types";
+import Link from "next/link";
 
 interface HeaderProps {
   profile: Employee | null;
   unreadNotifications: number;
-  notifications : Notification[]
+  notifications: Notification[];
   onOpenSidebar: () => void;
 }
 
@@ -67,10 +68,10 @@ export default function Header({
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
-         <NotificationDropdown
-  notifications={notifications}
-  unreadCount={unreadNotifications}
-/>
+          <NotificationDropdown
+            notifications={notifications}
+            unreadCount={unreadNotifications}
+          />
 
           <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
             {profile?.avatar_url ? (
@@ -86,12 +87,14 @@ export default function Header({
               </span>
             )}
             <span className="hidden text-left sm:block">
+               <Link href='/settings'> 
               <span className="block max-w-40 truncate text-sm font-semibold text-slate-900">
                 {profile?.full_name ?? "Admin"}
               </span>
               <span className="block max-w-40 truncate text-xs text-slate-500">
                 {profile?.email ?? "admin"}
               </span>
+              </Link>
             </span>
           </div>
         </div>

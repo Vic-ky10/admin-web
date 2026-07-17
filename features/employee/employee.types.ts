@@ -32,4 +32,12 @@ export interface Employee {
 
 export interface EmployeeOnboardingResult {
   employeeId: string;
+  credentials: EmployeeCredentials;
+}
+
+export interface EmployeeCredentials {
+  fullName: string;
+  email: string;
+  password: string;
+  portalUrl: string;
 }

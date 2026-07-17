@@ -1,4 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/services/email.service";
 import { ActionResponse } from "@/types/action";
 
 import {
@@ -12,7 +13,7 @@ import {
 } from "./employee.types";
 import { EmployeeFormData } from "./employee.validation";
 
-const WELCOME_EMAIL_SUBJECT = "Welcome to InfiniGoal";
+const WELCOME_EMAIL_SUBJECT = "Welcome to InfiniGoal Portal";
 const EMPLOYEE_SELECT =
   "id, employee_id, full_name, email, phone, department, designation, role, avatar_url, status, is_online, last_login, joined_date, created_at, updated_at";
 
@@ -168,53 +169,27 @@ export async function deleteEmployeeAccount(
 
 export async function sendWelcomeEmail({
   employee,
-  employeeId,
   password,
 }: {
   employee: EmployeeFormData;
-  employeeId: string;
   password: string;
 }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.RESEND_FROM_EMAIL;
+  const portalUrl = process.env.EMPLOYEE_PORTAL_URL!;
 
-  if (!apiKey || !fromEmail) {
-    console.warn(
-      "Welcome email is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL."
-    );
-    return false;
-  }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: employee.email,
-      subject: WELCOME_EMAIL_SUBJECT,
-      html: buildWelcomeEmailHtml({
-        employee,
-        employeeId,
-        password,
-      }),
-      text: buildWelcomeEmailText({
-        employee,
-        employeeId,
-        password,
-      }),
+  await sendEmail({
+    to: employee.email,
+    subject: WELCOME_EMAIL_SUBJECT,
+    html: buildWelcomeEmailHtml({
+      employee,
+      password,
+      portalUrl,
+    }),
+    text: buildWelcomeEmailText({
+      employee,
+      password,
+      portalUrl,
     }),
   });
-
-  if (!response.ok) {
-    const message = await response.text();
-
-    throw new Error(
-      message || "Unable to send the welcome email."
-    );
-  }
 
   return true;
 }
@@ -258,29 +233,38 @@ export async function onboardEmployee(
     };
   }
 
+  // TODO:
+  // Re-enable sendWelcomeEmail() once a verified Resend domain is available.
+  // The Credentials Modal will remain as a backup onboarding option.
+  /*
   let welcomeEmailSent = false;
 
   try {
     welcomeEmailSent = await sendWelcomeEmail({
       employee,
-      employeeId,
       password,
     });
   } catch (error) {
-    console.warn(
+    console.error(
+      "Welcome email failed:",
       error instanceof Error
         ? error.message
         : "Unable to send the welcome email."
     );
   }
+  */
 
   return {
     success: true,
-    message: welcomeEmailSent
-      ? "Employee created successfully. Welcome email sent."
-      : "Employee created successfully.",
+    message: "Employee created successfully.",
     data: {
       employeeId,
+      credentials: {
+        fullName: employee.full_name,
+        email: employee.email,
+        password,
+        portalUrl: process.env.EMPLOYEE_PORTAL_URL!,
+      },
     },
   };
 }
@@ -294,12 +278,12 @@ function formatEmployeeId(value: number) {
 
 function buildWelcomeEmailHtml({
   employee,
-  employeeId,
   password,
+  portalUrl,
 }: {
   employee: EmployeeFormData;
-  employeeId: string;
   password: string;
+  portalUrl: string;
 }) {
   return `
     <!doctype html>
@@ -308,7 +292,7 @@ function buildWelcomeEmailHtml({
         <div style="max-width:640px;margin:0 auto;padding:32px 20px;">
           <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:32px;">
             <h1 style="margin:0 0 16px;font-size:24px;line-height:32px;color:#047857;">
-              Welcome to InfiniGoal
+              Welcome to InfiniGoal Portal
             </h1>
 
             <p style="margin:0 0 16px;font-size:16px;line-height:24px;">
@@ -316,21 +300,19 @@ function buildWelcomeEmailHtml({
             </p>
 
             <p style="margin:0 0 24px;font-size:16px;line-height:24px;">
-              We are pleased to welcome you to InfiniGoal. Your employee account has been created successfully.
+              Welcome to InfiniGoal. Your employee account has been created successfully.
             </p>
 
             <table style="width:100%;border-collapse:collapse;font-size:14px;line-height:20px;">
               <tbody>
-                ${buildEmailTableRow("Employee Name", employee.full_name)}
-                ${buildEmailTableRow("Employee ID", employeeId)}
-                ${buildEmailTableRow("Role", employee.role)}
-                ${buildEmailTableRow("Email", employee.email)}
-                ${buildEmailTableRow("Default Password", password)}
+                ${buildEmailTableRow("Employee Portal", portalUrl)}
+                ${buildEmailTableRow("Login Email", employee.email)}
+                ${buildEmailTableRow("Temporary Password", password)}
               </tbody>
             </table>
 
             <p style="margin:24px 0 0;font-size:14px;line-height:22px;color:#475569;">
-              Please keep these credentials secure. You can continue using the default password until you change it from your Profile page.
+              Please use these credentials to access the Employee Portal.
             </p>
 
             <p style="margin:24px 0 0;font-size:14px;line-height:22px;color:#475569;">
@@ -346,27 +328,32 @@ function buildWelcomeEmailHtml({
 
 function buildWelcomeEmailText({
   employee,
-  employeeId,
   password,
+  portalUrl,
 }: {
   employee: EmployeeFormData;
-  employeeId: string;
   password: string;
+  portalUrl: string;
 }) {
   return [
-    "Welcome to InfiniGoal",
+    "Welcome to InfiniGoal Portal",
     "",
     `Hello ${employee.full_name},`,
     "",
-    "We are pleased to welcome you to InfiniGoal. Your employee account has been created successfully.",
+    "Welcome to InfiniGoal.",
     "",
-    `Employee Name: ${employee.full_name}`,
-    `Employee ID: ${employeeId}`,
-    `Role: ${employee.role}`,
-    `Email: ${employee.email}`,
-    `Default Password: ${password}`,
+    "Your employee account has been created successfully.",
     "",
-    "Please keep these credentials secure. You can continue using the default password until you change it from your Profile page.",
+    `Employee Portal:`,
+    portalUrl,
+    "",
+    `Login Email:`,
+    employee.email,
+    "",
+    `Temporary Password:`,
+    password,
+    "",
+    "Please use these credentials to access the Employee Portal.",
     "",
     "Regards,",
     "InfiniGoal Team",

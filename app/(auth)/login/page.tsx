@@ -77,7 +77,7 @@ export default function LoginPage() {
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="mt-8 w-full rounded-lg bg-emerald-600 p-3 text-white hover:bg-emerald-700"
+          className="mt-8 w-full rounded-lg bg-blue-600 p-3 text-white hover:bg-emerald-700"
         >
           {loading ? "Logging in..." : "Login"}
         </button>

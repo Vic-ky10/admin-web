@@ -11,7 +11,9 @@ import {
   LayoutDashboard,
   ListTodo,
   Megaphone,
+  PersonStandingIcon,
   Settings,
+  UserRound,
   UsersRound,
   X,
 } from "lucide-react";
@@ -26,7 +28,8 @@ const adminNavItems = [
   { label: "Projects", href: "/projects", icon: BriefcaseBusiness },
   { label: "Leave", href: "/leave", icon: BarChart3 },
   { label: "Expenses", href: "/expenses", icon: CreditCard },
-  { label: "Incentives", href: "/incentives", icon: Gift },
+  { label: "Incentives", href: "/incentives", icon: UserRound
+   },
   {
     label: "Tasks",
     href: "/tasks",
@@ -37,7 +40,7 @@ const adminNavItems = [
     href: "/announcements",
     icon: Megaphone,
   },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Profile", href: "/settings", icon: Settings },
 ];
 
 interface SidebarProps {

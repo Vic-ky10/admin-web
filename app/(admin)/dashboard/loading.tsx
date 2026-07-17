@@ -1,14 +1,14 @@
 export default function AdminDashboardLoading() {
   return (
     <div className="space-y-6 animate-pulse">
-      {/* Header Skeleton */}
+    
       <div className="space-y-2">
         <div className="h-4 w-20 bg-slate-200 rounded" />
         <div className="h-8 w-64 bg-slate-200 rounded" />
         <div className="h-4 w-96 bg-slate-200 rounded" />
       </div>
 
-      {/* Cards Skeleton */}
+   
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
           <div
@@ -22,11 +22,10 @@ export default function AdminDashboardLoading() {
         ))}
       </div>
 
-      {/* Columns Skeleton */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column */}
+      
         <div className="lg:col-span-2 space-y-6">
-          {/* Quick Actions */}
+          
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
             <div className="h-6 w-32 bg-slate-200 rounded" />
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
@@ -39,7 +38,7 @@ export default function AdminDashboardLoading() {
             </div>
           </div>
 
-          {/* Pending Approvals */}
+          
           <div className="grid gap-6 sm:grid-cols-2">
             {[1, 2].map((i) => (
               <div
@@ -59,7 +58,8 @@ export default function AdminDashboardLoading() {
             ))}
           </div>
 
-          {/* Recent Activity */}
+          
+
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
             <div className="h-6 w-36 bg-slate-200 rounded" />
             <div className="space-y-4 divide-y divide-slate-100">
@@ -76,9 +76,9 @@ export default function AdminDashboardLoading() {
           </div>
         </div>
 
-        {/* Right Column */}
+       
         <div className="space-y-6">
-          {/* Announcements */}
+         
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
             <div className="h-6 w-36 bg-slate-200 rounded" />
             <div className="space-y-4">

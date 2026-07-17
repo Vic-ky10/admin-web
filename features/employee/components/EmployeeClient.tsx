@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { toast } from "sonner";
 import Button from "@/components/ui/Button";
 
 import AddEmployeeModal from "./AddEmployeeModal";
@@ -9,8 +10,9 @@ import EmployeeDetailsModal from "./EmployeeDetailsModal";
 import EditEmployeeModal from "./EditEmployeeModal";
 import EmployeeTable from "./EmployeeTable";
 import SearchBar from "./SearchBar";
+import CredentialsModal from "./CredentialsModal";
 
-import { Employee } from "../employee.types";
+import { Employee, EmployeeCredentials } from "../employee.types";
 
 interface Props {
   employees: Employee[];
@@ -27,6 +29,10 @@ export default function EmployeeClient({
 
   const [editingEmployee, setEditingEmployee] =
     useState<Employee | null>(null);
+
+  const [credentials, setCredentials] = useState<EmployeeCredentials | null>(
+    null
+  );
 
   const [search, setSearch] = useState("");
 
@@ -81,6 +87,19 @@ export default function EmployeeClient({
       <AddEmployeeModal
         open={open}
         onClose={() => setOpen(false)}
+        onCreated={(creds) => {
+          setOpen(false);
+          setCredentials(creds);
+        }}
+      />
+
+      <CredentialsModal
+        open={credentials !== null}
+        credentials={credentials}
+        onClose={() => {
+          setCredentials(null);
+          toast.success("Employee created successfully.");
+        }}
       />
 
       <EmployeeDetailsModal

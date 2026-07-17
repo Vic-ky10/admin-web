@@ -2,15 +2,18 @@
 
 import Modal from "@/components/ui/Modal";
 import EmployeeForm from "./EmployeeForm";
+import { EmployeeCredentials } from "../employee.types";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  onCreated: (credentials: EmployeeCredentials) => void;
 }
 
 export default function AddEmployeeModal({
   open,
   onClose,
+  onCreated,
 }: Props) {
   return (
     <Modal
@@ -18,7 +21,7 @@ export default function AddEmployeeModal({
       title="Add Employee"
       onClose={onClose}
     >
-      <EmployeeForm onSuccess={onClose} onCancel={onClose} />
+      <EmployeeForm onSuccess={onClose} onCancel={onClose} onCreated={onCreated} />
     </Modal>
   );
 }

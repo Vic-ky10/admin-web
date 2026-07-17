@@ -25,13 +25,14 @@ import {
   EmployeeFormData,
   employeeSchema,
 } from "../employee.validation";
-import { Employee } from "../employee.types";
+import { Employee, EmployeeCredentials } from "../employee.types";
 
 interface EmployeeFormProps {
   employee?: Employee;
   mode?: "create" | "edit";
   onCancel: () => void;
   onSuccess: () => void;
+  onCreated?: (credentials: EmployeeCredentials) => void;
 }
 
 const defaultValues: EmployeeFormData = {
@@ -48,6 +49,7 @@ export default function EmployeeForm({
   mode = "create",
   onCancel,
   onSuccess,
+  onCreated,
 }: EmployeeFormProps) {
   const router = useRouter();
   const isEdit = mode === "edit";
@@ -86,14 +88,22 @@ export default function EmployeeForm({
       return;
     }
 
-    toast.success(
+    const successMessage =
       result.message ??
         (isEdit
           ? "Employee updated successfully."
-          : "Employee created successfully.")
-    );
+          : "Employee created successfully.");
+
+    if (!isEdit && "data" in result && result.data && "credentials" in result.data) {
+      if (onCreated) {
+        onCreated(result.data.credentials as EmployeeCredentials);
+      }
+    } else {
+      toast.success(successMessage);
+      onSuccess();
+    }
+
     reset(defaultValues);
-    onSuccess();
     router.refresh();
   });
 
