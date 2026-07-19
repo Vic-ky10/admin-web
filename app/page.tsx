@@ -66,7 +66,7 @@ export default function HomePage() {
             </p>
 
             <Link
-              href="/login?next=/employee/attendance"
+              href="/employee/login"
               className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700"
             >
               Employee Login

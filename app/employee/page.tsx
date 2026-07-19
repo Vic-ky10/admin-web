@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function EmployeeIndexPage() {
-  redirect("/employee/dashboard");
+export default function EmployeePage() {
+  redirect("/employee/login");
 }

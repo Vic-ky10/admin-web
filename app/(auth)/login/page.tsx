@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/features/auth/auth.service";
+import { loginAdmin } from "@/features/auth/auth.service";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function LoginPage() {
   async function handleLogin() {
     setLoading(true);
 
-    const { error } = await login(email, password);
+const { error } = await loginAdmin(email, password);
 
     setLoading(false);
 

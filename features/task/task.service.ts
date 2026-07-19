@@ -97,14 +97,26 @@ function normalizeTasks(rows: TaskSelectRow[] | null): TaskWithProject[] {
 }
 
 async function generateTaskCode() {
-  const { count } = await adminClient.from("tasks").select("*", {
-    count: "exact",
-    head: true,
-  });
-  
+  const { data } = await adminClient
+    .from("tasks")
+    .select("task_code")
+    .order("task_code", { ascending: false })
+    .limit(1)
+    .single();
 
-  return `TASK${String((count ?? 0) + 1).padStart(3, "0")}`;
+  if (!data) {
+    return "TASK001";
+  }
+
+  const lastNumber = parseInt(
+    data.task_code.replace("TASK", ""),
+    10
+  );
+
+  return `TASK${String(lastNumber + 1).padStart(3, "0")}`;
 }
+
+ 
 export async function getAuthenticatedProfileId() {
   const profile = await getCurrentEmployeeProfile();
   return profile?.id ?? null;
