@@ -14,10 +14,8 @@ export const EMPLOYEE_ROLE = {
 export const DEPARTMENTS = [
   "IT",
   "HR",
-  "Finance",
   "Sales",
   "Marketing",
-  "Operations",
 ] as const;
 
 export const EMPLOYEE_ID_PREFIX = "EMP";

@@ -7,11 +7,11 @@ import {
   CalendarCheck,
   ChevronLeft,
   CreditCard,
-  Gift,
+  
   LayoutDashboard,
   ListTodo,
   Megaphone,
-  PersonStandingIcon,
+  
   Settings,
   UserRound,
   UsersRound,

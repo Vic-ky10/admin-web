@@ -33,15 +33,22 @@ export default function EmployeeTable({
   const router = useRouter();
   const [isDeleting, startDeleteTransition] = useTransition();
 
+  function confirmDelete(employee: Employee) {
+    toast("Delete Employee?", {
+      description: `Delete ${employee.full_name}? This action cannot be undone.`,
+      action: {
+        label: "Delete",
+        onClick: () => handleDelete(employee),
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {},
+      },
+      duration: 10000,
+    });
+  }
+
   function handleDelete(employee: Employee) {
-    const confirmed = window.confirm(
-      `Delete ${employee.full_name}? This will remove the employee profile and auth user.`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     startDeleteTransition(async () => {
       const result = await deleteEmployee(employee.id);
 
@@ -50,9 +57,7 @@ export default function EmployeeTable({
         return;
       }
 
-      toast.success(
-        result.message ?? "Employee deleted successfully."
-      );
+      toast.success(result.message ?? "Employee deleted successfully.");
       router.refresh();
     });
   }
@@ -60,24 +65,17 @@ export default function EmployeeTable({
   if (employees.length === 0) {
     return (
       <div className="rounded-xl border bg-white p-10 text-center">
-        <h2 className="text-xl font-semibold">
-          No Employees Found
-        </h2>
+        <h2 className="text-xl font-semibold">No Employees Found</h2>
 
-        <p className="mt-2 text-slate-500">
-          Click Add Employee to create one.
-        </p>
+        <p className="mt-2 text-slate-500">Click Add Employee to create one.</p>
       </div>
     );
   }
 
   return (
     <Table>
-
       <TableHead>
-
         <TableRow>
-
           <TableHeader>Employee ID</TableHeader>
 
           <TableHeader>Name</TableHeader>
@@ -91,21 +89,16 @@ export default function EmployeeTable({
           <TableHeader>Status</TableHeader>
 
           <TableHeader>Actions</TableHeader>
-
         </TableRow>
-
       </TableHead>
 
       <TableBody>
-
         {employees.map((employee) => (
-
           <TableRow
             key={employee.id}
             className="cursor-pointer"
             onClick={() => onView(employee)}
           >
-
             <TableCell>{employee.employee_id}</TableCell>
 
             <TableCell>{employee.full_name}</TableCell>
@@ -117,7 +110,6 @@ export default function EmployeeTable({
             <TableCell>{employee.designation ?? "-"}</TableCell>
 
             <TableCell>
-
               <Badge
                 variant={
                   employee.status === EMPLOYEE_STATUS.ACTIVE
@@ -129,7 +121,6 @@ export default function EmployeeTable({
               >
                 {employee.status}
               </Badge>
-
             </TableCell>
 
             <TableCell>
@@ -165,20 +156,16 @@ export default function EmployeeTable({
                   disabled={isDeleting}
                   onClick={(event) => {
                     event.stopPropagation();
-                    handleDelete(employee);
+                    confirmDelete(employee);
                   }}
                 >
                   Delete
                 </Button>
               </div>
             </TableCell>
-
           </TableRow>
-
         ))}
-
       </TableBody>
-
     </Table>
   );
 }

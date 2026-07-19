@@ -283,7 +283,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column: quick Actions, ending Approvals, recent Activity */}
+
         <div className="lg:col-span-2 space-y-6">
           {/* quick Actions */}
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">

@@ -21,10 +21,10 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Portal Cards */}
+       
         <div className="grid gap-8 md:grid-cols-2">
 
-          {/* Admin */}
+        
           <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
 
             <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-blue-700">

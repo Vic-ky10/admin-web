@@ -125,7 +125,7 @@ export default function EmployeeForm({
       <Input
         label="Full Name"
         autoComplete="name"
-        placeholder="Vicky"
+        placeholder="Enter Name"
         error={errors.full_name?.message}
         {...register("full_name")}
       />
@@ -134,6 +134,7 @@ export default function EmployeeForm({
         label="Email"
         type="email"
         autoComplete="email"
+        placeholder="Enter email"
         readOnly={isEdit}
         className={isEdit ? "bg-slate-100 text-slate-600" : undefined}
         error={errors.email?.message}
@@ -144,7 +145,7 @@ export default function EmployeeForm({
         label="Phone"
         inputMode="numeric"
         maxLength={10}
-        placeholder="9876543210"
+        placeholder="Enter Phone no"
         error={errors.phone?.message}
         {...register("phone")}
       />
@@ -174,7 +175,7 @@ export default function EmployeeForm({
 
       <Input
         label="Designation"
-        placeholder="Software Engineer"
+        placeholder="Enter Designation  "
         error={errors.designation?.message}
         {...register("designation")}
       />
