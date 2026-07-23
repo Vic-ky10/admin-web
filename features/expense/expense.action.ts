@@ -9,7 +9,12 @@ import {
   markExpensePaid,
   reviewExpense,
   updateExpense,
+  getEmployeeExpenseSummary,
+  getAdminExpenseSummary,
 } from "./expense.service";
+
+import { ActionResponse } from "@/types/action";
+import { EmployeeExpenseSummary, AdminExpenseSummary } from "./expense.types";
 
 import {
   ExpenseInput,
@@ -127,4 +132,41 @@ export async function deleteExpenseAction(
   }
 
   return result;
+}
+
+export async function getEmployeeExpenseSummaryAction(): Promise<ActionResponse<EmployeeExpenseSummary>> {
+  try {
+    const profileId = await getAuthenticatedProfileId();
+    if (!profileId) {
+      return {
+        success: false,
+        error: "Employee profile not found.",
+      };
+    }
+    const data = await getEmployeeExpenseSummary(profileId);
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "Failed to fetch employee expense summary.",
+    };
+  }
+}
+
+export async function getAdminExpenseSummaryAction(): Promise<ActionResponse<AdminExpenseSummary>> {
+  try {
+    const data = await getAdminExpenseSummary();
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "Failed to fetch admin expense summary.",
+    };
+  }
 }

@@ -9,9 +9,12 @@ import {
 import {
   EXPENSE_STATUS,
   PAYMENT_STATUS,
+  EXPENSE_CATEGORY,
   Expense,
   ExpenseFilters,
   ExpenseWithEmployee,
+  EmployeeExpenseSummary,
+  AdminExpenseSummary,
 } from "./expense.types";
 
 import {
@@ -73,58 +76,58 @@ designation
 )
 `;
 
-export async function generateExpenseCode(): Promise<string> {
-  const { data, error } = await adminClient
-    .from("expenses")
-    .select("expense_code")
-    .like("expense_code", `${EXPENSE_CODE_PREFIX}%`)
-    .order("created_at", {
-      ascending: false,
-    })
-    .limit(1)
-    .maybeSingle();
+// export async function generateExpenseCode(): Promise<string> {
+//   const { data, error } = await adminClient
+//     .from("expenses")
+//     .select("expense_code")
+//     .like("expense_code", `${EXPENSE_CODE_PREFIX}%`)
+//     .order("created_at", {
+//       ascending: false,
+//     })
+//     .limit(1)
+//     .maybeSingle();
 
-  if (error) {
-    throw new Error("Unable to generate expense code.");
-  }
+//   if (error) {
+//     throw new Error("Unable to generate expense code.");
+//   }
 
-  if (!data?.expense_code) {
-    return formatExpenseCode(1);
-  }
+//   if (!data?.expense_code) {
+//     return formatExpenseCode(1);
+//   }
 
-  const current = Number(data.expense_code.replace(EXPENSE_CODE_PREFIX, ""));
+//   const current = Number(data.expense_code.replace(EXPENSE_CODE_PREFIX, ""));
 
-  if (Number.isNaN(current)) {
-    throw new Error("Latest expense code is invalid.");
-  }
+//   if (Number.isNaN(current)) {
+//     throw new Error("Latest expense code is invalid.");
+//   }
 
-  return formatExpenseCode(current + 1);
-}
+//   return formatExpenseCode(current + 1);
+// }
 
 export async function createExpense(
   profileId: string,
   values: ExpenseInput,
 ): Promise<ActionResponse<Expense>> {
-  let expenseCode: string;
+  // let expenseCode: string;
 
-  try {
-    expenseCode = await generateExpenseCode();
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unable to generate expense code.",
-    };
-  }
+  // try {
+  //   // expenseCode = await generateExpenseCode();
+  // } catch (error) {
+  //   return {
+  //     success: false,
+  //     error:
+  //       error instanceof Error
+  //         ? error.message
+  //         : "Unable to generate expense code.",
+  //   };
+  // }
 
   const { data, error } = await adminClient
     .from("expenses")
     .insert({
       profile_id: profileId,
 
-      expense_code: expenseCode,
+      // expense_code: expenseCode,
 
       expense_type: values.expense_type,
 
@@ -528,6 +531,226 @@ export async function markExpensePaid(
 export async function getAuthenticatedProfileId() {
   const profile = await getCurrentEmployeeProfile();
   return profile?.id ?? null;
+}
+
+export async function getEmployeeExpenseSummary(
+  profileId: string,
+): Promise<EmployeeExpenseSummary> {
+  const currentUser = await getCurrentEmployeeProfile();
+  if (!currentUser) {
+    throw new Error("Unauthorized: Profile not found.");
+  }
+  if (currentUser.role !== "Admin" && currentUser.id !== profileId) {
+    throw new Error("Unauthorized: Employees can only view their own expense analytics.");
+  }
+
+  const expenses = await getEmployeeExpenses(profileId);
+
+  let totalExpenses = 0;
+  let approvedAmount = 0;
+  let pendingAmount = 0;
+  let rejectedAmount = 0;
+  let approvedCount = 0;
+  let pendingCount = 0;
+  let rejectedCount = 0;
+  let monthlyTotal = 0;
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  const categoryMap: Record<string, { category: string; amount: number; count: number }> = {};
+  Object.values(EXPENSE_CATEGORY).forEach((cat) => {
+    categoryMap[cat] = { category: cat, amount: 0, count: 0 };
+  });
+
+  const monthlyMap: Record<string, { month: string; amount: number; count: number }> = {};
+
+  expenses.forEach((expense) => {
+    totalExpenses += expense.amount;
+
+    if (expense.status === EXPENSE_STATUS.APPROVED) {
+      approvedAmount += expense.approved_amount ?? expense.amount;
+      approvedCount += 1;
+    } else if (expense.status === EXPENSE_STATUS.PENDING) {
+      pendingAmount += expense.amount;
+      pendingCount += 1;
+    } else if (expense.status === EXPENSE_STATUS.REJECTED) {
+      rejectedAmount += expense.amount;
+      rejectedCount += 1;
+    }
+
+    const expDate = new Date(expense.expense_date);
+    if (
+      expDate.getFullYear() === currentYear &&
+      expDate.getMonth() === currentMonth
+    ) {
+      monthlyTotal += expense.amount;
+    }
+
+    // Monthly aggregation (YYYY-MM)
+    if (expense.expense_date) {
+      const monthKey = expense.expense_date.substring(0, 7); // e.g. "2026-07"
+      if (monthKey && monthKey.length === 7) {
+        if (!monthlyMap[monthKey]) {
+          monthlyMap[monthKey] = {
+            month: monthKey,
+            amount: 0,
+            count: 0,
+          };
+        }
+        monthlyMap[monthKey].amount += expense.amount;
+        monthlyMap[monthKey].count += 1;
+      }
+    }
+
+    const cat = expense.expense_type;
+    if (!categoryMap[cat]) {
+      categoryMap[cat] = { category: cat, amount: 0, count: 0 };
+    }
+    categoryMap[cat].amount += expense.amount;
+    categoryMap[cat].count += 1;
+  });
+
+  const totalExpenseCount = expenses.length;
+  const averageExpense = totalExpenseCount > 0 ? totalExpenses / totalExpenseCount : 0;
+  const categorySummary = Object.values(categoryMap);
+  const monthlySummary = Object.values(monthlyMap).sort((a, b) =>
+    a.month.localeCompare(b.month)
+  );
+  const recentExpenses = expenses.slice(0, 5);
+
+  return {
+    totalExpenses,
+    approvedAmount,
+    pendingAmount,
+    rejectedAmount,
+    totalExpenseCount,
+    approvedCount,
+    pendingCount,
+    rejectedCount,
+    monthlyTotal,
+    averageExpense,
+    categorySummary,
+    monthlySummary,
+    recentExpenses,
+  };
+}
+
+export async function getAdminExpenseSummary(): Promise<AdminExpenseSummary> {
+  const currentUser = await getCurrentEmployeeProfile();
+  if (!currentUser) {
+    throw new Error("Unauthorized: Profile not found.");
+  }
+  if (currentUser.role !== "Admin") {
+    throw new Error("Unauthorized: Admin access required.");
+  }
+
+  const expenses = await getExpenses();
+
+  let totalCompanyExpense = 0;
+  let approvedAmount = 0;
+  let pendingAmount = 0;
+  let rejectedAmount = 0;
+  let approvedCount = 0;
+  let pendingCount = 0;
+  let rejectedCount = 0;
+
+  const uniqueProfiles = new Set<string>();
+  const topEmployeesMap: Record<
+    string,
+    { profileId: string; name: string; email: string; totalAmount: number; count: number }
+  > = {};
+  const deptMap: Record<string, { department: string; totalAmount: number; count: number }> = {};
+  const monthlyMap: Record<string, { month: string; amount: number; count: number }> = {};
+
+  expenses.forEach((expense) => {
+    totalCompanyExpense += expense.amount;
+    uniqueProfiles.add(expense.profile_id);
+
+    if (expense.status === EXPENSE_STATUS.APPROVED) {
+      approvedAmount += expense.approved_amount ?? expense.amount;
+      approvedCount += 1;
+    } else if (expense.status === EXPENSE_STATUS.PENDING) {
+      pendingAmount += expense.amount;
+      pendingCount += 1;
+    } else if (expense.status === EXPENSE_STATUS.REJECTED) {
+      rejectedAmount += expense.amount;
+      rejectedCount += 1;
+    }
+
+    // Top employees aggregation
+    const pId = expense.profile_id;
+    if (!topEmployeesMap[pId]) {
+      topEmployeesMap[pId] = {
+        profileId: pId,
+        name: expense.employee?.full_name ?? "Unknown",
+        email: expense.employee?.email ?? "",
+        totalAmount: 0,
+        count: 0,
+      };
+    }
+    topEmployeesMap[pId].totalAmount += expense.amount;
+    topEmployeesMap[pId].count += 1;
+
+    // Department aggregation
+    const dept = expense.employee?.department || "Other";
+    if (!deptMap[dept]) {
+      deptMap[dept] = {
+        department: dept,
+        totalAmount: 0,
+        count: 0,
+      };
+    }
+    deptMap[dept].totalAmount += expense.amount;
+    deptMap[dept].count += 1;
+
+    // Monthly aggregation (YYYY-MM)
+    if (expense.expense_date) {
+      const monthKey = expense.expense_date.substring(0, 7); // e.g. "2026-07"
+      if (monthKey && monthKey.length === 7) {
+        if (!monthlyMap[monthKey]) {
+          monthlyMap[monthKey] = {
+            month: monthKey,
+            amount: 0,
+            count: 0,
+          };
+        }
+        monthlyMap[monthKey].amount += expense.amount;
+        monthlyMap[monthKey].count += 1;
+      }
+    }
+  });
+
+  const totalExpenseCount = expenses.length;
+  const employeeCount = uniqueProfiles.size;
+  const averageExpense = totalExpenseCount > 0 ? totalCompanyExpense / totalExpenseCount : 0;
+
+  const topEmployees = Object.values(topEmployeesMap)
+    .sort((a, b) => b.totalAmount - a.totalAmount)
+    .slice(0, 5);
+
+  const departmentSummary = Object.values(deptMap);
+
+  const monthlySummary = Object.values(monthlyMap).sort((a, b) =>
+    a.month.localeCompare(b.month)
+  );
+
+  const recentExpenses = expenses.slice(0, 5);
+
+  return {
+    totalCompanyExpense,
+    approvedAmount,
+    pendingAmount,
+    rejectedAmount,
+    totalExpenseCount,
+    employeeCount,
+    averageExpense,
+    topEmployees,
+    departmentSummary,
+    monthlySummary,
+    recentExpenses,
+  };
 }
 
 // async function getExpenseById(id: string) {

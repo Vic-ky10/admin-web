@@ -7,7 +7,7 @@ import {
   CalendarCheck,
   ChevronLeft,
   CreditCard,
-  
+  TrendingUp,
   LayoutDashboard,
   ListTodo,
   Megaphone,
@@ -28,6 +28,7 @@ const adminNavItems = [
   { label: "Projects", href: "/projects", icon: BriefcaseBusiness },
   { label: "Leave", href: "/leave", icon: BarChart3 },
   { label: "Expenses", href: "/expenses", icon: CreditCard },
+  { label: "Expense Tracker", href: "/expense-tracker", icon: TrendingUp },
   { label: "Incentives", href: "/incentives", icon: UserRound
    },
   {

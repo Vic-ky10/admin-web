@@ -14,6 +14,7 @@ import {
   LogOut,
   Megaphone,
   Menu,
+  TrendingUp,
   UserRound,
   X,
 } from "lucide-react";
@@ -30,7 +31,8 @@ const employeeNavItems = [
   { label: "Leave Management", href: "/employee/leave", icon: ClipboardList },
   { label: "Projects", href: "/employee/projects", icon: BriefcaseBusiness },
   { label: "My Tasks", href: "/employee/tasks", icon: ClipboardList },
-  { label: "Expenses", href: "/employee/expenses", icon: CreditCard },
+  { label: "My Expenses", href: "/employee/expenses", icon: CreditCard },
+  { label: "Expense Tracker", href: "/employee/expense-tracker", icon: TrendingUp },
   { label: "Incentives", href: "/employee/incentives", icon: Gift },
   { label: "Announcements", href: "/employee/announcements", icon: Megaphone },
   { label: "Profile", href: "/employee/profile", icon: UserRound },

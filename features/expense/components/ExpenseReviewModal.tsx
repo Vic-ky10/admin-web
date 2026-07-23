@@ -274,8 +274,7 @@ export default function ExpenseReviewModal({
     },
   );
 
-  // AFTER ALL HOOKS
-
+  
   if (!expense) return null;
   const currentExpense = expense;
 
