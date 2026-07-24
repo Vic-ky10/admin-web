@@ -5,7 +5,8 @@ import {
   createNotification,
   notifyAdmins,
 } from "@/features/notification/notification.helper";
-
+import { Employee } from "@/features/employee/employee.types";
+import { getCurrentEmployeeProfileFromToken } from "@/features/employee-portal/employee-portal.service";
 import {
   EXPENSE_STATUS,
   PAYMENT_STATUS,
@@ -22,6 +23,7 @@ import {
   UpdateExpenseInput,
   ReviewExpenseInput,
 } from "./expense.validation";
+
 
 const EXPENSE_CODE_PREFIX = "EXP";
 
@@ -535,13 +537,18 @@ export async function getAuthenticatedProfileId() {
 
 export async function getEmployeeExpenseSummary(
   profileId: string,
+  currentUser: Employee | null = null,
 ): Promise<EmployeeExpenseSummary> {
-  const currentUser = await getCurrentEmployeeProfile();
-  if (!currentUser) {
+  const user = currentUser ?? (await getCurrentEmployeeProfile());
+
+  if (!user) {
     throw new Error("Unauthorized: Profile not found.");
   }
-  if (currentUser.role !== "Admin" && currentUser.id !== profileId) {
-    throw new Error("Unauthorized: Employees can only view their own expense analytics.");
+
+  if (user.role !== "Admin" && user.id !== profileId) {
+    throw new Error(
+      "Unauthorized: Employees can only view their own expense analytics.",
+    );
   }
 
   const expenses = await getEmployeeExpenses(profileId);
@@ -559,12 +566,18 @@ export async function getEmployeeExpenseSummary(
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
 
-  const categoryMap: Record<string, { category: string; amount: number; count: number }> = {};
+  const categoryMap: Record<
+    string,
+    { category: string; amount: number; count: number }
+  > = {};
   Object.values(EXPENSE_CATEGORY).forEach((cat) => {
     categoryMap[cat] = { category: cat, amount: 0, count: 0 };
   });
 
-  const monthlyMap: Record<string, { month: string; amount: number; count: number }> = {};
+  const monthlyMap: Record<
+    string,
+    { month: string; amount: number; count: number }
+  > = {};
 
   expenses.forEach((expense) => {
     totalExpenses += expense.amount;
@@ -613,10 +626,11 @@ export async function getEmployeeExpenseSummary(
   });
 
   const totalExpenseCount = expenses.length;
-  const averageExpense = totalExpenseCount > 0 ? totalExpenses / totalExpenseCount : 0;
+  const averageExpense =
+    totalExpenseCount > 0 ? totalExpenses / totalExpenseCount : 0;
   const categorySummary = Object.values(categoryMap);
   const monthlySummary = Object.values(monthlyMap).sort((a, b) =>
-    a.month.localeCompare(b.month)
+    a.month.localeCompare(b.month),
   );
   const recentExpenses = expenses.slice(0, 5);
 
@@ -637,12 +651,16 @@ export async function getEmployeeExpenseSummary(
   };
 }
 
-export async function getAdminExpenseSummary(): Promise<AdminExpenseSummary> {
-  const currentUser = await getCurrentEmployeeProfile();
-  if (!currentUser) {
+export async function getAdminExpenseSummary(
+  currentUser: Employee | null = null,
+): Promise<AdminExpenseSummary> {
+  const user = currentUser ?? (await getCurrentEmployeeProfile());
+
+  if (!user) {
     throw new Error("Unauthorized: Profile not found.");
   }
-  if (currentUser.role !== "Admin") {
+
+  if (user.role !== "Admin") {
     throw new Error("Unauthorized: Admin access required.");
   }
 
@@ -659,10 +677,22 @@ export async function getAdminExpenseSummary(): Promise<AdminExpenseSummary> {
   const uniqueProfiles = new Set<string>();
   const topEmployeesMap: Record<
     string,
-    { profileId: string; name: string; email: string; totalAmount: number; count: number }
+    {
+      profileId: string;
+      name: string;
+      email: string;
+      totalAmount: number;
+      count: number;
+    }
   > = {};
-  const deptMap: Record<string, { department: string; totalAmount: number; count: number }> = {};
-  const monthlyMap: Record<string, { month: string; amount: number; count: number }> = {};
+  const deptMap: Record<
+    string,
+    { department: string; totalAmount: number; count: number }
+  > = {};
+  const monthlyMap: Record<
+    string,
+    { month: string; amount: number; count: number }
+  > = {};
 
   expenses.forEach((expense) => {
     totalCompanyExpense += expense.amount;
@@ -693,7 +723,6 @@ export async function getAdminExpenseSummary(): Promise<AdminExpenseSummary> {
     topEmployeesMap[pId].totalAmount += expense.amount;
     topEmployeesMap[pId].count += 1;
 
-    // Department aggregation
     const dept = expense.employee?.department || "Other";
     if (!deptMap[dept]) {
       deptMap[dept] = {
@@ -705,7 +734,6 @@ export async function getAdminExpenseSummary(): Promise<AdminExpenseSummary> {
     deptMap[dept].totalAmount += expense.amount;
     deptMap[dept].count += 1;
 
-    // Monthly aggregation (YYYY-MM)
     if (expense.expense_date) {
       const monthKey = expense.expense_date.substring(0, 7); // e.g. "2026-07"
       if (monthKey && monthKey.length === 7) {
@@ -724,7 +752,8 @@ export async function getAdminExpenseSummary(): Promise<AdminExpenseSummary> {
 
   const totalExpenseCount = expenses.length;
   const employeeCount = uniqueProfiles.size;
-  const averageExpense = totalExpenseCount > 0 ? totalCompanyExpense / totalExpenseCount : 0;
+  const averageExpense =
+    totalExpenseCount > 0 ? totalCompanyExpense / totalExpenseCount : 0;
 
   const topEmployees = Object.values(topEmployeesMap)
     .sort((a, b) => b.totalAmount - a.totalAmount)
@@ -733,7 +762,7 @@ export async function getAdminExpenseSummary(): Promise<AdminExpenseSummary> {
   const departmentSummary = Object.values(deptMap);
 
   const monthlySummary = Object.values(monthlyMap).sort((a, b) =>
-    a.month.localeCompare(b.month)
+    a.month.localeCompare(b.month),
   );
 
   const recentExpenses = expenses.slice(0, 5);

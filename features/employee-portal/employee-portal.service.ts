@@ -33,6 +33,42 @@ export async function getCurrentEmployeeProfile(): Promise<Employee | null> {
   return data as Employee | null;
 }
 
+export async function getCurrentEmployeeProfileFromToken(
+  token: string
+): Promise<Employee | null> {
+  const {
+    data: { user },
+    error,
+  } = await adminClient.auth.getUser(token);
+
+
+console.log("Supabase User:", user);
+console.log("Supabase Error:", error);
+
+  
+
+  if (error || !user) {
+    console.error(error);
+    return null;
+  }
+
+  const { data, error: profileError } = await adminClient
+    .from("profiles")
+    .select(PROFILE_SELECT)
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    console.error(profileError);
+    return null;
+  }
+
+  console.log("Profile:", data);
+console.log("Profile Error:", profileError);
+
+  return data as Employee | null;
+}
+
 export async function getUnreadNotificationCount(profileId: string) {
   const byProfile = await adminClient
     .from("notifications")

@@ -26,13 +26,17 @@ export default function AdminExpenseTrackerClient() {
       } else {
         setError(response.error || "Failed to fetch expense analytics summary.");
       }
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred while loading analytics.");
-    } finally {
+    } catch (err: unknown) {
+  if (err instanceof Error) {
+    setError(err.message);
+  } else {
+    setError("An unexpected error occurred while loading analytics.");
+  }
+} finally {
       setLoading(false);
     }
   };
-
+/* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     fetchSummary();
   }, []);
@@ -60,7 +64,7 @@ export default function AdminExpenseTrackerClient() {
     );
   }
 
-  if (error) {
+  if (error) { 
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
