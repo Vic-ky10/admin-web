@@ -1,13 +1,10 @@
 import AdminAttendanceFilters from "@/features/attendance/components/AdminAttendanceFilters";
-import AdminAttendanceSummary from "@/features/attendance/components/AdminAttendanceSummary";
-import AttendanceHistoryTable from "@/features/attendance/components/AttendanceHistoryTable";
-import {
-  getAttendanceRecords,
-  getAttendanceSummary,
-} from "@/features/attendance/attendance.service";
+import AttendanceClient from "@/features/attendance/components/AttendanceClient";
+
 import { AttendanceFilters } from "@/features/attendance/attendance.types";
 import { attendanceFiltersSchema } from "@/features/attendance/attendance.validation";
 import { getEmployees } from "@/features/employee/employee.service";
+import { getTodayAttendanceDashboard } from "@/features/attendance/attendance.service";
 
 export const dynamic = "force-dynamic";
 
@@ -25,39 +22,27 @@ export default async function AdminAttendancePage({
     status: params.status,
     search: params.search,
   }) as AttendanceFilters;
-  const [employees, records, summary] = await Promise.all([
-    getEmployees(),
-    getAttendanceRecords(filters),
-    getAttendanceSummary(filters),
-  ]);
+ const [employees, dashboard] = await Promise.all([
+  getEmployees(),
+  getTodayAttendanceDashboard(),
+]);
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">
-          Attendance
-        </h1>
+        <h1 className="text-3xl font-bold">Attendance</h1>
         <p className="text-slate-500">
           View employee attendance, filters, and summaries.
         </p>
       </div>
 
-      <AdminAttendanceFilters
-        employees={employees}
-        defaultValues={filters}
-      />
-
-      <AdminAttendanceSummary summary={summary} />
-
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold">
-          Attendance Details
-        </h2>
-        <AttendanceHistoryTable
-          records={records}
-          showEmployee
-        />
-      </section>
+      <AdminAttendanceFilters employees={employees} defaultValues={filters} />
+      <AttendanceClient
+  summary={dashboard.summary}
+  presentRecords={dashboard.present}
+  incompleteRecords={dashboard.incomplete}
+  absentRecords={dashboard.absent}
+/>
     </div>
   );
 }
