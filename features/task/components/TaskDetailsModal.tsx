@@ -24,12 +24,15 @@ export default function TaskDetailsModal({
 
   return (
     <Modal open={open} title="Task Details" onClose={onClose}>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2">
         <DetailItem label="Task Code" value={task.task_code} />
 
         <DetailItem label="Task Title" value={task.title} />
 
-        <DetailItem label="Project" value={task.project?.project_name ?? "-"} />
+        <DetailItem
+          label="Project"
+          value={task.project?.project_name ?? "-"}
+        />
 
         <DetailItem
           label="Project Code"
@@ -46,18 +49,22 @@ export default function TaskDetailsModal({
           value={task.member?.profile?.employee_id ?? "-"}
         />
 
-        <div>
-          <p className="text-sm font-medium text-slate-500">Priority</p>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Priority
+          </p>
 
-          <div className="mt-1">
+          <div className="mt-3">
             <TaskPriorityBadge priority={task.priority} />
           </div>
         </div>
 
-        <div>
-          <p className="text-sm font-medium text-slate-500">Status</p>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Status
+          </p>
 
-          <div className="mt-1">
+          <div className="mt-3">
             <TaskStatusBadge status={task.status} />
           </div>
         </div>
@@ -72,28 +79,48 @@ export default function TaskDetailsModal({
           value={task.actual_hours?.toString() ?? "-"}
         />
 
-        <DetailItem label="Due Date" value={task.due_date ?? "-"} />
+        <DetailItem
+          label="Due Date"
+          value={task.due_date ?? "-"}
+        />
 
-        <DetailItem label="Completed At" value={task.completed_at ?? "-"} />
+        <DetailItem
+          label="Completed At"
+          value={task.completed_at ?? "-"}
+        />
 
         <div className="md:col-span-2">
-          <p className="text-sm font-medium text-slate-500">Description</p>
-
-          <p className="mt-1 whitespace-pre-line rounded-lg bg-slate-50 p-3 text-slate-800">
-            {task.description || "No description"}
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Description
           </p>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="whitespace-pre-line leading-7 text-slate-700">
+              {task.description || "No description available."}
+            </p>
+          </div>
         </div>
       </div>
     </Modal>
   );
 }
 
-function DetailItem({ label, value }: { label: string; value: string }) {
+function DetailItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
-    <div>
-      <p className="text-sm font-medium text-slate-500">{label}</p>
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
 
-      <p className="mt-1 font-semibold text-slate-900">{value}</p>
+      <p className="mt-2 break-words text-[15px] font-semibold text-slate-900">
+        {value || "Not available"}
+      </p>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Search } from "lucide-react";
 
 interface ProjectSearchProps {
   value: string;
@@ -12,9 +11,11 @@ export default function ProjectSearch({
   onChange,
 }: ProjectSearchProps) {
   return (
+
+    
     <label className="relative block">
       <span className="sr-only">Search projects</span>
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      {/* <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /> */}
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}

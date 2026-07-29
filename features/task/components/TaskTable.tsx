@@ -129,16 +129,14 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
                         {task.project?.project_name}
                       </p>
 
-                      <p className="text-xs text-slate-500">
-                        {task.project?.project_name}
-                      </p>
+                      
                     </div>
                   </TableCell>
 
                   <TableCell>
                     <div>
                       <p className="font-medium">
-                       {task.member?.profile?.full_name}
+                        {task.member?.profile?.full_name}
                       </p>
 
                       <p className="text-xs text-slate-500">
@@ -180,19 +178,29 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
 
                         <Button
                           variant="danger"
-                          onClick={async () => {
-                            if (!confirm("Delete this task?")) {
-                              return;
-                            }
+                          onClick={() => {
+                            toast.warning("Delete this task?", {
+                              description: "This action cannot be undone.",
+                              action: {
+                                label: "Delete",
+                                onClick: async () => {
+                                  const result = await deleteTaskAction(
+                                    task.id,
+                                  );
 
-                            const result = await deleteTaskAction(task.id);
+                                  if (!result.success) {
+                                    toast.error(result.error);
+                                    return;
+                                  }
 
-                            if (!result.success) {
-                              toast.error(result.error);
-                              return;
-                            }
-
-                            toast.success(result.message);
+                                  toast.success(result.message);
+                                },
+                              },
+                              cancel: {
+                                label: "Cancel",
+                                onClick: () => {},
+                              },
+                            });
                           }}
                         >
                           Delete

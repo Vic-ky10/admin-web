@@ -3,14 +3,20 @@ import {
   ReactNode,
 } from "react";
 
+import clsx from "clsx";
+
+interface TableProps {
+  children: ReactNode;
+  className?: string;
+}
+
 export function Table({
   children,
-}: {
-  children: ReactNode;
-}) {
+  className,
+}: TableProps) {
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <table className="min-w-full">
+   <div className="w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+      <table className={clsx("min-w-full", className)}>
         {children}
       </table>
     </div>

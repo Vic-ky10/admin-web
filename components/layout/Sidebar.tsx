@@ -1,4 +1,6 @@
 "use client";
+import Image from "next/image";
+import Logo from "@/assets/images/Logo.png";
 
 import clsx from "clsx";
 import {
@@ -11,7 +13,6 @@ import {
   LayoutDashboard,
   ListTodo,
   Megaphone,
-  
   Settings,
   UserRound,
   UsersRound,
@@ -29,8 +30,7 @@ const adminNavItems = [
   { label: "Leave", href: "/leave", icon: BarChart3 },
   { label: "Expenses", href: "/expenses", icon: CreditCard },
   { label: "Expense Tracker", href: "/expense-tracker", icon: TrendingUp },
-  { label: "Incentives", href: "/incentives", icon: UserRound
-   },
+  { label: "Incentives", href: "/incentives", icon: UserRound },
   {
     label: "Tasks",
     href: "/tasks",
@@ -109,9 +109,16 @@ function SidebarContent({
     <div className="flex h-full flex-col">
       <div className="flex h-20 items-center justify-between border-b border-slate-200 px-5">
         <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
-          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-black text-white shadow-lg shadow-blue-600/25">
-            IG
-          </span>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br   shadow-md ring-1 ring-blue-100">
+            <Image
+              src={Logo}
+              alt="InfiniGoal Logo"
+              width={34}
+              height={34}
+              priority
+              className="object-contain"
+            />
+          </div>
           {!collapsed && (
             <span className="min-w-0">
               <span className="block truncate text-lg font-bold">

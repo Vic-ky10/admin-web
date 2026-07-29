@@ -97,43 +97,62 @@ export default function AdminLeaveClient({
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Filter by Employee</label>
-          <select
-            value={selectedProfileId}
-            onChange={(event) =>
-              updateFilter("profileId", event.target.value)
-            }
-            className="w-full rounded-lg border border-slate-300 px-3 py-2"
-          >
-            <option value="">All Employees</option>
-            {employees.map((employee) => (
-              <option key={employee.id} value={employee.id}>
-                {employee.full_name} ({employee.employee_id})
-              </option>
-            ))}
-          </select>
-        </div>
+     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div className="mb-5 flex items-center justify-between">
+    <div>
+      <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+        Filters
+      </h3>
+    
+    </div>
+  </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Filter by Status</label>
-          <select
-            value={selectedStatus}
-            onChange={(event) =>
-              updateFilter("status", event.target.value)
-            }
-            className="w-full rounded-lg border border-slate-300 px-3 py-2"
-          >
-            <option value="">All Statuses</option>
-            {Object.values(LEAVE_STATUS).map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+  <div className="grid gap-5 md:grid-cols-2">
+    <div>
+      <label className="mb-2 block text-sm font-semibold text-slate-700">
+        Employee
+      </label>
+
+      <select
+        value={selectedProfileId}
+        onChange={(event) =>
+          updateFilter("profileId", event.target.value)
+        }
+        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+      >
+        <option value="">All Employees</option>
+
+        {employees.map((employee) => (
+          <option key={employee.id} value={employee.id}>
+            {employee.full_name} ({employee.employee_id})
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <div>
+      <label className="mb-2 block text-sm font-semibold text-slate-700">
+        Status
+      </label>
+
+      <select
+        value={selectedStatus}
+        onChange={(event) =>
+          updateFilter("status", event.target.value)
+        }
+        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+      >
+        <option value="">All Statuses</option>
+
+        {Object.values(LEAVE_STATUS).map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+</div>
 
       {leaves.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">

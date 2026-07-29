@@ -337,13 +337,13 @@ export default function AdminProjectClient({
                 <Users className="mr-2 h-4 w-4" />
                 Assign Employees
               </Button>
-              <Button
+              {/* <Button
                 type="button"
                 variant="secondary"
                 onClick={() => openEdit(selectedProject)}
               >
                 Edit Project
-              </Button>
+              </Button> */}
             </div>
 
             <ProjectMemberList
@@ -362,10 +362,11 @@ export default function AdminProjectClient({
       >
         <div className="space-y-5">
           <label className="space-y-1">
-            <span className="text-sm font-semibold text-slate-700">
-              Member Role
+            <span className="text-lg font-semibold text-slate-700 mb-[25px]">
+              Select Employees 
+
             </span>
-            <select
+            {/* <select
               value={memberRole}
               onChange={(event) =>
                 setMemberRole(event.target.value as ProjectMemberRole)
@@ -377,7 +378,7 @@ export default function AdminProjectClient({
                   {role}
                 </option>
               ))}
-            </select>
+            </select> */}
           </label>
 
           <div className="max-h-80 space-y-2 overflow-y-auto pr-1">

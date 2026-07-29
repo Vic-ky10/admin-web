@@ -32,7 +32,7 @@ export default function AdminAttendanceFilters({
           <input
             name="search"
             defaultValue={defaultValues.search}
-            placeholder="Search employee..."
+            placeholder="        Search employee..."
             className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           />
         </div>

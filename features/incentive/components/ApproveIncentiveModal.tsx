@@ -96,59 +96,109 @@ export default function ApproveIncentiveModal({
   return (
     <Modal open={open} title="Review Incentive" onClose={onClose}>
       <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Detail label="Employee" value={incentive.employee?.full_name} />
+        <div className="grid gap-5 md:grid-cols-2">
+          <Detail
+            label="Employee"
+            value={incentive.employee?.full_name}
+          />
+
           <Detail
             label="Employee ID"
             value={incentive.employee?.employee_id}
           />
-          <Detail label="Code" value={incentive.incentive_code} />
-          <Detail label="Type" value={incentive.incentive_type} />
-          <Detail label="Title" value={incentive.title} />
-          <Detail label="Amount" value={formatMoney(incentive.amount)} />
-          <div>
-            <p className="text-sm font-medium text-slate-500">Status</p>
-            <div className="mt-1">
+
+          <Detail
+            label="Incentive Code"
+            value={incentive.incentive_code}
+          />
+
+          <Detail
+            label="Incentive Type"
+            value={incentive.incentive_type}
+          />
+
+          <Detail
+            label="Title"
+            value={incentive.title}
+          />
+
+          <Detail
+            label="Amount"
+            value={formatMoney(incentive.amount)}
+          />
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Status
+            </p>
+
+            <div className="mt-3">
               <IncentiveStatusBadge status={incentive.status} />
             </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500">Payment</p>
-            <div className="mt-1">
-              <PaymentStatusBadge status={incentive.payment_status} />
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Payment Status
+            </p>
+
+            <div className="mt-3">
+              <PaymentStatusBadge
+                status={incentive.payment_status}
+              />
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Description
+            </p>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="whitespace-pre-line leading-7 text-slate-700">
+                {incentive.description || "No description available."}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-          <p className="text-sm text-slate-700">{incentive.description}</p>
-        </div>
-
-        <div className="flex flex-wrap justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={onClose}>
+        <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+          >
             Close
           </Button>
+
           {incentive.status === INCENTIVE_STATUS.PENDING && (
             <>
               <LoadingButton
                 type="button"
                 variant="danger"
                 loading={isPending}
-                onClick={() => handleReview(INCENTIVE_STATUS.REJECTED)}
+                onClick={() =>
+                  handleReview(INCENTIVE_STATUS.REJECTED)
+                }
               >
                 Reject
               </LoadingButton>
+
               <LoadingButton
                 type="button"
                 loading={isPending}
-                onClick={() => handleReview(INCENTIVE_STATUS.APPROVED)}
+                onClick={() =>
+                  handleReview(INCENTIVE_STATUS.APPROVED)
+                }
               >
                 Approve
               </LoadingButton>
             </>
           )}
+
           {incentive.status === INCENTIVE_STATUS.APPROVED &&
-            incentive.payment_status === INCENTIVE_PAYMENT_STATUS.PENDING && (
+            incentive.payment_status ===
+              INCENTIVE_PAYMENT_STATUS.PENDING && (
               <LoadingButton
                 type="button"
                 variant="secondary"
@@ -158,8 +208,10 @@ export default function ApproveIncentiveModal({
                 Mark Paid
               </LoadingButton>
             )}
+
           {incentive.status === INCENTIVE_STATUS.APPROVED &&
-            incentive.payment_status === INCENTIVE_PAYMENT_STATUS.PAID && (
+            incentive.payment_status ===
+              INCENTIVE_PAYMENT_STATUS.PAID && (
               <LoadingButton
                 type="button"
                 variant="secondary"
@@ -183,9 +235,12 @@ function Detail({
   value?: string | null;
 }) {
   return (
-    <div>
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-1 font-semibold text-slate-900">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
+
+      <p className="mt-2 text-[15px] font-semibold text-slate-900">
         {value || "Not available"}
       </p>
     </div>

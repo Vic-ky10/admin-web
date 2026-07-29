@@ -139,7 +139,7 @@ export default function IncentiveTable({
         <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <Input
-              placeholder="Search by code, title, or employee..."
+              placeholder="Search ..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="max-w-sm"

@@ -66,7 +66,7 @@ export default function ExpenseTable({ expenses }: ExpenseTableProps) {
       <div className="space-y-5">
         <div className="flex items-center justify-between gap-4">
           <Input
-            placeholder="Search by expense code or employee..."
+            placeholder="Search ..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-sm"

@@ -10,7 +10,7 @@ export default async function ExpensesPage() {
       <div>
         <h1 className="text-3xl font-bold">Expenses</h1>
         <p className="text-slate-500">
-          Review employee expense requests and manage reimbursements.
+          Review employee expense requests 
         </p>
       </div>
 

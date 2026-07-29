@@ -124,12 +124,7 @@ export default function AnnouncementForm({
           error={errors.message?.message}
         />
 
-        <Input
-          label="Attachment URL"
-          {...register("attachment_url")}
-          error={errors.attachment_url?.message}
-        />
-
+       
         <div className="grid grid-cols-2 gap-4">
           <select {...register("announcement_type")}>
             {Object.values(ANNOUNCEMENT_TYPE).map((type) => (

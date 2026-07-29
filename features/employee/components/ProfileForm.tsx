@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Camera, Trash2, User } from "lucide-react";
+import { Camera, User } from "lucide-react";
 
 import LoadingButton from "@/components/feedback/LoadingButton";
 import Button from "@/components/ui/Button";
@@ -53,6 +53,7 @@ export default function ProfileForm({ profile, theme }: ProfileFormProps) {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchedAvatarUrl = watch("avatar_url");
 
   function extractStoragePath(url: string | null): string | null {
@@ -228,8 +229,8 @@ export default function ProfileForm({ profile, theme }: ProfileFormProps) {
             disabled={isBusy}
             onClick={handleRemovePhoto}
             className="mt-4 gap-2 text-sm"
-          >
-            <Trash2 className="h-3.5 w-3.5" /> Remove Photo
+          >Remove Photo
+            
           </Button>
         )}
       </div>

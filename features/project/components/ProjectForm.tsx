@@ -62,38 +62,7 @@ export default function ProjectForm({
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-1">
-          <span className="text-sm font-semibold text-slate-700">
-            Department
-          </span>
-          <input
-            {...register("department")}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            placeholder="Uses employee departments"
-          />
-          <span className="text-xs text-slate-500">
-            The current projects table has no department column.
-          </span>
-        </label>
-
-        <label className="space-y-1">
-          <span className="text-sm font-semibold text-slate-700">Priority</span>
-          <select
-            {...register("priority")}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-          >
-            {Object.values(PROJECT_PRIORITY).map((priority) => (
-              <option key={priority} value={priority}>
-                {priority}
-              </option>
-            ))}
-          </select>
-          {errors.priority?.message && (
-            <p className="text-sm text-red-600">{errors.priority.message}</p>
-          )}
-        </label>
-      </div>
+  
 
       <label className="space-y-1">
         <span className="text-sm font-semibold text-slate-700">

@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useState } from "react";
 
-
 import { ProjectMemberWithEmployee } from "@/features/project/project.types";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -45,7 +44,6 @@ export default function TaskForm({
     reset,
     formState: { errors, isSubmitting },
   } = useForm<TaskInput>({
-    
     resolver: zodResolver(taskSchema) as never,
 
     defaultValues: {
@@ -60,10 +58,10 @@ export default function TaskForm({
       due_date: "",
     },
   });
-  
+
   const [projectMembers, setProjectMembers] = useState<
-  ProjectMemberWithEmployee[]
->([]);
+    ProjectMemberWithEmployee[]
+  >([]);
 
   useEffect(() => {
     if (task) {
@@ -106,7 +104,7 @@ export default function TaskForm({
       title={task ? "Edit Task" : "Create Task"}
       onClose={onClose}
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Input
           label="Task Title"
           {...register("title")}
@@ -120,26 +118,25 @@ export default function TaskForm({
         />
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Project</label>
+          <div><label className="mb-2 block text-sm font-semibold text-slate-700">
+            Project</label>
 
             <select
-  {...register("project_id")}
-  className="w-full rounded-lg border p-2"
-  onChange={async (e) => {
-    const projectId = e.target.value;
+              {...register("project_id")}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              onChange={async (e) => {
+                const projectId = e.target.value;
 
-    if (!projectId) {
-  setProjectMembers([]);
-  return;
-}
+                if (!projectId) {
+                  setProjectMembers([]);
+                  return;
+                }
 
-const members =
-  await getProjectMembersAction(projectId);
+                const members = await getProjectMembersAction(projectId);
 
-setProjectMembers(members);
-  }}
->
+                setProjectMembers(members);
+              }}
+            >
               <option value="">Select Project</option>
 
               {projects.map((project) => (
@@ -155,27 +152,21 @@ setProjectMembers(members);
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+           <label className="mb-2 block text-sm font-semibold text-slate-700">
               Assign Employee
             </label>
 
             <select
               {...register("project_member_id")}
-              className="w-full rounded-lg border p-2"
+             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             >
-              <option value="">
-  Select Employee
-</option>
+              <option value="">Select Employee</option>
 
-{projectMembers.map((member) => (
-  <option
-    key={member.id}
-    value={member.id}
-  >
-    {member.employee?.employee_id} -{" "}
-    {member.employee?.full_name}
-  </option>
-))}
+              {projectMembers.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.employee?.employee_id} - {member.employee?.full_name}
+                </option>
+              ))}
             </select>
             <p className="mt-1 text-sm text-red-500">
               {errors.project_member_id?.message}
@@ -185,11 +176,11 @@ setProjectMembers(members);
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">Priority</label>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Priority</label>
 
             <select
               {...register("priority")}
-              className="w-full rounded-lg border p-2"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             >
               {Object.values(TASK_PRIORITY).map((priority) => (
                 <option key={priority} value={priority}>
@@ -200,11 +191,11 @@ setProjectMembers(members);
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">Status</label>
+           <label className="mb-2 block text-sm font-semibold text-slate-700">Status</label>
 
             <select
               {...register("status")}
-              className="w-full rounded-lg border p-2"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             >
               {Object.values(TASK_STATUS).map((status) => (
                 <option key={status} value={status}>
