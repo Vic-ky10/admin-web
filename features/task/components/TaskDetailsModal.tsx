@@ -29,10 +29,7 @@ export default function TaskDetailsModal({
 
         <DetailItem label="Task Title" value={task.title} />
 
-        <DetailItem
-          label="Project"
-          value={task.project?.project_name ?? "-"}
-        />
+        <DetailItem label="Project" value={task.project?.project_name ?? "-"} />
 
         <DetailItem
           label="Project Code"
@@ -79,14 +76,21 @@ export default function TaskDetailsModal({
           value={task.actual_hours?.toString() ?? "-"}
         />
 
-        <DetailItem
-          label="Due Date"
-          value={task.due_date ?? "-"}
-        />
+        <DetailItem label="Due Date" value={task.due_date ?? "-"} />
 
         <DetailItem
           label="Completed At"
-          value={task.completed_at ?? "-"}
+          value={
+            task.completed_at
+              ? new Date(task.completed_at).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "-"
+          }
         />
 
         <div className="md:col-span-2">
@@ -105,13 +109,7 @@ export default function TaskDetailsModal({
   );
 }
 
-function DetailItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">

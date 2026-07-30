@@ -37,9 +37,11 @@ export default async function AdminAttendancePage({
       </div>
 
       <AdminAttendanceFilters employees={employees} defaultValues={filters} />
-      <AttendanceClient
+  <AttendanceClient
   summary={dashboard.summary}
   presentRecords={dashboard.present}
+  shortHoursRecords={dashboard.shortHours}
+  halfDayRecords={dashboard.halfDay}
   incompleteRecords={dashboard.incomplete}
   absentRecords={dashboard.absent}
 />

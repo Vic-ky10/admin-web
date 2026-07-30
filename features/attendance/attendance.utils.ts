@@ -4,10 +4,9 @@ export function getTodayDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function calculateWorkingHours(
-  loginTime: string,
-  logoutTime: string
-) {
+export const REQUIRED_WORKING_HOURS = 9;
+
+export function calculateWorkingHours(loginTime: string, logoutTime: string) {
   const login = new Date(loginTime).getTime();
   const logout = new Date(logoutTime).getTime();
 
@@ -18,15 +17,11 @@ export function calculateWorkingHours(
   return Number(((logout - login) / 36e5).toFixed(2));
 }
 
-export function isAlreadyLoggedIn(
-  attendance: Attendance | null
-) {
+export function isAlreadyLoggedIn(attendance: Attendance | null) {
   return Boolean(attendance?.login_time);
 }
 
-export function isAlreadyLoggedOut(
-  attendance: Attendance | null
-) {
+export function isAlreadyLoggedOut(attendance: Attendance | null) {
   return Boolean(attendance?.logout_time);
 }
 

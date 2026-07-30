@@ -68,7 +68,7 @@ export default function EmployeeAttendanceClient({
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4  md:grid-cols-4">
         <SummaryCard
           label="Today's Status"
           value={

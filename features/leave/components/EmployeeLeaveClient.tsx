@@ -22,6 +22,7 @@ import { formatDate } from "../leave.utils";
 import LeaveDetailsModal from "./LeaveDetailsModal";
 import LeaveRequestForm from "./LeaveRequestForm";
 import LeaveStatusBadge from "./LeaveStatusBadge";
+import { Filter } from "lucide-react";
 
 interface EmployeeLeaveClientProps {
   leaves: LeaveRequest[];
@@ -70,26 +71,39 @@ export default function EmployeeLeaveClient({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-end md:justify-between">
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Filter by Status</label>
-          <select
-            value={selectedStatus}
-            onChange={(event) => handleStatusChange(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 md:w-56"
-          >
-            <option value="">All Statuses</option>
-            {Object.values(LEAVE_STATUS).map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Button type="button" onClick={() => setApplyOpen(true)}>
-          Apply Leave
-        </Button>
-      </div>
+     
+<div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div className="flex flex-col gap-2">
+      <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <Filter className="h-4 w-4 text-emerald-600" />
+        Filter by Status
+      </label>
+
+      <select
+        value={selectedStatus}
+        onChange={(event) => handleStatusChange(event.target.value)}
+        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 lg:w-64"
+      >
+        <option value="">All Statuses</option>
+
+        {Object.values(LEAVE_STATUS).map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <Button
+      type="button"
+      onClick={() => setApplyOpen(true)}
+      className="w-full lg:w-auto"
+    >
+      Apply Leave
+    </Button>
+  </div>
+</div>
 
       {leaves.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">

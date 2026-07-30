@@ -50,7 +50,7 @@ export default function AttendanceHistoryTable({
           <TableHeader>Logout</TableHeader>
           <TableHeader>Working Hours</TableHeader>
           <TableHeader>Status</TableHeader>
-          <TableHeader>Notes</TableHeader>
+       
         </TableRow>
       </TableHead>
 
@@ -86,7 +86,7 @@ export default function AttendanceHistoryTable({
             <TableCell>
               <AttendanceStatusBadge status={record.status} />
             </TableCell>
-            <TableCell>{record.notes || "-"}</TableCell>
+            {/* <TableCell>{record.notes || "-"}</TableCell> */}
           </TableRow>
         ))}
       </TableBody>

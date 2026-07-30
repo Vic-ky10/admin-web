@@ -166,26 +166,7 @@ export default function EmployeeProjectClient({
               />
             </div>
 
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="font-semibold text-slate-900">Timeline</h3>
-                <span className="text-sm text-slate-400">
-                  {selectedProject.project.progress}%
-                </span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                <div
-                  className="h-full rounded-full bg-emerald-500"
-                  style={{
-                    width: `${calculateTimelineProgress({
-                      startDate: selectedProject.project.start_date,
-                      endDate: selectedProject.project.end_date,
-                      progress: selectedProject.project.progress,
-                    })}%`,
-                  }}
-                />
-              </div>
-            </div>
+    
 
             <div>
               <h3 className="mb-3 font-semibold text-slate-900">

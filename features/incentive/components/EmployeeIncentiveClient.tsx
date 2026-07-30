@@ -59,7 +59,7 @@ export default function EmployeeIncentiveClient({
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3">
+    <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3">
         <FilterSelect
           label="Type"
           value={selectedType}
@@ -81,7 +81,7 @@ export default function EmployeeIncentiveClient({
           emptyLabel="All Payments"
           onChange={(value) => handleFilterChange("paymentStatus", value)}
         />
-      </div>
+      </div>  
 
       {incentives.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">

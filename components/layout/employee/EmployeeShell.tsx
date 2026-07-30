@@ -3,8 +3,10 @@ import NotificationDropdown from "@/features/notification/components/Notificatio
 import { Notification } from "@/features/notification/notification.types";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
 
+import Image from "next/image";
+import Logo from "@/assets/images/Logo.png";
+import {
   BriefcaseBusiness,
   CalendarCheck,
   ClipboardList,
@@ -32,7 +34,11 @@ const employeeNavItems = [
   { label: "Projects", href: "/employee/projects", icon: BriefcaseBusiness },
   { label: "My Tasks", href: "/employee/tasks", icon: ClipboardList },
   { label: "My Expenses", href: "/employee/expenses", icon: CreditCard },
-  { label: "Expense Tracker", href: "/employee/expense-tracker", icon: TrendingUp },
+  {
+    label: "Expense Tracker",
+    href: "/employee/expense-tracker",
+    icon: TrendingUp,
+  },
   { label: "Incentives", href: "/employee/incentives", icon: Gift },
   { label: "Announcements", href: "/employee/announcements", icon: Megaphone },
   { label: "Profile", href: "/employee/profile", icon: UserRound },
@@ -69,7 +75,7 @@ export default function EmployeeShell({
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-slate-200 bg-white lg:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[290px] border-r border-slate-200 bg-gradient-to-b from-white via-white to-slate-50 shadow-xl shadow-slate-200/60 lg:block">
         <EmployeeSidebar pathname={pathname} onLogout={handleLogout} />
       </aside>
 
@@ -81,7 +87,7 @@ export default function EmployeeShell({
             className="absolute inset-0 bg-slate-900/50"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="relative h-full w-80 max-w-[85vw] border-r border-slate-200 bg-white">
+          <aside className="relative h-full w-80 max-w-[86vw] border-r border-slate-200 bg-gradient-to-b from-white via-white to-slate-50 shadow-2xl">
             <EmployeeSidebar
               pathname={pathname}
               onNavigate={() => setMobileOpen(false)}
@@ -113,7 +119,9 @@ export default function EmployeeShell({
           <div className="flex items-center gap-3">
             <NotificationDropdown
               notifications={notifications}
-              unreadCount={unreadNotifications}
+              unreadCount={unreadNotifications} 
+               theme="emerald"
+
             />
 
             <details className="relative">
@@ -185,9 +193,31 @@ function EmployeeSidebar({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center justify-between border-b border-slate-200 px-6">
-        <Link href="/employee/dashboard" className="text-xl font-bold">
-          InfiniGoal
+      <div className="flex h-20 items-center justify-between border-b border-slate-200 px-5">
+        <Link
+          href="/employee/dashboard"
+          className="flex min-w-0 items-center gap-3"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl  shadow-md ring-1 ring-emerald-100">
+            <Image
+              src={Logo}
+              alt="InfiniGoal Logo"
+              width={34}
+              height={34}
+              priority
+              className="object-contain"
+            />
+          </div>
+
+          <span>
+            <span className="block text-lg font-bold tracking-tight text-slate-900 ">
+              InfiniGoal
+            </span>
+
+            <span className="block text-xs font-medium uppercase tracking-widest text-emerald-600">
+              EMPLOYEE PORTAL
+            </span>
+          </span>
         </Link>
         {onNavigate && (
           <button
@@ -201,7 +231,7 @@ function EmployeeSidebar({
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-2 overflow-y-auto p-4">
         {employeeNavItems.map((item) => {
           const Icon = item.icon;
           const active =
@@ -213,13 +243,18 @@ function EmployeeSidebar({
               href={item.href}
               onClick={onNavigate}
               className={clsx(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+                "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200",
                 active
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "text-slate-700 hover:bg-slate-100",
+                  ? "bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 ring-1 ring-emerald-200 shadow-sm"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 hover:translate-x-1",
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon
+                className={clsx(
+                  "h-5 w-5 shrink-0 transition-transform group-hover:scale-110 group-hover:rotate-3",
+                  active ? "text-emerald-700" : "text-slate-400",
+                )}
+              />
               {item.label}
             </Link>
           );
@@ -230,7 +265,7 @@ function EmployeeSidebar({
         <button
           type="button"
           onClick={onLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 hover:translate-x-1"
         >
           <LogOut className="h-5 w-5" />
           Logout

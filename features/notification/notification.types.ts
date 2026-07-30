@@ -1,4 +1,5 @@
 export interface Notification {
+  type(type: any): string | import("url").UrlObject;
   id: string;
   profile_id: string;
 

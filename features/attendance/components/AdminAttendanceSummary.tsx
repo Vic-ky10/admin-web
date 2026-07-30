@@ -1,7 +1,14 @@
 "use client";
 
 import clsx from "clsx";
-import { Users, CircleCheckBig, Clock3, UserX, Timer } from "lucide-react";
+import {
+  Users,
+  CircleCheckBig,
+  Clock3,
+  UserX,
+  Timer,
+  TriangleAlert,
+} from "lucide-react";
 
 import { AttendanceSummary } from "../attendance.types";
 import { formatWorkingHours } from "../attendance.utils";
@@ -12,6 +19,8 @@ interface AdminAttendanceSummaryProps {
   selected:
     | "all"
     | typeof ATTENDANCE_STATUS.PRESENT
+    | typeof ATTENDANCE_STATUS.SHORT_HOURS
+    | typeof ATTENDANCE_STATUS.HALF_DAY
     | typeof ATTENDANCE_STATUS.INCOMPLETE
     | typeof ATTENDANCE_STATUS.ABSENT;
 
@@ -19,14 +28,18 @@ interface AdminAttendanceSummaryProps {
     value:
       | "all"
       | typeof ATTENDANCE_STATUS.PRESENT
+      | typeof ATTENDANCE_STATUS.SHORT_HOURS
+      | typeof ATTENDANCE_STATUS.HALF_DAY
       | typeof ATTENDANCE_STATUS.INCOMPLETE
-      | typeof ATTENDANCE_STATUS.ABSENT,
+      | typeof ATTENDANCE_STATUS.ABSENT
   ) => void;
 }
 
 type SummaryFilter =
   | "all"
   | typeof ATTENDANCE_STATUS.PRESENT
+  | typeof ATTENDANCE_STATUS.SHORT_HOURS
+  | typeof ATTENDANCE_STATUS.HALF_DAY
   | typeof ATTENDANCE_STATUS.INCOMPLETE
   | typeof ATTENDANCE_STATUS.ABSENT;
 
@@ -62,21 +75,33 @@ export default function AdminAttendanceSummary({
       icon: Clock3,
     },
     {
+      label: "Short Hours",
+      value: summary.shortHours,
+      key: ATTENDANCE_STATUS.SHORT_HOURS,
+      icon: TriangleAlert,
+    },
+    {
       label: "Absent",
       value: summary.absent,
       key: ATTENDANCE_STATUS.ABSENT,
       icon: UserX,
     },
     {
-      label: "Working Hours",
-      value: formatWorkingHours(summary.totalWorkingHours),
-      key: "working-hours",
-      icon: Timer,
+      label: "Half Day",
+      value: summary.halfDay,
+      key: ATTENDANCE_STATUS.HALF_DAY,
+      icon: Clock3,
     },
+    // {
+    //   label: "Working Hours",
+    //   value: formatWorkingHours(summary.totalWorkingHours),
+    //   key: "working-hours",
+    //   icon: Timer,
+    // },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-5">
+    <div className="grid gap-4 md:grid-cols-6">
       {cards.map((card) => {
         const Icon = card.icon;
 

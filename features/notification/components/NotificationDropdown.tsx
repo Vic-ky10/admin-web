@@ -18,14 +18,18 @@ import { Notification } from "../notification.types";
 interface NotificationDropdownProps {
   notifications: Notification[];
   unreadCount: number;
+  theme?: "emerald" | "blue";
 }
 
 export default function NotificationDropdown({
   notifications,
+  theme = "emerald",
 }: NotificationDropdownProps) {
   const [pending, startTransition] = useTransition();
-  const [prevNotifications, setPrevNotifications] = useState<Notification[]>(notifications);
-  const [localNotifications, setLocalNotifications] = useState<Notification[]>(notifications);
+  const [prevNotifications, setPrevNotifications] =
+    useState<Notification[]>(notifications);
+  const [localNotifications, setLocalNotifications] =
+    useState<Notification[]>(notifications);
   const isFetchingRef = useRef(false);
   const pendingReadIdsRef = useRef<Set<string>>(new Set());
   const pendingAllReadRef = useRef(false);
@@ -38,6 +42,11 @@ export default function NotificationDropdown({
 
   // Dynamic unread count based on current local/optimistic state
   const localUnreadCount = localNotifications.filter((n) => !n.is_read).length;
+  const isBlue = theme === "blue";
+
+  const notificationPage = isBlue
+    ? "/notifications"
+    : "/employee/notifications";
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
@@ -49,7 +58,10 @@ export default function NotificationDropdown({
         const fresh = await getNotificationsAction();
         // Merge fetched notifications with optimistic local updates
         const merged = fresh.map((n) => {
-          if (pendingAllReadRef.current || pendingReadIdsRef.current.has(n.id)) {
+          if (
+            pendingAllReadRef.current ||
+            pendingReadIdsRef.current.has(n.id)
+          ) {
             return { ...n, is_read: true };
           }
           return n;
@@ -100,7 +112,7 @@ export default function NotificationDropdown({
     // Add to optimistic pending reads
     pendingReadIdsRef.current.add(id);
     setLocalNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
     );
 
     startTransition(async () => {
@@ -124,9 +136,7 @@ export default function NotificationDropdown({
   function markAllRead() {
     // Add to optimistic pending all read
     pendingAllReadRef.current = true;
-    setLocalNotifications((prev) =>
-      prev.map((n) => ({ ...n, is_read: true }))
-    );
+    setLocalNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
 
     startTransition(async () => {
       const result = await markAllNotificationsReadAction();
@@ -148,22 +158,31 @@ export default function NotificationDropdown({
 
   return (
     <details className="relative">
-      <summary className="relative inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-700">
+      <summary
+        className={[
+          "relative inline-flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all duration-200",
+          isBlue
+            ? "hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+            : "hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
+        ].join(" ")}
+      >
         <Bell className="h-5 w-5" />
 
         {localUnreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white">
             {localUnreadCount}
           </span>
         )}
       </summary>
 
-      <div className="absolute right-0 mt-2 w-96 rounded-lg border border-slate-200 bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 p-4">
+      <div className="absolute right-0 z-50 mt-3 w-[420px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div>
-            <h3 className="font-semibold text-slate-900">Notifications</h3>
+            <h3 className="text-lg font-bold text-slate-900">Notifications</h3>
 
-            <p className="text-xs text-slate-500">{localUnreadCount} unread</p>
+            <p className="mt-1 text-sm text-slate-500">
+              {localUnreadCount} unread notifications
+            </p>
           </div>
 
           {localUnreadCount > 0 && (
@@ -179,68 +198,97 @@ export default function NotificationDropdown({
           )}
         </div>
 
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-[500px] overflow-y-auto">
           {localNotifications.length === 0 ? (
-            <div className="p-6 text-center">
-              <Bell className="mx-auto h-10 w-10 text-slate-300" />
+            <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+              <Bell className="mb-4 h-12 w-12 text-slate-300" />
 
-              <p className="mt-3 font-medium text-slate-700">
+              <p className="text-base font-semibold text-slate-700">
                 No notifications
               </p>
 
-              <p className="text-sm text-slate-500">You&apos;re all caught up..</p>
+              <p className="mt-2 text-sm text-slate-500">
+                You&apos;re all caught up.
+              </p>
             </div>
           ) : (
             localNotifications.map((notification) => (
               <div
                 key={notification.id}
                 className={[
-                  "border-b border-slate-100 p-4 transition",
-                  !notification.is_read ? "bg-blue-50" : "bg-white",
+                  "border-b border-slate-100 px-6 py-5 transition-all duration-200 hover:bg-slate-50",
+                  !notification.is_read ? "bg-emerald-50/40" : "bg-white",
                 ].join(" ")}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">
-                      {notification.title}
-                    </p>
-
-                    <p className="mt-1 text-sm text-slate-600">
-                      {notification.message}
-                    </p>
-
-                    <p className="mt-2 text-xs text-slate-400">
-                      {new Date(notification.created_at)
-                        .toISOString()
-                        .replace("T", " ")
-                        .slice(0, 16)}
-                    </p>
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700">
+                    {notification.title.charAt(0).toUpperCase()}
                   </div>
 
-                  {!notification.is_read && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => markRead(notification.id)}
-                      disabled={pending}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {notification.title}
+                        </p>
 
-                {notification.action_url && (
-                  <Link
-                    href={notification.action_url}
-                    className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline"
-                  >
-                    Open →
-                  </Link>
-                )}
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">
+                          {notification.message}
+                        </p>
+
+                        <p className="mt-3 text-xs text-slate-400">
+                          {new Date(notification.created_at)
+                            .toISOString()
+                            .replace("T", " ")
+                            .slice(0, 16)}
+                        </p>
+                      </div>
+
+                      {!notification.is_read && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => markRead(notification.id)}
+                          disabled={pending}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    {notification.action_url && (
+                      <Link
+                        href={notification.action_url}
+                        className={[
+                          "mt-4 inline-block text-sm font-medium hover:underline",
+                          isBlue ? "text-blue-700" : "text-emerald-700",
+                        ].join(" ")}
+                      >
+                        Open →
+                      </Link>
+                    )}
+                  </div>
+                </div>
               </div>
             ))
           )}
         </div>
+
+        {localNotifications.length > 0 && (
+          <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 text-center">
+            <Link
+              href={notificationPage}
+              className={[
+                "text-sm font-semibold transition",
+                isBlue
+                  ? "text-blue-700 hover:text-blue-800"
+                  : "text-emerald-700 hover:text-emerald-800",
+              ].join(" ")}
+            >
+              View All Notifications →
+            </Link>
+          </div>
+        )}
       </div>
     </details>
   );
