@@ -1,4 +1,5 @@
 export interface Notification {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type(type: any): string | import("url").UrlObject;
   id: string;
   profile_id: string;

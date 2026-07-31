@@ -6,7 +6,6 @@ import {
   notifyAdmins,
 } from "@/features/notification/notification.helper";
 import { Employee } from "@/features/employee/employee.types";
-import { getCurrentEmployeeProfileFromToken } from "@/features/employee-portal/employee-portal.service";
 import {
   EXPENSE_STATUS,
   PAYMENT_STATUS,
@@ -25,11 +24,7 @@ import {
 } from "./expense.validation";
 
 
-const EXPENSE_CODE_PREFIX = "EXP";
 
-function formatExpenseCode(value: number) {
-  return `${EXPENSE_CODE_PREFIX}${value.toString().padStart(6, "0")}`;
-}
 
 const EXPENSE_SELECT = `
 id,
@@ -177,7 +172,7 @@ export async function createExpense(
     message: "Expense submitted successfully.",
     data: data as Expense,
   };
-}
+}    
 export async function updateExpense(
   expenseId: string,
   profileId: string,

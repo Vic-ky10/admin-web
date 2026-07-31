@@ -148,6 +148,7 @@ export async function getEmployeeExpenseSummaryAction(): Promise<ActionResponse<
       success: true,
       data,
     };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return {
       success: false,
@@ -163,6 +164,7 @@ export async function getAdminExpenseSummaryAction(): Promise<ActionResponse<Adm
       success: true,
       data,
     };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return {
       success: false,
