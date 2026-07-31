@@ -39,11 +39,6 @@ export interface Customer {
   updated_at: string;
 }
 
-export interface PurchaseRemarksMeta {
-  incentive_status: "Not Eligible" | "Eligible" | "Pending Review" | "Approved" | "Rejected";
-  remarks: string;
-}
-
 export interface CustomerPurchase {
   id: string;
   purchase_code: string;
@@ -51,7 +46,7 @@ export interface CustomerPurchase {
   amount: number;
   purchase_date: string;
   incentive_amount: number;
-  status: "Pending" | "Approved" | "Rejected" | "Not Eligible";
+  status: "Not Eligible" | "Pending" | "Approved" | "Rejected";
   remarks: string | null;
   created_by: string;
   created_at: string;

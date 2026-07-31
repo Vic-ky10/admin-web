@@ -2,39 +2,25 @@
 
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/Table";
-import {
-  Customer,
-  SalesArea,
-  CustomerPurchase,
-  IncentiveRule,
-} from "../sales.types";
-import { Employee } from "@/features/employee/employee.types";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { Customer, SalesArea, CustomerPurchase } from "@/features/sales/sales.types";
+import { Incentive } from "@/features/incentive/incentive.types";
 import { Trash2, Edit2, Eye } from "lucide-react";
-import { parsePurchaseRemarks } from "../sales.utils";
+import { parsePurchaseRemarks } from "@/features/sales/sales.utils";
 
 // --- CUSTOMERS TABLE ---
 interface CustomerTableProps {
   customers: Customer[];
   salesAreas: SalesArea[];
-  employees: Employee[];
   onView: (c: Customer) => void;
   onEdit: (c: Customer) => void;
   onDelete: (c: Customer) => void;
   deletingId: string | null;
 }
 
-export function CustomerTable({
+export function EmployeeCustomerTable({
   customers,
   salesAreas,
-  employees,
   onView,
   onEdit,
   onDelete,
@@ -44,10 +30,6 @@ export function CustomerTable({
     return salesAreas.find((a) => a.id === areaId)?.area_name || "N/A";
   };
 
-  const getEmployeeName = (empId: string) => {
-    return employees.find((e) => e.id === empId)?.full_name || "Unassigned";
-  };
-
   const statusVariant = (status: string) => {
     if (status === "Active") return "success";
     if (status === "Blocked") return "danger";
@@ -55,7 +37,7 @@ export function CustomerTable({
   };
 
   if (customers.length === 0) {
-    return <EmptyState message="No customers found." />;
+    return <EmptyState message="No customers assigned to you." />;
   }
 
   return (
@@ -67,7 +49,6 @@ export function CustomerTable({
           <TableHeader>Phone</TableHeader>
           <TableHeader>Email</TableHeader>
           <TableHeader>Sales Area</TableHeader>
-          <TableHeader>Representative</TableHeader>
           <TableHeader>Status</TableHeader>
           <TableHeader>Created Date</TableHeader>
           <TableHeader>Actions</TableHeader>
@@ -77,14 +58,12 @@ export function CustomerTable({
         {customers.map((c) => (
           <TableRow key={c.id}>
             <TableCell>
-              <span className="font-semibold text-slate-900">
-                {c.customer_code}
-              </span>
+              <span className="font-semibold text-slate-900">{c.customer_code}</span>
             </TableCell>
             <TableCell>
               <button
                 onClick={() => onView(c)}
-                className="font-semibold text-blue-600 hover:text-blue-800 text-left hover:underline"
+                className="font-semibold text-emerald-600 hover:text-emerald-800 text-left hover:underline"
               >
                 {c.full_name}
               </button>
@@ -92,13 +71,10 @@ export function CustomerTable({
             <TableCell>{c.phone}</TableCell>
             <TableCell>{c.email || "-"}</TableCell>
             <TableCell>{getAreaName(c.sales_area_id)}</TableCell>
-            <TableCell>{getEmployeeName(c.assigned_employee_id)}</TableCell>
             <TableCell>
               <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
             </TableCell>
-            <TableCell>
-              {new Date(c.created_at).toLocaleDateString("en-IN")}
-            </TableCell>
+            <TableCell>{new Date(c.created_at).toLocaleDateString("en-IN")}</TableCell>
             <TableCell>
               <div className="flex gap-2">
                 <Button
@@ -140,17 +116,15 @@ interface PurchaseTableProps {
   purchases: CustomerPurchase[];
   customers: Customer[];
   salesAreas: SalesArea[];
-  employees: Employee[];
   onEdit: (p: CustomerPurchase) => void;
   onDelete: (p: CustomerPurchase) => void;
   deletingId: string | null;
 }
 
-export function PurchaseTable({
+export function EmployeePurchaseTable({
   purchases,
   customers,
   salesAreas,
-  employees,
   onEdit,
   onDelete,
   deletingId,
@@ -162,18 +136,7 @@ export function PurchaseTable({
   const getCustomerArea = (cId: string) => {
     const cust = customers.find((c) => c.id === cId);
     if (!cust) return "N/A";
-    return (
-      salesAreas.find((a) => a.id === cust.sales_area_id)?.area_name || "N/A"
-    );
-  };
-
-  const getCustomerRepresentative = (cId: string) => {
-    const cust = customers.find((c) => c.id === cId);
-    if (!cust) return "Unassigned";
-    return (
-      employees.find((e) => e.id === cust.assigned_employee_id)?.full_name ||
-      "Unassigned"
-    );
+    return salesAreas.find((a) => a.id === cust.sales_area_id)?.area_name || "N/A";
   };
 
   const statusVariant = (status: string) => {
@@ -191,7 +154,7 @@ export function PurchaseTable({
   };
 
   if (purchases.length === 0) {
-    return <EmptyState message="No customer purchases recorded." />;
+    return <EmptyState message="No purchases logged yet." />;
   }
 
   return (
@@ -201,7 +164,6 @@ export function PurchaseTable({
           <TableHeader>Purchase Code</TableHeader>
           <TableHeader>Customer</TableHeader>
           <TableHeader>Sales Area</TableHeader>
-          <TableHeader>Representative</TableHeader>
           <TableHeader>Amount</TableHeader>
           <TableHeader>Incentive</TableHeader>
           <TableHeader>Purchase Date</TableHeader>
@@ -216,37 +178,24 @@ export function PurchaseTable({
           return (
             <TableRow key={p.id}>
               <TableCell>
-                <span className="font-semibold text-slate-900">
-                  {p.purchase_code}
-                </span>
+                <span className="font-semibold text-slate-900">{p.purchase_code}</span>
               </TableCell>
               <TableCell>
-                <span className="font-medium text-slate-700">
-                  {getCustomerName(p.customer_id)}
-                </span>
+                <span className="font-medium text-slate-700">{getCustomerName(p.customer_id)}</span>
               </TableCell>
               <TableCell>{getCustomerArea(p.customer_id)}</TableCell>
-              <TableCell>{getCustomerRepresentative(p.customer_id)}</TableCell>
               <TableCell>
-                <span className="font-bold text-slate-900">
-                  ₹{p.amount.toLocaleString("en-IN")}
-                </span>
+                <span className="font-bold text-slate-900">₹{p.amount.toLocaleString("en-IN")}</span>
               </TableCell>
               <TableCell>
-                <span className="text-emerald-700 font-semibold">
-                  ₹{p.incentive_amount.toLocaleString("en-IN")}
-                </span>
+                <span className="text-emerald-700 font-semibold">₹{p.incentive_amount.toLocaleString("en-IN")}</span>
               </TableCell>
-              <TableCell>
-                {new Date(p.purchase_date).toLocaleDateString("en-IN")}
-              </TableCell>
+              <TableCell>{new Date(p.purchase_date).toLocaleDateString("en-IN")}</TableCell>
               <TableCell>
                 <Badge variant={statusVariant(p.status)}>{p.status}</Badge>
               </TableCell>
               <TableCell>
-                <Badge variant={incentiveStatusVariant(meta.incentive_status)}>
-                  {meta.incentive_status}
-                </Badge>
+                <Badge variant={incentiveStatusVariant(meta.incentive_status)}>{meta.incentive_status}</Badge>
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
@@ -275,44 +224,19 @@ export function PurchaseTable({
   );
 }
 
-// --- SALES AREAS TABLE ---
+// --- SALES AREAS TABLE (READ ONLY) ---
 interface SalesAreaTableProps {
   salesAreas: SalesArea[];
   customers: Customer[];
-  employees: Employee[];
-  onEdit: (a: SalesArea) => void;
-  onDelete: (a: SalesArea) => void;
-  deletingId: string | null;
 }
 
-export function SalesAreaTable({
-  salesAreas,
-  customers,
-  employees,
-  onEdit,
-  onDelete,
-  deletingId,
-}: SalesAreaTableProps) {
-  // Count customers in area
+export function EmployeeSalesAreaTable({ salesAreas, customers }: SalesAreaTableProps) {
   const getCustomerCount = (areaId: string) => {
     return customers.filter((c) => c.sales_area_id === areaId).length;
   };
 
-  // Find unique representatives assigned to customers in this sales area
-  const getRepresentatives = (areaId: string) => {
-    const areaCustomers = customers.filter((c) => c.sales_area_id === areaId);
-    const empIds = Array.from(
-      new Set(areaCustomers.map((c) => c.assigned_employee_id)),
-    );
-    if (empIds.length === 0) return "None Assigned";
-    return empIds
-      .map((id) => employees.find((e) => e.id === id)?.full_name)
-      .filter(Boolean)
-      .join(", ");
-  };
-
   if (salesAreas.length === 0) {
-    return <EmptyState message="No sales areas created." />;
+    return <EmptyState message="No sales areas assigned to you." />;
   }
 
   return (
@@ -322,25 +246,19 @@ export function SalesAreaTable({
           <TableHeader>Code</TableHeader>
           <TableHeader>Area Name</TableHeader>
           <TableHeader>Area Type</TableHeader>
-          <TableHeader>Assigned Representatives</TableHeader>
-          <TableHeader>Customer Count</TableHeader>
+          <TableHeader>Your Customer Count</TableHeader>
           <TableHeader>Status</TableHeader>
-          <TableHeader>Actions</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
         {salesAreas.map((area) => (
           <TableRow key={area.id}>
             <TableCell>
-              <span className="font-semibold text-slate-900">
-                {area.area_code}
-              </span>
+              <span className="font-semibold text-slate-900">{area.area_code}</span>
             </TableCell>
             <TableCell>
               <div>
-                <span className="font-bold text-slate-800 block">
-                  {area.area_name}
-                </span>
+                <span className="font-bold text-slate-800 block">{area.area_name}</span>
                 {area.city && (
                   <span className="text-xs text-slate-400">
                     {area.city}, {area.state || ""}
@@ -350,36 +268,10 @@ export function SalesAreaTable({
             </TableCell>
             <TableCell>{area.area_type}</TableCell>
             <TableCell>
-              <span className="text-xs font-medium text-slate-600 block max-w-xs truncate">
-                {getRepresentatives(area.id)}
-              </span>
-            </TableCell>
-            <TableCell>
               <Badge variant="info">{getCustomerCount(area.id)}</Badge>
             </TableCell>
             <TableCell>
-              <Badge variant={area.status === "Active" ? "success" : "danger"}>
-                {area.status}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => onEdit(area)}
-                  className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
-                >
-                  <Edit2 size={16} strokeWidth={2} className="text-amber-600 shrink-0" />
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => onDelete(area)}
-                  disabled={deletingId === area.id}
-                  className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
-                >
-                  <Trash2 size={16} strokeWidth={2} className="text-red-600 shrink-0" />
-                </Button>
-              </div>
+              <Badge variant={area.status === "Active" ? "success" : "danger"}>{area.status}</Badge>
             </TableCell>
           </TableRow>
         ))}
@@ -387,76 +279,67 @@ export function SalesAreaTable({
     </Table>
   );
 }
-  
 
-interface IncentiveRuleTableProps {
-  incentiveRules: IncentiveRule[];
-  onEdit: (r: IncentiveRule) => void;
-  onDelete: (r: IncentiveRule) => void;
-  deletingId: string | null;
+// --- INCENTIVES TABLE (READ ONLY) ---
+interface IncentivesTableProps {
+  incentives: Incentive[];
 }
 
-export function IncentiveRuleTable({
-  incentiveRules,
-  onEdit,
-  onDelete,
-  deletingId,
-}: IncentiveRuleTableProps) {
-  if (incentiveRules.length === 0) {
-    return <EmptyState message="No incentive rules defined." />;
+export function EmployeeIncentivesTable({ incentives }: IncentivesTableProps) {
+  const statusVariant = (status: string) => {
+    if (status === "Approved") return "success";
+    if (status === "Pending") return "warning";
+    return "danger";
+  };
+
+  const paymentStatusVariant = (status: string) => {
+    return status === "Paid" ? "success" : "warning";
+  };
+
+  if (incentives.length === 0) {
+    return <EmptyState message="No incentives earned yet." />;
   }
 
   return (
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeader>Minimum Purchase Amount Target</TableHeader>
-          <TableHeader>Incentive Commission Payout</TableHeader>
+          <TableHeader>Incentive Code</TableHeader>
+          <TableHeader>Title</TableHeader>
+          <TableHeader>Type</TableHeader>
+          <TableHeader>Amount</TableHeader>
+          <TableHeader>Period</TableHeader>
           <TableHeader>Status</TableHeader>
+          <TableHeader>Payment Status</TableHeader>
           <TableHeader>Created Date</TableHeader>
-          <TableHeader>Actions</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
-        {incentiveRules.map((rule) => (
-          <TableRow key={rule.id}>
+        {incentives.map((i) => (
+          <TableRow key={i.id}>
             <TableCell>
-              <span className="font-bold text-slate-800">
-                ₹{rule.minimum_purchase.toLocaleString("en-IN")}
-              </span>
+              <span className="font-semibold text-slate-900">{i.incentive_code}</span>
             </TableCell>
             <TableCell>
-              <span className="text-emerald-700 font-bold">
-                ₹{rule.incentive_amount.toLocaleString("en-IN")}
-              </span>
-            </TableCell>
-            <TableCell>
-              <Badge variant={rule.status === "Active" ? "success" : "danger"}>
-                {rule.status}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              {new Date(rule.created_at).toLocaleDateString("en-IN")}
-            </TableCell>
-            <TableCell>
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => onEdit(rule)}
-                  className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
-                >
-                  <Edit2 size={16} strokeWidth={2} className="text-amber-600 shrink-0" />
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => onDelete(rule)}
-                  disabled={deletingId === rule.id}
-                  className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
-                >
-                  <Trash2 size={16} strokeWidth={2} className="text-red-600 shrink-0" />
-                </Button>
+              <div>
+                <span className="font-semibold text-slate-800 block">{i.title}</span>
+                {i.description && <span className="text-xs text-slate-400 block">{i.description}</span>}
               </div>
             </TableCell>
+            <TableCell>{i.incentive_type}</TableCell>
+            <TableCell>
+              <span className="font-bold text-slate-900">₹{i.amount.toLocaleString("en-IN")}</span>
+            </TableCell>
+            <TableCell>
+              <span>{new Date(0, i.month - 1).toLocaleString("en-IN", { month: "long" })} {i.year}</span>
+            </TableCell>
+            <TableCell>
+              <Badge variant={statusVariant(i.status)}>{i.status}</Badge>
+            </TableCell>
+            <TableCell>
+              <Badge variant={paymentStatusVariant(i.payment_status)}>{i.payment_status}</Badge>
+            </TableCell>
+            <TableCell>{new Date(i.created_at).toLocaleDateString("en-IN")}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -464,7 +347,7 @@ export function IncentiveRuleTable({
   );
 }
 
-
+// --- HELPER EMPTY STATE ---
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center">

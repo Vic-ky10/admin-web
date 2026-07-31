@@ -19,12 +19,13 @@ import {
   TrendingUp,
   UserRound,
   X,
+  DollarSign,
 } from "lucide-react";
 import { ReactNode, useState } from "react";
 import clsx from "clsx";
 
 import Button from "@/components/ui/Button";
-import { logout } from "@/features/auth/auth.service";
+import { logout } from "@/features/auth/auth.client";
 import { Employee } from "@/features/employee/employee.types";
 
 const employeeNavItems = [
@@ -40,6 +41,7 @@ const employeeNavItems = [
     icon: TrendingUp,
   },
   { label: "Incentives", href: "/employee/incentives", icon: Gift },
+  { label: "My Sales", href: "/employee/sales", icon: DollarSign },
   { label: "Announcements", href: "/employee/announcements", icon: Megaphone },
   { label: "Profile", href: "/employee/profile", icon: UserRound },
 ];

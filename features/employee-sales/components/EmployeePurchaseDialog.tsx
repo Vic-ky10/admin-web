@@ -6,12 +6,12 @@ import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import LoadingButton from "@/components/feedback/LoadingButton";
-import { Customer, CustomerPurchase } from "../sales.types";
-import { CustomerPurchaseForm, customerPurchaseSchema } from "../sales.validation";
+import { Customer, CustomerPurchase } from "@/features/sales/sales.types";
+import { CustomerPurchaseForm, customerPurchaseSchema } from "@/features/sales/sales.validation";
 import { useEffect } from "react";
-import { parsePurchaseRemarks } from "../sales.utils";
+import { parsePurchaseRemarks } from "@/features/sales/sales.utils";
 
-interface PurchaseDialogProps {
+interface EmployeePurchaseDialogProps {
   open: boolean;
   onClose: () => void;
   purchase: CustomerPurchase | null;
@@ -25,18 +25,16 @@ const defaultValues: CustomerPurchaseForm = {
   amount: 0,
   purchase_date: "",
   remarks: "",
-  status: "Pending",
-  incentive_status: "Not Eligible",
 };
 
-export default function PurchaseDialog({
+export default function EmployeePurchaseDialog({
   open,
   onClose,
   purchase,
   customers,
   onSubmit,
   loading,
-}: PurchaseDialogProps) {
+}: EmployeePurchaseDialogProps) {
   const {
     register,
     handleSubmit,
@@ -50,7 +48,6 @@ export default function PurchaseDialog({
   useEffect(() => {
     if (open) {
       if (purchase) {
-        // Parse date to YYYY-MM-DD for standard HTML date input
         const formattedDate = purchase.purchase_date
           ? new Date(purchase.purchase_date).toISOString().substring(0, 10)
           : "";
@@ -62,8 +59,6 @@ export default function PurchaseDialog({
           amount: purchase.amount,
           purchase_date: formattedDate,
           remarks: meta.remarks,
-          status: purchase.status === "Not Eligible" ? "Approved" : purchase.status,
-          incentive_status: meta.incentive_status,
         });
       } else {
         reset(defaultValues);
@@ -83,7 +78,7 @@ export default function PurchaseDialog({
           <select
             {...register("customer_id")}
             disabled={!!purchase}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
           >
             <option value="">Select customer</option>
             {customers.map((c) => (
@@ -106,12 +101,14 @@ export default function PurchaseDialog({
             placeholder="e.g. 15000"
             error={errors.amount?.message}
             {...register("amount", { valueAsNumber: true })}
+            className="focus:border-emerald-500 focus:ring-emerald-100"
           />
           <Input
             type="date"
             label="Purchase Date"
             error={errors.purchase_date?.message}
             {...register("purchase_date")}
+            className="focus:border-emerald-500 focus:ring-emerald-100"
           />
         </div>
 
@@ -123,54 +120,22 @@ export default function PurchaseDialog({
             {...register("remarks")}
             rows={3}
             placeholder="Add invoice numbers, items details, or notes..."
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm"
           />
           {errors.remarks?.message && (
             <p className="text-sm text-red-600">{errors.remarks.message}</p>
           )}
         </div>
 
-        {purchase && (
-          <div className="grid gap-4 md:grid-cols-2 p-4 bg-slate-50 rounded-lg border border-slate-100">
-            <div className="space-y-1">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Purchase Status</label>
-              <select
-                {...register("status")}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-              {errors.status?.message && (
-                <p className="text-sm text-red-600">{errors.status.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Incentive Status</label>
-              <select
-                {...register("incentive_status")}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm"
-              >
-                <option value="Not Eligible">Not Eligible</option>
-                <option value="Eligible">Eligible</option>
-                <option value="Pending Review">Pending Review</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-              {errors.incentive_status?.message && (
-                <p className="text-sm text-red-600">{errors.incentive_status.message}</p>
-              )}
-            </div>
-          </div>
-        )}
-
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose} className="border-slate-200 text-slate-700 hover:bg-slate-50">
             Cancel
           </Button>
-          <LoadingButton type="submit" loading={loading}>
+          <LoadingButton
+            type="submit"
+            loading={loading}
+            className="bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-emerald-600/20"
+          >
             {purchase ? "Save Changes" : "Log Purchase"}
           </LoadingButton>
         </div>

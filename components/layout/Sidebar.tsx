@@ -28,6 +28,11 @@ const adminNavItems = [
   { label: "Attendance", href: "/attendance", icon: CalendarCheck },
   { label: "Projects", href: "/projects", icon: BriefcaseBusiness },
   { label: "Leave", href: "/leave", icon: BarChart3 },
+  {
+  label: "Sales",
+  href: "/sales",
+  icon: TrendingUp,
+},
   { label: "Expenses", href: "/expenses", icon: CreditCard },
   { label: "Expense Tracker", href: "/expense-tracker", icon: TrendingUp },
   { label: "Incentives", href: "/incentives", icon: UserRound },

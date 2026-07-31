@@ -2,6 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 
+function revalidateSales() {
+  revalidatePath("/sales");
+  revalidatePath("/employee/sales");
+  revalidatePath("/dashboard");
+  revalidatePath("/employee/dashboard");
+}
+
 
 import {
   createSalesArea,
@@ -56,7 +63,7 @@ export async function createSalesAreaAction(values: SalesAreaForm) {
   const result = await createSalesArea(values, profileId);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -69,7 +76,7 @@ export async function updateSalesAreaAction(
   const result = await updateSalesArea(id, values);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -79,7 +86,7 @@ export async function deleteSalesAreaAction(id: string) {
   const result = await deleteSalesArea(id);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -98,7 +105,7 @@ export async function createCustomerAction(values: CustomerForm) {
   const result = await createCustomer(values, profileId);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -111,7 +118,7 @@ export async function updateCustomerAction(
   const result = await updateCustomer(id, values);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -121,7 +128,7 @@ export async function deleteCustomerAction(id: string) {
   const result = await deleteCustomer(id);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -142,7 +149,7 @@ export async function createCustomerPurchaseAction(
   const result = await createCustomerPurchase(values, profileId);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -152,10 +159,11 @@ export async function updateCustomerPurchaseAction(
   id: string,
   values: CustomerPurchaseForm
 ) {
-  const result = await updateCustomerPurchase(id, values);
+  const profileId = await getAuthenticatedProfileId();
+  const result = await updateCustomerPurchase(id, values, profileId || undefined);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -165,7 +173,7 @@ export async function deleteCustomerPurchaseAction(id: string) {
   const result = await deleteCustomerPurchase(id);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -186,7 +194,7 @@ export async function createCustomerFollowupAction(
   const result = await createCustomerFollowup(values, profileId);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -199,7 +207,7 @@ export async function updateCustomerFollowupAction(
   const result = await updateCustomerFollowup(id, values);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -209,7 +217,7 @@ export async function deleteCustomerFollowupAction(id: string) {
   const result = await deleteCustomerFollowup(id);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -230,7 +238,7 @@ export async function createIncentiveRuleAction(
   const result = await createIncentiveRule(values, profileId);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -243,7 +251,7 @@ export async function updateIncentiveRuleAction(
   const result = await updateIncentiveRule(id, values);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;
@@ -253,7 +261,7 @@ export async function deleteIncentiveRuleAction(id: string) {
   const result = await deleteIncentiveRule(id);
 
   if (result.success) {
-    revalidatePath("/sales");
+    revalidateSales();
   }
 
   return result;

@@ -28,8 +28,25 @@ export async function createNotification({
   actionUrl,
   createdBy,
 }: CreateNotificationParams) {
+  console.log("Creating notification for:", profileId);
 
-    console.log("Creating notification for:", profileId);
+  if (referenceId) {
+    const { data: existing } = await adminClient
+      .from("notifications")
+      .select("id")
+      .eq("profile_id", profileId)
+      .eq("notification_type", notificationType)
+      .eq("reference_id", referenceId)
+      .eq("title", title)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      console.log("Notification already exists, skipping duplicate creation");
+      return;
+    }
+  }
+
   const { error } = await adminClient
     .from("notifications")
     .insert({

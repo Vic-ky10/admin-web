@@ -3,11 +3,13 @@ import { ActionResponse } from "@/types/action";
 import {
   CODE_PADDING,
   PURCHASE_PREFIX,
-  PURCHASE_STATUS,
 } from "./sales.constants";
 
-import { CustomerPurchase, IncentiveRule } from "./sales.types";
+import { CustomerPurchase, IncentiveRule, PurchaseRemarksMeta } from "./sales.types";
 import { CustomerPurchaseForm } from "./sales.validation";
+import { createNotification, notifyAdmins } from "../notification/notification.helper";
+
+import { parsePurchaseRemarks, serializePurchaseRemarks } from "./sales.utils";
 
 const CUSTOMER_PURCHASE_SELECT =
   "id, purchase_code, customer_id, amount, purchase_date, incentive_amount, status, remarks, created_by, created_at, updated_at";
@@ -91,6 +93,24 @@ async function getActiveIncentiveRule(): Promise<IncentiveRule | null> {
   return data as IncentiveRule | null;
 }
 
+async function getActionUrlForRecipient(
+  recipientProfileId: string,
+  purchaseId: string
+): Promise<string> {
+  const { data: profile } = await adminClient
+    .from("profiles")
+    .select("role")
+    .eq("id", recipientProfileId)
+    .maybeSingle();
+
+  const role = profile?.role || "Employee";
+  if (role === "Admin") {
+    return `/sales?purchaseId=${purchaseId}`;
+  } else {
+    return `/employee/sales?purchaseId=${purchaseId}`;
+  }
+}
+
 export async function createCustomerPurchase(
   purchase: CustomerPurchaseForm,
   createdBy: string
@@ -100,16 +120,22 @@ export async function createCustomerPurchase(
   const rule = await getActiveIncentiveRule();
 
   let incentiveAmount = 0;
-let status: CustomerPurchase["status"] =
-  PURCHASE_STATUS.NOT_ELIGIBLE;
+  let incentiveStatus: PurchaseRemarksMeta["incentive_status"] = "Not Eligible";
 
   if (
     rule &&
     purchase.amount >= rule.minimum_purchase
   ) {
     incentiveAmount = rule.incentive_amount;
-    status = PURCHASE_STATUS.PENDING;
+    incentiveStatus = "Pending Review";
   }
+
+  const purchaseStatus = "Pending";
+
+  const remarksJson = serializePurchaseRemarks({
+    incentive_status: incentiveStatus,
+    remarks: purchase.remarks || "",
+  });
 
   const { data, error } = await adminClient
     .from("customer_purchases")
@@ -119,8 +145,8 @@ let status: CustomerPurchase["status"] =
       amount: purchase.amount,
       purchase_date: purchase.purchase_date,
       incentive_amount: incentiveAmount,
-      status,
-      remarks: purchase.remarks || null,
+      status: purchaseStatus,
+      remarks: remarksJson,
       created_by: createdBy,
     })
     .select(CUSTOMER_PURCHASE_SELECT)
@@ -133,30 +159,86 @@ let status: CustomerPurchase["status"] =
     };
   }
 
+  const newPurchase = data as CustomerPurchase;
+
+  if (incentiveStatus === "Pending Review") {
+    const { data: customer } = await adminClient
+      .from("customers")
+      .select("full_name, assigned_employee_id")
+      .eq("id", purchase.customer_id)
+      .maybeSingle();
+
+    const customerName = customer?.full_name || "Customer";
+    const employeeId = customer?.assigned_employee_id || createdBy;
+
+    const { data: employee } = await adminClient
+      .from("profiles")
+      .select("full_name")
+      .eq("id", employeeId)
+      .maybeSingle();
+
+    const employeeName = employee?.full_name || "Employee";
+
+    await notifyAdmins({
+      title: "Incentive Eligibility Review Required",
+      message: `Employee ${employeeName} has become eligible for an incentive.\nPurchase: ${purchaseCode}\nCustomer: ${customerName}\nPurchase Amount: ₹${purchase.amount.toLocaleString("en-IN")}\nPlease review.`,
+      notificationType: "Incentive",
+      referenceId: newPurchase.id,
+      actionUrl: `/sales?purchaseId=${newPurchase.id}`,
+      createdBy: employeeId,
+    });
+  }
+
   return {
     success: true,
     message: "Customer purchase created successfully.",
-    data: data as CustomerPurchase,
+    data: newPurchase,
   };
 }
 
 export async function updateCustomerPurchase(
   id: string,
-  purchase: CustomerPurchaseForm
+  purchase: CustomerPurchaseForm & { status?: string; incentive_status?: string },
+  adminReviewedBy?: string
 ): Promise<ActionResponse<CustomerPurchase>> {
-  const rule = await getActiveIncentiveRule();
-
-  let incentiveAmount = 0;
-  let status: CustomerPurchase["status"] =
-  PURCHASE_STATUS.NOT_ELIGIBLE;
-
-  if (
-    rule &&
-    purchase.amount >= rule.minimum_purchase
-  ) {
-    incentiveAmount = rule.incentive_amount;
-    status = PURCHASE_STATUS.PENDING;
+  const existing = await getCustomerPurchaseById(id);
+  if (!existing) {
+    return {
+      success: false,
+      error: "Purchase not found.",
+    };
   }
+
+  const existingMeta = parsePurchaseRemarks(existing.remarks, existing.status);
+
+  const purchaseStatus = purchase.status || existing.status;
+  let incentiveStatus = purchase.incentive_status || existingMeta.incentive_status;
+  let incentiveAmount = existing.incentive_amount;
+
+  if (purchase.amount !== existing.amount && !purchase.incentive_status) {
+    const rule = await getActiveIncentiveRule();
+    if (rule && purchase.amount >= rule.minimum_purchase) {
+      incentiveAmount = rule.incentive_amount;
+      if (incentiveStatus === "Not Eligible" || incentiveStatus === "Eligible") {
+        incentiveStatus = "Pending Review";
+      }
+    } else {
+      incentiveAmount = 0;
+      incentiveStatus = "Not Eligible";
+    }
+  } else if (purchase.incentive_status) {
+    const rule = await getActiveIncentiveRule();
+    if (incentiveStatus === "Not Eligible") {
+      incentiveAmount = 0;
+    } else if (rule && incentiveAmount === 0) {
+      incentiveAmount = rule.incentive_amount;
+    }
+  }
+
+  const remarksJson = serializePurchaseRemarks({
+    incentive_status: incentiveStatus,
+    remarks: purchase.remarks || "",
+  });
 
   const { data, error } = await adminClient
     .from("customer_purchases")
@@ -165,8 +247,8 @@ export async function updateCustomerPurchase(
       amount: purchase.amount,
       purchase_date: purchase.purchase_date,
       incentive_amount: incentiveAmount,
-      status,
-      remarks: purchase.remarks || null,
+      status: purchaseStatus,
+      remarks: remarksJson,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
@@ -180,10 +262,70 @@ export async function updateCustomerPurchase(
     };
   }
 
+  const updatedPurchase = data as CustomerPurchase;
+
+  const wasPendingReview = existingMeta.incentive_status === "Pending Review";
+  const isNowPendingReview = incentiveStatus === "Pending Review";
+
+  const { data: customerInfo } = await adminClient
+    .from("customers")
+    .select("full_name, assigned_employee_id")
+    .eq("id", purchase.customer_id)
+    .maybeSingle();
+
+  const customerName = customerInfo?.full_name || "Customer";
+  const employeeId = customerInfo?.assigned_employee_id || existing.created_by;
+
+  if (isNowPendingReview && !wasPendingReview) {
+    const { data: employeeInfo } = await adminClient
+      .from("profiles")
+      .select("full_name")
+      .eq("id", employeeId)
+      .maybeSingle();
+
+    const employeeName = employeeInfo?.full_name || "Employee";
+
+    await notifyAdmins({
+      title: "Incentive Eligibility Review Required",
+      message: `Employee ${employeeName} has become eligible for an incentive.\nPurchase: ${existing.purchase_code}\nCustomer: ${customerName}\nPurchase Amount: ₹${purchase.amount.toLocaleString("en-IN")}\nPlease review.`,
+      notificationType: "Incentive",
+      referenceId: id,
+      actionUrl: `/sales?purchaseId=${id}`,
+      createdBy: employeeId,
+    });
+  }
+
+  const isStatusChanged = incentiveStatus !== existingMeta.incentive_status;
+  if (isStatusChanged && (incentiveStatus === "Approved" || incentiveStatus === "Rejected")) {
+    const msg = incentiveStatus === "Approved"
+      ? "✅ Your incentive has been approved."
+      : "❌ Your incentive request has been rejected.";
+
+    // Ensure the recipient is NOT an Admin
+    const { data: ownerProfile } = await adminClient
+      .from("profiles")
+      .select("role")
+      .eq("id", employeeId)
+      .maybeSingle();
+
+    if (ownerProfile && ownerProfile.role !== "Admin") {
+      const actionUrl = await getActionUrlForRecipient(employeeId, id);
+      await createNotification({
+        profileId: employeeId,
+        title: `Incentive Eligibility ${incentiveStatus}`,
+        message: msg,
+        notificationType: "Incentive",
+        referenceId: id,
+        actionUrl,
+        createdBy: adminReviewedBy,
+      });
+    }
+  }
+
   return {
     success: true,
     message: "Customer purchase updated successfully.",
-    data: data as CustomerPurchase,
+    data: updatedPurchase,
   };
 }
 

@@ -25,14 +25,20 @@ export default function EmployeeExpenseTrackerClient() {
       } else {
         setError(response.error || "Failed to fetch your expense analytics summary.");
       }
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred while loading analytics.");
-    } finally {
+   } catch (err: unknown) {
+  const message =
+    err instanceof Error
+      ? err.message
+      : "An unexpected error occurred while loading analytics.";
+
+  setError(message);
+} finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSummary();
   }, []);
 
@@ -50,13 +56,13 @@ export default function EmployeeExpenseTrackerClient() {
           ))}
         </div>
 
-        {/* Monthly and Category Breakdown row skeleton */}
+       
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-lg border border-slate-200 bg-white p-6 shadow-sm h-64 bg-slate-50/50" />
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm h-64 bg-slate-50/50" />
         </div>
 
-        {/* Recent expense list table skeleton */}
+     
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm h-64 bg-slate-50/50" />
       </div>
     );
@@ -87,7 +93,7 @@ export default function EmployeeExpenseTrackerClient() {
       <div className="rounded-lg border border-slate-200 bg-white p-12 text-center shadow-sm">
         <h3 className="text-lg font-bold text-slate-900">No Expense Data</h3>
         <p className="mt-2 text-sm text-slate-500">
-          You haven't submitted any expense claims yet. Once you submit claims, your personal expense analytics will appear here.
+          You haven&apos;t submitted any expense claims yet. Once you submit claims, your personal expense analytics will appear here.
         </p>
       </div>
     );
@@ -98,7 +104,7 @@ export default function EmployeeExpenseTrackerClient() {
       {/* Summary Cards */}
       <EmployeeExpenseSummaryCards summary={summary} />
 
-      {/* Monthly Chart (reused from Admin) and Category Breakdown row */}
+
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <MonthlyOverview monthlySummary={summary.monthlySummary} />
@@ -108,7 +114,7 @@ export default function EmployeeExpenseTrackerClient() {
         </div>
       </div>
 
-      {/* Recent Personal Expense activity table */}
+
       <RecentExpenseList recentExpenses={summary.recentExpenses} />
     </div>
   );

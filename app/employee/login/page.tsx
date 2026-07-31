@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginEmployee } from "@/features/auth/auth.service";
+import { loginEmployee } from "@/features/auth/auth.client";
 
 export default function EmployeeLoginPage() {
   const router = useRouter();

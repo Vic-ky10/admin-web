@@ -8,6 +8,7 @@ import {
   Megaphone,
   UsersRound,
   ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 
 import { getProjectDashboardStats } from "@/features/project/project.service";
@@ -186,6 +187,7 @@ export default async function DashboardPage() {
     notifications,
     pendingLeavesReview,
     pendingExpensesReview,
+    approvedPurchasesRes,
   ] = await Promise.all([
     adminClient.from("profiles").select("id", { count: "exact", head: true }),
     adminClient
@@ -221,6 +223,10 @@ export default async function DashboardPage() {
       .eq("status", "Pending")
       .order("created_at", { ascending: false })
       .limit(3),
+    adminClient
+      .from("customer_purchases")
+      .select("amount, purchase_date")
+      .eq("status", "Approved"),
   ]);
 
   for (const response of [
@@ -230,6 +236,7 @@ export default async function DashboardPage() {
     adminProfile,
     pendingLeavesReview,
     pendingExpensesReview,
+    approvedPurchasesRes,
   ]) {
     if (response && "error" in response && response.error) {
       console.error(response.error);
@@ -241,6 +248,38 @@ export default async function DashboardPage() {
     .slice(0, 3);
 
   const recentNotifications = notifications.slice(0, 5);
+
+  // Process monthly sales revenue data (last 6 months)
+  const approvedPurchases = approvedPurchasesRes.data || [];
+  const monthlyRevenueData: { [key: string]: number } = {};
+  
+  // Initialize last 6 months chronologically
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(1); // Prevent month overflow
+    d.setMonth(d.getMonth() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    monthlyRevenueData[key] = 0;
+  }
+
+  approvedPurchases.forEach((p) => {
+    const purchase = p as { amount: number; purchase_date: string };
+    const date = new Date(purchase.purchase_date);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    if (monthlyRevenueData[key] !== undefined) {
+      monthlyRevenueData[key] += purchase.amount;
+    }
+  });
+
+  const chartData = Object.entries(monthlyRevenueData).map(([key, val]) => {
+    const [year, month] = key.split("-");
+    const label = new Date(Number(year), Number(month) - 1, 1).toLocaleDateString("en-US", {
+      month: "short",
+    });
+    return { label, amount: val };
+  });
+
+  const maxChartAmount = Math.max(...chartData.map((d) => d.amount), 10000);
 
   return (
     <div className="space-y-8">
@@ -331,6 +370,45 @@ export default async function DashboardPage() {
                   Review Expenses
                 </span>
               </Link>
+            </div>
+          </div>
+
+          {/* Monthly Revenue Chart */}
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-950 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  Monthly Sales Revenue
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">Total approved revenue generated over the last 6 months</p>
+              </div>
+              <Link
+                href="/sales"
+                className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-semibold"
+              >
+                View Sales Portal <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+            
+            <div className="mt-6 flex h-60 items-end justify-between gap-4 border-b border-slate-100 pb-2">
+              {chartData.map((data, idx) => {
+                const heightPercent = (data.amount / maxChartAmount) * 100;
+                return (
+                  <div key={idx} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+                    {/* Tooltip */}
+                    <div className="absolute -top-10 scale-0 rounded bg-slate-900 px-2 py-1 text-xs text-white transition duration-200 group-hover:scale-100 shadow-lg font-semibold whitespace-nowrap z-10">
+                      ₹{data.amount.toLocaleString("en-IN")}
+                    </div>
+                    {/* Visual Bar */}  
+                    <div
+                      className="w-full max-w-[64px] rounded-t-lg bg-gradient-to-t from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 transition-all duration-300 shadow-sm"
+                      style={{ height: `${Math.max(heightPercent, 2)}%` }}
+                    />
+                    <span className="mt-2 text-xs font-bold text-slate-500 uppercase tracking-wider">{data.label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

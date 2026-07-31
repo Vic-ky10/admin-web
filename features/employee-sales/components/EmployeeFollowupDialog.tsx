@@ -6,12 +6,12 @@ import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import LoadingButton from "@/components/feedback/LoadingButton";
-import { Customer, CustomerFollowup } from "../sales.types";
-import { CustomerFollowupForm, customerFollowupSchema } from "../sales.validation";
-import { FOLLOWUP_TYPES } from "../sales.constants";
+import { Customer, CustomerFollowup } from "@/features/sales/sales.types";
+import { CustomerFollowupForm, customerFollowupSchema } from "@/features/sales/sales.validation";
+import { FOLLOWUP_TYPES } from "@/features/sales/sales.constants";
 import { useEffect } from "react";
 
-interface FollowupDialogProps {
+interface EmployeeFollowupDialogProps {
   open: boolean;
   onClose: () => void;
   followup: CustomerFollowup | null;
@@ -28,14 +28,14 @@ const defaultValues: CustomerFollowupForm = {
   next_followup_date: "",
 };
 
-export default function FollowupDialog({
+export default function EmployeeFollowupDialog({
   open,
   onClose,
   followup,
   customers,
   onSubmit,
   loading,
-}: FollowupDialogProps) {
+}: EmployeeFollowupDialogProps) {
   const {
     register,
     handleSubmit,
@@ -72,7 +72,7 @@ export default function FollowupDialog({
   return (
     <Modal
       open={open}
-      title={followup ? "Edit Follow-up Status" : "Log Customer Follow-up"}
+      title={followup ? "Reschedule / Edit Follow-up" : "Log Customer Interaction"}
       onClose={onClose}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -81,7 +81,7 @@ export default function FollowupDialog({
           <select
             {...register("customer_id")}
             disabled={!!followup}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
           >
             <option value="">Select customer</option>
             {customers.map((c) => (
@@ -98,9 +98,10 @@ export default function FollowupDialog({
         <div className="grid gap-4 md:grid-cols-2">
           <Input
             type="date"
-            label="Follow-up Date"
+            label="Interaction Date"
             error={errors.followup_date?.message}
             {...register("followup_date")}
+            className="focus:border-emerald-500 focus:ring-emerald-100"
           />
 
           <div className="space-y-1">
@@ -109,7 +110,7 @@ export default function FollowupDialog({
             </label>
             <select
               {...register("followup_type")}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm"
             >
               {Object.values(FOLLOWUP_TYPES).map((type) => (
                 <option key={type} value={type}>
@@ -125,9 +126,10 @@ export default function FollowupDialog({
 
         <Input
           type="date"
-          label="Next Scheduled Follow-up (Optional)"
+          label="Next Scheduled Follow-up (Optional - leave blank if completed)"
           error={errors.next_followup_date?.message}
           {...register("next_followup_date")}
+          className="focus:border-emerald-500 focus:ring-emerald-100"
         />
 
         <div className="space-y-1">
@@ -137,8 +139,8 @@ export default function FollowupDialog({
           <textarea
             {...register("remarks")}
             rows={4}
-            placeholder="Summarize the client discussion, interest levels, or requirements..."
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm"
+            placeholder="Summarize the client discussion, interests, or requests..."
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm"
           />
           {errors.remarks?.message && (
             <p className="text-sm text-red-600">{errors.remarks.message}</p>
@@ -146,10 +148,14 @@ export default function FollowupDialog({
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose} className="border-slate-200 text-slate-700 hover:bg-slate-50">
             Cancel
           </Button>
-          <LoadingButton type="submit" loading={loading}>
+          <LoadingButton
+            type="submit"
+            loading={loading}
+            className="bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-emerald-600/20"
+          >
             {followup ? "Save Changes" : "Log Follow-up"}
           </LoadingButton>
         </div>
