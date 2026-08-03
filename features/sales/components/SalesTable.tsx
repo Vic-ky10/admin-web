@@ -107,7 +107,11 @@ export function CustomerTable({
                   className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                   title="View details"
                 >
-                  <Eye size={16} strokeWidth={2} className="text-blue-600 shrink-0" />
+                  <Eye
+                    size={16}
+                    strokeWidth={2}
+                    className="text-blue-600 shrink-0"
+                  />
                 </Button>
                 <Button
                   variant="secondary"
@@ -115,7 +119,11 @@ export function CustomerTable({
                   className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                   title="Edit customer"
                 >
-                  <Edit2 size={16} strokeWidth={2} className="text-amber-600 shrink-0" />
+                  <Edit2
+                    size={16}
+                    strokeWidth={2}
+                    className="text-amber-600 shrink-0"
+                  />
                 </Button>
                 <Button
                   variant="secondary"
@@ -124,7 +132,11 @@ export function CustomerTable({
                   className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                   title="Delete customer"
                 >
-                  <Trash2 size={16} strokeWidth={2} className="text-red-600 shrink-0" />
+                  <Trash2
+                    size={16}
+                    strokeWidth={2}
+                    className="text-red-600 shrink-0"
+                  />
                 </Button>
               </div>
             </TableCell>
@@ -255,7 +267,11 @@ export function PurchaseTable({
                     onClick={() => onEdit(p)}
                     className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                   >
-                    <Edit2 size={16} strokeWidth={2} className="text-amber-600 shrink-0" />
+                    <Edit2
+                      size={16}
+                      strokeWidth={2}
+                      className="text-amber-600 shrink-0"
+                    />
                   </Button>
                   <Button
                     variant="secondary"
@@ -263,7 +279,11 @@ export function PurchaseTable({
                     disabled={deletingId === p.id}
                     className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                   >
-                    <Trash2 size={16} strokeWidth={2} className="text-red-600 shrink-0" />
+                    <Trash2
+                      size={16}
+                      strokeWidth={2}
+                      className="text-red-600 shrink-0"
+                    />
                   </Button>
                 </div>
               </TableCell>
@@ -369,7 +389,11 @@ export function SalesAreaTable({
                   onClick={() => onEdit(area)}
                   className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                 >
-                  <Edit2 size={16} strokeWidth={2} className="text-amber-600 shrink-0" />
+                  <Edit2
+                    size={16}
+                    strokeWidth={2}
+                    className="text-amber-600 shrink-0"
+                  />
                 </Button>
                 <Button
                   variant="secondary"
@@ -377,7 +401,11 @@ export function SalesAreaTable({
                   disabled={deletingId === area.id}
                   className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                 >
-                  <Trash2 size={16} strokeWidth={2} className="text-red-600 shrink-0" />
+                  <Trash2
+                    size={16}
+                    strokeWidth={2}
+                    className="text-red-600 shrink-0"
+                  />
                 </Button>
               </div>
             </TableCell>
@@ -387,7 +415,6 @@ export function SalesAreaTable({
     </Table>
   );
 }
-  
 
 interface IncentiveRuleTableProps {
   incentiveRules: IncentiveRule[];
@@ -445,7 +472,11 @@ export function IncentiveRuleTable({
                   onClick={() => onEdit(rule)}
                   className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                 >
-                  <Edit2 size={16} strokeWidth={2} className="text-amber-600 shrink-0" />
+                  <Edit2
+                    size={16}
+                    strokeWidth={2}
+                    className="text-amber-600 shrink-0"
+                  />
                 </Button>
                 <Button
                   variant="secondary"
@@ -453,7 +484,11 @@ export function IncentiveRuleTable({
                   disabled={deletingId === rule.id}
                   className="p-1.5 h-8 w-8 inline-flex items-center justify-center"
                 >
-                  <Trash2 size={16} strokeWidth={2} className="text-red-600 shrink-0" />
+                  <Trash2
+                    size={16}
+                    strokeWidth={2}
+                    className="text-red-600 shrink-0"
+                  />
                 </Button>
               </div>
             </TableCell>
@@ -463,7 +498,6 @@ export function IncentiveRuleTable({
     </Table>
   );
 }
-
 
 function EmptyState({ message }: { message: string }) {
   return (

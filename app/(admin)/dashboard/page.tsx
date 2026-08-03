@@ -9,6 +9,8 @@ import {
   UsersRound,
   ArrowRight,
   TrendingUp,
+  Award,
+  UserCheck,
 } from "lucide-react";
 
 import { getProjectDashboardStats } from "@/features/project/project.service";
@@ -283,170 +285,249 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-            Overview
-          </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-950">
-            Admin Dashboard
-          </h1>
-          <p className="mt-2 text-slate-500">
-            Welcome back, {adminProfile?.data?.full_name || user.email} (
-            {adminProfile?.data?.designation || "Administrator"} &bull;{" "}
-            {adminProfile?.data?.department || "Admin"})
-          </p>
+      {/* Welcome Hero Banner */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-6 md:p-8 shadow-sm">
+        {/* Subtle background gradient hints */}
+        <div className="absolute -top-12 -right-12 h-40 w-40 rounded-full bg-blue-50/40 blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-16 -right-8 h-48 w-48 rounded-full bg-indigo-50/30 blur-3xl pointer-events-none" />
+        
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-100/50">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse" />
+              Overview Portal
+            </span>
+            <h1 className="mt-3 text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
+              Welcome back, {adminProfile?.data?.full_name?.split(" ")[0] || "Admin"}
+            </h1>
+            <p className="mt-1.5 text-xs md:text-sm text-slate-505 max-w-2xl leading-relaxed">
+              Logged in as <span className="font-semibold text-slate-750">{adminProfile?.data?.full_name || user.email}</span>. 
+              Role: <span className="font-medium text-slate-655">{adminProfile?.data?.designation || "Administrator"}</span> &bull; 
+              Dept: <span className="font-medium text-slate-655">{adminProfile?.data?.department || "Admin"}</span>
+            </p>
+          </div>
+          <div className="shrink-0 flex flex-col items-start md:items-end gap-1 text-xs font-medium text-slate-400">
+            <span className="text-slate-705 font-bold text-xs md:text-sm">
+              {new Date().toLocaleDateString("en-IN", {
+                weekday: "long",
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+            <span className="flex items-center gap-1">System Status: <span className="text-emerald-600 font-semibold flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />Online</span></span>
+          </div>
         </div>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardCard
           label="Total Employees"
           value={employeeCount.count ?? 0}
           href="/employees"
           icon={<UsersRound className="h-5 w-5" />}
+          theme="blue"
         />
         <DashboardCard
           label="Active Projects"
           value={projectStats.activeProjects}
           href="/projects"
           icon={<BriefcaseBusiness className="h-5 w-5" />}
+          theme="indigo"
         />
         <DashboardCard
-          label="Pending Leave Requests"
+          label="Pending Leaves"
           value={pendingLeaveCount.count ?? 0}
           href="/leave?status=Pending"
           icon={<CalendarCheck className="h-5 w-5" />}
+          theme="rose"
         />
         <DashboardCard
-          label="Pending Expense Requests"
+          label="Pending Expenses"
           value={pendingExpenseCount.count ?? 0}
           href="/expenses?status=Pending"
           icon={<CreditCard className="h-5 w-5" />}
+          theme="amber"
         />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          {/* quick Actions */}
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-              Quick Actions
-            </h2>
-            <div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-4">
+          {/* Quick Actions Grid */}
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
+            <div>
+              <h2 className="text-base font-bold tracking-tight text-slate-900">
+                Quick Actions
+              </h2>
+              <p className="text-xs font-medium text-slate-500 mt-1">Frequently accessed administrative operations</p>
+            </div>
+            
+            <div className="mt-5 grid gap-4 grid-cols-2 sm:grid-cols-4">
               <Link
                 href="/projects"
-                className="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/10 transition text-center"
+                className="group flex flex-col items-center justify-center p-5 border border-slate-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition-all duration-300 text-center"
               >
-                <BriefcaseBusiness className="h-6 w-6 text-blue-600" />
-                <span className="mt-2 text-xs font-semibold text-slate-700">
+                <span className="p-2.5 rounded-xl bg-blue-50 text-blue-600 transition-transform group-hover:scale-110 group-hover:bg-blue-100">
+                  <BriefcaseBusiness className="h-5 w-5" />
+                </span>
+                <span className="mt-3 text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors">
                   Manage Projects
                 </span>
+                <span className="mt-1 text-[11px] font-medium text-slate-500 hidden sm:block">Track and edit details</span>
               </Link>
+              
               <Link
                 href="/employees"
-                className="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/10 transition text-center"
+                className="group flex flex-col items-center justify-center p-5 border border-slate-100 rounded-xl hover:border-indigo-200 hover:bg-indigo-50/10 transition-all duration-300 text-center"
               >
-                <UsersRound className="h-6 w-6 text-blue-600" />
-                <span className="mt-2 text-xs font-semibold text-slate-700">
+                <span className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-110 group-hover:bg-indigo-100">
+                  <UsersRound className="h-5 w-5" />
+                </span>
+                <span className="mt-3 text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">
                   Manage Staff
                 </span>
+                <span className="mt-1 text-[11px] font-medium text-slate-500 hidden sm:block">Profiles and access</span>
               </Link>
+              
               <Link
                 href="/leave?status=Pending"
-                className="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/10 transition text-center"
+                className="group flex flex-col items-center justify-center p-5 border border-slate-100 rounded-xl hover:border-rose-200 hover:bg-rose-50/10 transition-all duration-300 text-center"
               >
-                <CalendarCheck className="h-6 w-6 text-blue-600" />
-                <span className="mt-2 text-xs font-semibold text-slate-700">
+                <span className="p-2.5 rounded-xl bg-rose-50 text-rose-600 transition-transform group-hover:scale-110 group-hover:bg-rose-100">
+                  <CalendarCheck className="h-5 w-5" />
+                </span>
+                <span className="mt-3 text-sm font-bold text-slate-800 group-hover:text-rose-700 transition-colors">
                   Review Leaves
                 </span>
+                <span className="mt-1 text-[11px] font-medium text-slate-500 hidden sm:block">Approve time-off requests</span>
               </Link>
+              
               <Link
                 href="/expenses?status=Pending"
-                className="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/10 transition text-center"
+                className="group flex flex-col items-center justify-center p-5 border border-slate-100 rounded-xl hover:border-amber-200 hover:bg-amber-50/10 transition-all duration-300 text-center"
               >
-                <CreditCard className="h-6 w-6 text-blue-600" />
-                <span className="mt-2 text-xs font-semibold text-slate-700">
+                <span className="p-2.5 rounded-xl bg-amber-50 text-amber-600 transition-transform group-hover:scale-110 group-hover:bg-amber-100">
+                  <CreditCard className="h-5 w-5" />
+                </span>
+                <span className="mt-3 text-sm font-bold text-slate-800 group-hover:text-amber-700 transition-colors">
                   Review Expenses
                 </span>
+                <span className="mt-1 text-[11px] font-medium text-slate-500 hidden sm:block">Validate claims and bills</span>
               </Link>
             </div>
           </div>
 
           {/* Monthly Revenue Chart */}
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
-                <h2 className="text-xl font-semibold tracking-tight text-slate-950 flex items-center gap-2">
+                <h2 className="text-base font-bold tracking-tight text-slate-900 flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-blue-600" />
                   Monthly Sales Revenue
                 </h2>
-                <p className="text-xs text-slate-500 mt-1">Total approved revenue generated over the last 6 months</p>
+                <p className="text-xs text-slate-400 mt-0.5">Approved customer purchase revenue generated over the last 6 months</p>
               </div>
               <Link
                 href="/sales"
-                className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-semibold"
+                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-bold group"
               >
-                View Sales Portal <ArrowRight className="h-3 w-3" />
+                View Sales Portal <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
             
-            <div className="mt-6 flex h-60 items-end justify-between gap-4 border-b border-slate-100 pb-2">
-              {chartData.map((data, idx) => {
-                const heightPercent = (data.amount / maxChartAmount) * 100;
-                return (
-                  <div key={idx} className="group relative flex h-full flex-1 flex-col items-center justify-end">
-                    {/* Tooltip */}
-                    <div className="absolute -top-10 scale-0 rounded bg-slate-900 px-2 py-1 text-xs text-white transition duration-200 group-hover:scale-100 shadow-lg font-semibold whitespace-nowrap z-10">
-                      ₹{data.amount.toLocaleString("en-IN")}
+            {/* Chart Area with Grid Lines */}
+            <div className="relative mt-8 h-64">
+              {/* Background Guidelines */}
+              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none text-[9px] font-bold text-slate-300">
+                <div className="w-full border-t border-dashed border-slate-100/70 pt-1 flex justify-between">
+                  <span>₹{maxChartAmount.toLocaleString("en-IN")}</span>
+                  <span className="w-full h-0 border-t border-dashed border-slate-100/50 ml-2" />
+                </div>
+                <div className="w-full border-t border-dashed border-slate-100/70 pt-1 flex justify-between">
+                  <span>₹{Math.round(maxChartAmount / 2).toLocaleString("en-IN")}</span>
+                  <span className="w-full h-0 border-t border-dashed border-slate-100/50 ml-2" />
+                </div>
+                <div className="w-full border-t border-slate-100/75 pt-1" />
+              </div>
+
+              {/* Chart Bars */}
+              <div className="absolute inset-0 flex items-end justify-between gap-4 pb-2 z-10">
+                {chartData.map((data, idx) => {
+                  const heightPercent = (data.amount / maxChartAmount) * 100;
+                  return (
+                    <div key={idx} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+                      {/* Premium Tooltip */}
+                      <div className="absolute -top-12 scale-0 rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] text-white transition-all duration-200 group-hover:scale-100 shadow-xl font-bold whitespace-nowrap z-30">
+                        ₹{data.amount.toLocaleString("en-IN")}
+                        <span className="absolute left-1/2 bottom-[-4px] h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-900" />
+                      </div>
+                      
+                      {/* Visual Bar */}  
+                      <div
+                        className="w-full max-w-[56px] rounded-t-xl bg-gradient-to-t from-blue-600 via-indigo-500 to-indigo-400 hover:from-blue-700 hover:via-indigo-600 hover:to-indigo-500 transition-all duration-500 hover:shadow-lg hover:shadow-indigo-100 cursor-pointer"
+                        style={{ height: `${Math.max(heightPercent, 3)}%` }}
+                      />
+                      <span className="mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-slate-600 transition-colors">
+                        {data.label}
+                      </span>
                     </div>
-                    {/* Visual Bar */}  
-                    <div
-                      className="w-full max-w-[64px] rounded-t-lg bg-gradient-to-t from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 transition-all duration-300 shadow-sm"
-                      style={{ height: `${Math.max(heightPercent, 2)}%` }}
-                    />
-                    <span className="mt-2 text-xs font-bold text-slate-500 uppercase tracking-wider">{data.label}</span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                <h3 className="text-base font-semibold tracking-tight text-slate-950">
-                  Pending Leaves
-                </h3>
-
+            {/* Leave Approvals */}
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm flex flex-col">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                <div>
+                  <h3 className="text-base font-bold tracking-tight text-slate-900">
+                    Pending Leaves
+                  </h3>
+                  <p className="text-xs font-medium text-slate-500 mt-1">Requires administrative review</p>
+                </div>
                 <Link
                   href="/leave?status=Pending"
-                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                  className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold group"
                 >
-                  View All <ArrowRight className="h-3 w-3" />
+                  Review All <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
-              <div className="mt-3 divide-y divide-slate-100">
+
+              <div className="mt-4 divide-y divide-slate-100/60 flex-1">
                 {(pendingLeavesReview.data ?? []).length === 0 ? (
-                  <p className="text-xs text-slate-500 py-4 text-center">
-                    No pending leave requests.
-                  </p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center h-full">
+                    <span className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">✓</span>
+                    <p className="text-xs text-slate-400 mt-2">No pending leave requests</p>
+                  </div>
                 ) : (
                   (
                     (pendingLeavesReview.data ??
                       []) as unknown as SupabaseLeaveActivityRecord[]
                   ).map((l) => {
-                    const emp = Array.isArray(l.employee)
-                      ? l.employee[0]
-                      : l.employee;
+                    const emp = Array.isArray(l.employee) ? l.employee[0] : l.employee;
+                    const name = emp?.full_name || "Employee";
+                    const initials = name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
                     return (
-                      <div key={l.id} className="py-2.5 text-xs">
-                        <p className="font-semibold text-slate-900">
-                          {emp?.full_name || "Employee"}
-                        </p>
-                        <p className="text-slate-500 mt-0.5">
-                          {l.leave_type} ({l.total_days} days)
-                        </p>
+                      <div key={l.id} className="py-3 flex items-center justify-between gap-3 group">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-[11px] font-bold text-rose-700 ring-1 ring-rose-100/50">
+                            {initials}
+                          </span>
+                          <div>
+                            <p className="text-xs font-bold text-slate-800 group-hover:text-slate-955 transition-colors">
+                              {name}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              {l.leave_type} request
+                            </p>
+                          </div>
+                        </div>
+                        <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700 ring-1 ring-rose-100/30">
+                          {l.total_days} {l.total_days === 1 ? "day" : "days"}
+                        </span>
                       </div>
                     );
                   })
@@ -455,39 +536,54 @@ export default async function DashboardPage() {
             </div>
 
             {/* Expense Approvals */}
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                <h3 className="text-base font-semibold tracking-tight text-slate-950">
-                  Pending Expenses
-                </h3>
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm flex flex-col">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                <div>
+                  <h3 className="text-base font-bold tracking-tight text-slate-905">
+                    Pending Expenses
+                  </h3>
+                  <p className="text-xs font-medium text-slate-500 mt-1">Awaiting expense validation</p>
+                </div>
                 <Link
                   href="/expenses?status=Pending"
-                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                  className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold group"
                 >
-                  View All <ArrowRight className="h-3 w-3" />
+                  Review All <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
-              <div className="mt-3 divide-y divide-slate-100">
+
+              <div className="mt-4 divide-y divide-slate-100/60 flex-1">
                 {(pendingExpensesReview.data ?? []).length === 0 ? (
-                  <p className="text-xs text-slate-500 py-4 text-center">
-                    No pending expense claims.
-                  </p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center h-full">
+                    <span className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">✓</span>
+                    <p className="text-xs text-slate-400 mt-2">No pending expense claims</p>
+                  </div>
                 ) : (
                   (
                     (pendingExpensesReview.data ??
                       []) as unknown as SupabaseExpenseActivityRecord[]
                   ).map((e) => {
-                    const emp = Array.isArray(e.employee)
-                      ? e.employee[0]
-                      : e.employee;
+                    const emp = Array.isArray(e.employee) ? e.employee[0] : e.employee;
+                    const name = emp?.full_name || "Employee";
+                    const initials = name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
                     return (
-                      <div key={e.id} className="py-2.5 text-xs">
-                        <p className="font-semibold text-slate-900">
-                          {emp?.full_name || "Employee"}
-                        </p>
-                        <p className="text-slate-500 mt-0.5">
-                          {e.description} &bull; ₹{e.amount}
-                        </p>
+                      <div key={e.id} className="py-3 flex items-center justify-between gap-3 group">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-[11px] font-bold text-amber-700 ring-1 ring-amber-100/50">
+                            {initials}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-805 group-hover:text-slate-955 transition-colors truncate">
+                              {name}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[120px] md:max-w-[150px]">
+                              {e.description}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-100/30 whitespace-nowrap">
+                          ₹{e.amount.toLocaleString("en-IN")}
+                        </span>
                       </div>
                     );
                   })
@@ -496,84 +592,129 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-              Recent Activity
-            </h2>
+          {/* Recent Activity Timeline Widget */}
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
+            <div>
+              <h2 className="text-base font-bold tracking-tight text-slate-900">
+                Recent Activity
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">Logs of recent updates and actions across the workspace</p>
+            </div>
 
-            <div className="mt-4 space-y-4">
+            <div className="mt-6 relative pl-6 border-l-2 border-slate-100 space-y-6">
               {activities.length === 0 ? (
-                <p className="py-6 text-center text-sm text-slate-500">
+                <p className="py-6 text-center text-xs text-slate-400">
                   No recent activity.
                 </p>
               ) : (
-                activities.map((act) => (
-                  <div
-                    key={act.id}
-                    className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-blue-200 hover:bg-blue-50/40 hover:shadow-sm"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <p className="font-semibold text-slate-900">
-                          {act.title}
-                        </p>
+                activities.map((act) => {
+                  let IconComponent = Bell;
+                  let colorClass = "bg-blue-50 text-blue-600 ring-blue-100";
+                  
+                  const titleLower = act.title.toLowerCase();
+                  const descLower = act.description.toLowerCase();
+                  
+                  if (titleLower.includes("leave") || descLower.includes("leave")) {
+                    IconComponent = CalendarCheck;
+                    colorClass = "bg-rose-50 text-rose-600 ring-rose-100";
+                  } else if (titleLower.includes("expense") || descLower.includes("expense")) {
+                    IconComponent = CreditCard;
+                    colorClass = "bg-amber-50 text-amber-600 ring-amber-100";
+                  } else if (titleLower.includes("incentive") || descLower.includes("incentive")) {
+                    IconComponent = Award;
+                    colorClass = "bg-purple-50 text-purple-600 ring-purple-100";
+                  } else if (titleLower.includes("attendance") || descLower.includes("attendance")) {
+                    IconComponent = UserCheck;
+                    colorClass = "bg-teal-50 text-teal-600 ring-teal-100";
+                  }
 
-                        <p className="mt-1 text-sm text-slate-600">
-                          {act.description}
-                        </p>
-                      </div>
-
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-                        {new Date(act.createdAt).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                        })}
+                  return (
+                    <div key={act.id} className="relative group">
+                      {/* Timeline Node Icon */}
+                      <span className="absolute -left-[35px] top-0 flex h-7 w-7 items-center justify-center rounded-full bg-white ring-4 ring-white transition-transform group-hover:scale-110">
+                        <span className={["flex h-6 w-6 items-center justify-center rounded-full ring-1", colorClass].join(" ")}>
+                          <IconComponent className="h-3 w-3" />
+                        </span>
                       </span>
+
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-800 group-hover:text-blue-700 transition-colors">
+                            {act.title}
+                          </p>
+                          <p className="mt-0.5 text-xs text-slate-505 leading-relaxed max-w-xl">
+                            {act.description}
+                          </p>
+                        </div>
+
+                        <span className="shrink-0 self-start text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full ring-1 ring-slate-100/50">
+                          {new Date(act.createdAt).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                          })}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
         </div>
 
         <div className="space-y-8">
-          {/* anouncements */}
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-950">
-              <Megaphone className="h-5 w-5 text-blue-600" />
-              Announcements
-            </h2>
+          {/* Announcements Widget */}
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <h2 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900">
+                <Megaphone className="h-4.5 w-4.5 text-blue-600" />
+                Announcements
+              </h2>
+              <Link
+                href="/announcements"
+                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold group"
+              >
+                View All <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
 
-            <div className="mt-4 space-y-4">
+            <div className="mt-5 space-y-4">
               {publishedAnnouncements.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-500">
-                  No announcements.
-                </p>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <span className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">📢</span>
+                  <p className="text-xs text-slate-400 mt-2">No active announcements</p>
+                </div>
               ) : (
                 publishedAnnouncements.map((ann) => (
                   <div
                     key={ann.id}
-                    className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-blue-200 hover:bg-blue-50/40 hover:shadow-sm"
+                    className="group relative overflow-hidden rounded-xl border border-slate-100 bg-white p-4 transition-all duration-300 hover:border-blue-100 hover:bg-blue-50/5 hover:shadow-sm"
                   >
                     <Link
                       href="/announcements"
-                      className="block text-sm font-semibold text-slate-900 transition hover:text-blue-700"
+                      className="block text-xs md:text-sm font-bold text-slate-800 transition-colors group-hover:text-blue-700 leading-snug"
                     >
                       {ann.title}
                     </Link>
 
-                    <p className="mt-2 line-clamp-2 text-sm text-slate-600">
+                    <p className="mt-1.5 line-clamp-2 text-xs text-slate-500 leading-relaxed">
                       {ann.message}
                     </p>
 
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="text-xs text-slate-400">
-                        {new Date(ann.created_at).toLocaleDateString("en-IN")}
+                      <span className="text-[10px] font-medium text-slate-400">
+                        {new Date(ann.created_at).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </span>
 
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-600">
-                        Announcement
+                      <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-505 ring-1 ring-slate-100">
+                        Official
                       </span>
                     </div>
                   </div>
@@ -582,22 +723,20 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* ntifications */}
-          {/* Notifications */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-6 flex items-center justify-between">
+          {/* Notifications Widget */}
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
+            <div className="mb-5 flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-base font-bold text-slate-900">
                   Notifications
                 </h2>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  Stay updated with the latest system alerts.
+                <p className="mt-0.5 text-xs text-slate-400">
+                  Stay updated with system alerts
                 </p>
               </div>
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                <Bell className="h-5 w-5" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-100/50">
+                <Bell className="h-4.5 w-4.5 animate-pulse-slow" />
               </div>
             </div>
 
@@ -621,24 +760,64 @@ function DashboardCard({
   value,
   href,
   icon,
+  theme = "blue",
 }: {
   label: string;
   value: React.ReactNode;
   href: string;
   icon: React.ReactNode;
+  theme?: "blue" | "indigo" | "rose" | "amber" | "emerald";
 }) {
+  const styles = {
+    blue: {
+      iconBg: "bg-blue-50 text-blue-700 ring-blue-100/60",
+      hover: "hover:border-blue-200 hover:shadow-blue-50/55",
+      indicator: "bg-blue-600",
+    },
+    indigo: {
+      iconBg: "bg-indigo-50 text-indigo-700 ring-indigo-100/60",
+      hover: "hover:border-indigo-200 hover:shadow-indigo-50/55",
+      indicator: "bg-indigo-600",
+    },
+    rose: {
+      iconBg: "bg-rose-50 text-rose-700 ring-rose-100/60",
+      hover: "hover:border-rose-200 hover:shadow-rose-50/55",
+      indicator: "bg-rose-600",
+    },
+    amber: {
+      iconBg: "bg-amber-50 text-amber-700 ring-amber-100/60",
+      hover: "hover:border-amber-200 hover:shadow-amber-50/55",
+      indicator: "bg-amber-600",
+    },
+    emerald: {
+      iconBg: "bg-emerald-50 text-emerald-700 ring-emerald-100/60",
+      hover: "hover:border-emerald-200 hover:shadow-emerald-50/55",
+      indicator: "bg-emerald-600",
+    },
+  };
+
+  const themeStyle = styles[theme];
+
   return (
     <Link
       href={href}
-      className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/70"
+      className={[
+        "group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
+        themeStyle.hover,
+      ].join(" ")}
     >
+      <span className={["absolute top-0 left-0 right-0 h-1", themeStyle.indicator].join(" ")} />
+      
       <div className="flex items-center justify-between">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+        <span className={["inline-flex h-10 w-10 items-center justify-center rounded-xl ring-1 transition-transform group-hover:scale-110", themeStyle.iconBg].join(" ")}>
           {icon}
         </span>
+        <span className="text-slate-300 transition-transform group-hover:translate-x-1 duration-300">
+          <ArrowRight className="h-4 w-4" />
+        </span>
       </div>
-      <p className="mt-5 text-sm font-semibold text-slate-500">{label}</p>
-      <p className="mt-2 text-4xl font-bold tracking-tight text-slate-950">
+      <p className="mt-5 text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="mt-1 text-3xl font-extrabold tracking-tight text-slate-800">
         {value}
       </p>
     </Link>
