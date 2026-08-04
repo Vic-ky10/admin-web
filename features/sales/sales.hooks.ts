@@ -7,6 +7,7 @@ import {
 import {
   createSalesArea,
   deleteSalesArea,
+  getActiveSalesAreas,
   getSalesAreaById,
   getSalesAreas,
   updateSalesArea,
@@ -56,6 +57,7 @@ export const salesKeys = {
   all: ["sales"] as const,
 
   areas: () => [...salesKeys.all, "areas"] as const,
+  activeAreas: () => [...salesKeys.areas(), "active"] as const,
   area: (id: string) => [...salesKeys.areas(), id] as const,
 
   customers: () => [...salesKeys.all, "customers"] as const,
@@ -77,6 +79,13 @@ export function useSalesAreas() {
   return useQuery({
     queryKey: salesKeys.areas(),
     queryFn: getSalesAreas,
+  });
+}
+
+export function useActiveSalesAreas() {
+  return useQuery({
+    queryKey: salesKeys.activeAreas(),
+    queryFn: getActiveSalesAreas,
   });
 }
 

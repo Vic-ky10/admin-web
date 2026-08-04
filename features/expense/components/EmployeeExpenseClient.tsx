@@ -33,7 +33,7 @@ import {
 
 interface EmployeeExpenseClientProps {
   expenses: Expense[];
-  selectedStatus?: ExpenseStatus | "";
+  selectedStatus?: ExpenseStatus | "" | "All";
   selectedPaymentStatus?: PaymentStatus | "";
 }
 

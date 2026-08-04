@@ -267,7 +267,7 @@ export default function AdminLeaveClient({
             />
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <Button
               type="button"
               variant="secondary"

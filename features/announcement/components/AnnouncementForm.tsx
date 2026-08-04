@@ -126,17 +126,33 @@ export default function AnnouncementForm({
 
        
         <div className="grid grid-cols-2 gap-4">
-          <select {...register("announcement_type")}>
-            {Object.values(ANNOUNCEMENT_TYPE).map((type) => (
-              <option key={type}>{type}</option>
-            ))}
-          </select>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              Type
+            </label>
+            <select
+              {...register("announcement_type")}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            >
+              {Object.values(ANNOUNCEMENT_TYPE).map((type) => (
+                <option key={type}>{type}</option>
+              ))}
+            </select>
+          </div>
 
-          <select {...register("target_audience")}>
-            {Object.values(TARGET_AUDIENCE).map((target) => (
-              <option key={target}>{target}</option>
-            ))}
-          </select>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              Target Audience
+            </label>
+            <select
+              {...register("target_audience")}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            >
+              {Object.values(TARGET_AUDIENCE).map((target) => (
+                <option key={target}>{target}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {targetAudience === TARGET_AUDIENCE.DEPARTMENT && (

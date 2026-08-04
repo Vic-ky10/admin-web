@@ -118,6 +118,7 @@ interface EmployeeSalesClientProps {
   followups: CustomerFollowup[];
   incentives: Incentive[];
   salesAreas: SalesArea[];
+  activeSalesAreas?: SalesArea[];
   dashboardData: {
     stats: DashboardStats;
     upcomingFollowups: UpcomingFollowup[];
@@ -137,6 +138,7 @@ export default function EmployeeSalesClient({
   followups,
   incentives,
   salesAreas,
+  activeSalesAreas,
   dashboardData,
 }: EmployeeSalesClientProps) {
   const router = useRouter();
@@ -890,7 +892,7 @@ export default function EmployeeSalesClient({
       <EmployeeCustomerDialog
         open={customerModal.open}
         customer={customerModal.item}
-        salesAreas={salesAreas}
+        salesAreas={activeSalesAreas && activeSalesAreas.length > 0 ? activeSalesAreas : salesAreas}
         employeeId={employeeId}
         onClose={() => setCustomerModal({ open: false, item: null })}
         onSubmit={handleCustomerSubmit}

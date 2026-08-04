@@ -130,15 +130,23 @@ export default function EmployeeCustomerDialog({
             </label>
             <select
               {...register("sales_area_id")}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm"
+              disabled={salesAreas.length === 0}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
             >
-              <option value="">Select sales area</option>
+              <option value="">
+                {salesAreas.length === 0 ? "No active sales areas available" : "Select sales area"}
+              </option>
               {salesAreas.map((area) => (
                 <option key={area.id} value={area.id}>
                   {area.area_name} ({area.area_code})
                 </option>
               ))}
             </select>
+            {salesAreas.length === 0 && (
+              <p className="text-xs font-medium text-amber-600">
+                No active sales areas available. Please contact your administrator.
+              </p>
+            )}
             {errors.sales_area_id?.message && (
               <p className="text-sm text-red-600">
                 {errors.sales_area_id.message}

@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
-
 import EmployeeLeaveClient from "@/features/leave/components/EmployeeLeaveClient";
 import { getEmployeeLeaveRequests } from "@/features/leave/leave.service";
 import { LeaveFilters } from "@/features/leave/leave.types";
 import { leaveFiltersSchema } from "@/features/leave/leave.validation";
 import { getCurrentEmployeeProfile } from "@/features/employee-portal/employee-portal.service";
+import PageHeader from "@/components/layout/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -28,13 +28,12 @@ export default async function EmployeeLeavePage({
   const leaves = await getEmployeeLeaveRequests(profile.id, filters);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Leave Management</h1>
-        <p className="text-slate-500">
-          Apply leave, view history, and manage pending requests.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="My Leaves"
+        description="Apply for leave, view status updates, and track time-off balances."
+        breadcrumbs={[{ label: "Portal", href: "/employee/dashboard" }, { label: "Leave" }]}
+      />
 
       <EmployeeLeaveClient
         leaves={leaves}

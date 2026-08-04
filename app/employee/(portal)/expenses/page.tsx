@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-
 import EmployeeExpenseClient from "@/features/expense/components/EmployeeExpenseClient";
 import { getEmployeeExpenses } from "@/features/expense/expense.service";
 import {
@@ -8,6 +7,7 @@ import {
   PAYMENT_STATUS,
 } from "@/features/expense/expense.types";
 import { getCurrentEmployeeProfile } from "@/features/employee-portal/employee-portal.service";
+import PageHeader from "@/components/layout/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -38,13 +38,12 @@ export default async function EmployeeExpensesPage({
   const expenses = await getEmployeeExpenses(profile.id, filters);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Expenses</h1>
-        <p className="text-slate-500">
-          Submit expenses, track approvals, and manage pending requests.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="My Expenses"
+        description="Submit expense reimbursement claims, track approvals, and review receipts."
+        breadcrumbs={[{ label: "Portal", href: "/employee/dashboard" }, { label: "Expenses" }]}
+      />
 
       <EmployeeExpenseClient
         expenses={expenses}

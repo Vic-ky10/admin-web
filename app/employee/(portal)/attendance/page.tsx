@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-
 import EmployeeAttendanceClient from "@/features/attendance/components/EmployeeAttendanceClient";
 import {
   getAttendanceHistory,
   getCurrentProfileId,
   getTodayAttendance,
 } from "@/features/attendance/attendance.service";
+import PageHeader from "@/components/layout/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -22,13 +22,12 @@ export default async function EmployeeAttendancePage() {
   ]);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Attendance</h1>
-        <p className="text-slate-500">
-          Mark today&apos;s attendance and review your history.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="My Attendance"
+        description="Clock in for work, check daily status, and review attendance logs."
+        breadcrumbs={[{ label: "Portal", href: "/employee/dashboard" }, { label: "Attendance" }]}
+      />
 
       <EmployeeAttendanceClient
         todayAttendance={todayAttendance}

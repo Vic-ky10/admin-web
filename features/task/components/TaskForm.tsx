@@ -104,7 +104,7 @@ export default function TaskForm({
       title={task ? "Edit Task" : "Create Task"}
       onClose={onClose}
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
           label="Task Title"
           {...register("title")}
@@ -233,7 +233,7 @@ export default function TaskForm({
           />
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
           </Button>

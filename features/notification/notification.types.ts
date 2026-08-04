@@ -1,3 +1,13 @@
+export type NotificationType =
+  | "Leave"
+  | "Expense"
+  | "Project"
+  | "Task"
+  | "Attendance"
+  | "Announcement"
+  | "Incentive"
+  | "General";
+
 export interface Notification {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type(type: any): string | import("url").UrlObject;
@@ -7,7 +17,7 @@ export interface Notification {
   title: string;
   message: string;
 
-  notification_type: string;
+  notification_type: NotificationType;
 
   reference_id: string | null;
   action_url: string | null;

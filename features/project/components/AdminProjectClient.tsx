@@ -1,13 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, Briefcase } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
+import PageHeader from "@/components/layout/PageHeader";
 import { Employee } from "@/features/employee/employee.types";
 
 import {
@@ -26,7 +27,6 @@ import {
   ProjectWithMembers,
 } from "../project.types";
 import { ProjectInput } from "../project.validation";
-import ProjectCard from "./ProjectCard";
 import ProjectFilters from "./ProjectFilters";
 import ProjectForm from "./ProjectForm";
 import ProjectMemberList from "./ProjectMemberList";
@@ -46,16 +46,11 @@ export default function AdminProjectClient({
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ProjectStatus | "">("");
   const [priority, setPriority] = useState<ProjectPriority | "">("");
-  const [formProject, setFormProject] = useState<ProjectWithMembers | null>(
-    null
-  );
+  const [formProject, setFormProject] = useState<ProjectWithMembers | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedProject, setSelectedProject] =
-    useState<ProjectWithMembers | null>(null);
-  const [assignProject, setAssignProject] =
-    useState<ProjectWithMembers | null>(null);
-  const [projectToDelete, setProjectToDelete] =
-    useState<ProjectWithMembers | null>(null);
+  const [selectedProject, setSelectedProject] = useState<ProjectWithMembers | null>(null);
+  const [assignProject, setAssignProject] = useState<ProjectWithMembers | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<ProjectWithMembers | null>(null);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [memberRole, setMemberRole] = useState<ProjectMemberRole>(
     PROJECT_MEMBER_ROLE.DEVELOPER
@@ -100,7 +95,7 @@ export default function AdminProjectClient({
     setMemberRole(PROJECT_MEMBER_ROLE.DEVELOPER);
   }
 
-  function handleSubmit(values: ProjectInput) {
+  function handleSaveProject(values: ProjectInput) {
     startTransition(async () => {
       const result = formProject
         ? await updateProjectAction(formProject.id, values)
@@ -111,7 +106,7 @@ export default function AdminProjectClient({
         return;
       }
 
-      toast.success(result.message ?? "Project saved.");
+      toast.success(result.message ?? "Project saved successfully.");
       setFormOpen(false);
       setFormProject(null);
       router.refresh();
@@ -120,28 +115,24 @@ export default function AdminProjectClient({
 
   function handleArchive(project: ProjectWithMembers) {
     startTransition(async () => {
-      const result = await archiveProjectAction({ projectId: project.id });
-
+      const result = await archiveProjectAction(project.id);
       if (!result.success) {
         toast.error(result.error ?? "Unable to archive project.");
         return;
       }
-
       toast.success(result.message ?? "Project archived.");
       router.refresh();
     });
   }
 
-  function handleConfirmDelete() {
+  function handleDelete() {
     if (!projectToDelete) return;
     startTransition(async () => {
       const result = await deleteProjectAction(projectToDelete.id);
-
       if (!result.success) {
         toast.error(result.error ?? "Unable to delete project.");
         return;
       }
-
       toast.success(result.message ?? "Project deleted.");
       setProjectToDelete(null);
       router.refresh();
@@ -149,9 +140,7 @@ export default function AdminProjectClient({
   }
 
   function handleAssign() {
-    if (!assignProject) {
-      return;
-    }
+    if (!assignProject) return;
 
     startTransition(async () => {
       const result = await assignProjectMembersAction({
@@ -185,30 +174,19 @@ export default function AdminProjectClient({
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-            Project Management
-          </p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-950">Projects</h1>
-          <p className="mt-2 max-w-2xl text-slate-500">
-            Create projects, manage assignments, and keep employee project
-            access aligned with the current team.
-          </p>
-        </div>
-
-        <Button
-          type="button"
-          onClick={openCreate}
-          className="inline-flex items-center gap-2"
-        >
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="Projects"
+        description="Create projects, manage assignments, and keep team access aligned."
+        breadcrumbs={[{ label: "Admin", href: "/dashboard" }, { label: "Projects" }]}
+      >
+        <Button onClick={openCreate} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Create Project
         </Button>
-      </div>
+      </PageHeader>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         <SummaryCard label="Total Projects" value={queryProjects.length} />
         <SummaryCard label="Active Projects" value={activeProjects.length} />
         <SummaryCard
@@ -221,9 +199,12 @@ export default function AdminProjectClient({
         />
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="w-full sm:w-72">
           <ProjectSearch value={search} onChange={setSearch} />
+        </div>
+
+        <div className="flex items-center gap-3">
           <ProjectFilters
             status={status}
             priority={priority}
@@ -233,203 +214,139 @@ export default function AdminProjectClient({
         </div>
       </div>
 
-      {filteredProjects.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">
-            No projects found
-          </h2>
-          <p className="mt-2 text-slate-500">
-            Projects matching your search and filters will appear here.
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-4 xl:grid-cols-3">
-            {filteredProjects.slice(0, 3).map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-          <ProjectTable
-            projects={filteredProjects}
-            onView={setSelectedProject}
-            onEdit={openEdit}
-            onArchive={handleArchive}
-            onDelete={setProjectToDelete}
-          />
-        </>
-      )}
-
-      <Modal
-        open={projectToDelete !== null}
-        title="Delete Project"
-        onClose={() => setProjectToDelete(null)}
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-slate-500">
-            Are you sure you want to permanently delete the project{" "}
-            <strong className="text-slate-900">
-              &quot;{projectToDelete?.project_name}&quot;
-            </strong>
-            ? This action cannot be undone and will delete all project tasks and
-            memberships.
-          </p>
-          <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setProjectToDelete(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              onClick={handleConfirmDelete}
-              disabled={isPending}
-            >
-              Delete Project
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <ProjectTable
+        projects={filteredProjects}
+        onView={setSelectedProject}
+        onEdit={openEdit}
+        onArchive={handleArchive}
+        onDelete={setProjectToDelete}
+      />
 
       <Modal
         open={formOpen}
         title={formProject ? "Edit Project" : "Create Project"}
+        subtitle="Specify project parameters, dates, and priorities."
         onClose={() => setFormOpen(false)}
       >
         <ProjectForm
           project={formProject}
-          onSubmit={handleSubmit}
+          onSubmit={handleSaveProject}
           onCancel={() => setFormOpen(false)}
           loading={isPending}
         />
       </Modal>
 
       <Modal
-        open={selectedProject !== null}
+        open={!!selectedProject}
         title={selectedProject?.project_name ?? "Project Details"}
+        subtitle={`Code: ${selectedProject?.project_code ?? ""}`}
         onClose={() => setSelectedProject(null)}
       >
         {selectedProject && (
           <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Detail label="Project Code" value={selectedProject.project_code} />
-              <Detail label="Status" value={selectedProject.status} />
-              <Detail label="Priority" value={selectedProject.priority} />
-              <Detail
-                label="Timeline"
-                value={`${selectedProject.start_date} - ${
-                  selectedProject.end_date ?? "Not set"
-                }`}
-              />
-            </div>
-
             <div>
-              <h3 className="font-semibold text-slate-900">Description</h3>
-              <p className="mt-2 text-sm text-slate-500">
-                {selectedProject.description || "No description added."}
-              </p>
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description</h4>
+              <p className="mt-1 text-sm text-slate-700">{selectedProject.description || "No description provided."}</p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Button type="button" onClick={() => openAssign(selectedProject)}>
-                <Users className="mr-2 h-4 w-4" />
-                Assign Employees
+            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+             <Button
+  onClick={() => {
+    console.log("Selected Project:", selectedProject);
+    setSelectedProject(null);
+    openAssign(selectedProject!);
+  }}
+  className="flex items-center gap-2"
+>
+                <Users className="h-4 w-4" />
+                Manage Team Members
               </Button>
-              {/* <Button
-                type="button"
-                variant="secondary"
-                onClick={() => openEdit(selectedProject)}
-              >
-                Edit Project
-              </Button> */}
             </div>
 
             <ProjectMemberList
               members={selectedProject.members}
               canManage
-              onChanged={() => router.refresh()}
             />
           </div>
         )}
       </Modal>
 
       <Modal
-        open={assignProject !== null}
-        title="Assign Employees"
+        open={!!assignProject}
+        title="Assign Team Members"
+        subtitle={`Assign staff to ${assignProject?.project_name ?? ""}`}
         onClose={() => setAssignProject(null)}
       >
-        <div className="space-y-5">
-          <label className="space-y-1">
-            <span className="text-lg font-semibold text-slate-700 mb-[25px]">
-              Select Employees 
+        {assignProject && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Select Role</label>
+              <select
+                value={memberRole}
+                onChange={(e) => setMemberRole(e.target.value as ProjectMemberRole)}
+                className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-900 shadow-xs outline-none focus:ring-2 focus:ring-blue-100"
+              >
+                {Object.values(PROJECT_MEMBER_ROLE).map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            </span>
-            {/* <select
-              value={memberRole}
-              onChange={(event) =>
-                setMemberRole(event.target.value as ProjectMemberRole)
-              }
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
-              {Object.values(PROJECT_MEMBER_ROLE).map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select> */}
-          </label>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Available Staff</label>
+              <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                {employees.map((emp) => {
+                  const isSelected = selectedEmployees.includes(emp.id);
+                  return (
+                    <div
+                      key={emp.id}
+                      onClick={() => toggleEmployee(emp.id)}
+                      className={[
+                        "flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors",
+                        isSelected ? "border-blue-500 bg-blue-50/50" : "border-slate-100 hover:bg-slate-50",
+                      ].join(" ")}
+                    >
+                      <div>
+                        <p className="text-xs font-bold text-slate-900">{emp.full_name}</p>
+                        <p className="text-[11px] text-slate-500">{emp.department || "Staff"}</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-          <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
-            {employees.map((employee) => {
-              const alreadyAssigned = assignProject?.members.some(
-                (member) => member.profile_id === employee.id
-              );
-
-              return (
-                <label
-                  key={employee.id}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40"
-                >
-                  <input
-                    type="checkbox"
-                    checked={
-                      alreadyAssigned || selectedEmployees.includes(employee.id)
-                    }
-                    disabled={alreadyAssigned}
-                    onChange={() => toggleEmployee(employee.id)}
-                    className="h-4 w-4 accent-blue-600"
-                  />
-                  <span className="min-w-0">
-                    <span className="block font-medium text-slate-900">
-                      {employee.full_name}
-                    </span>
-                    <span className="block truncate text-sm text-slate-500">
-                      {employee.employee_id} | {employee.department ?? "No department"}
-                      {alreadyAssigned ? " | Already assigned" : ""}
-                    </span>
-                  </span>
-                </label>
-              );
-            })}
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <Button variant="secondary" onClick={() => setAssignProject(null)}>Cancel</Button>
+              <Button onClick={handleAssign} disabled={isPending || selectedEmployees.length === 0}>
+                Assign Selected
+              </Button>
+            </div>
           </div>
+        )}
+      </Modal>
 
-          <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setAssignProject(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={isPending || selectedEmployees.length === 0}
-              onClick={handleAssign}
-            >
-              Assign Selected
-            </Button>
+      <Modal
+        open={!!projectToDelete}
+        title="Confirm Delete"
+        subtitle="Are you sure you want to delete this project?"
+        onClose={() => setProjectToDelete(null)}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            Deleting <span className="font-bold text-slate-900">{projectToDelete?.project_name}</span> is permanent and cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <Button variant="secondary" onClick={() => setProjectToDelete(null)}>Cancel</Button>
+            <Button variant="danger" onClick={handleDelete} disabled={isPending}>Delete Project</Button>
           </div>
         </div>
       </Modal>
@@ -439,20 +356,14 @@ export default function AdminProjectClient({
 
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-bold text-slate-950">{value}</p>
-    </div>
-  );
-}
-
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
-      <p className="mt-2 font-medium text-slate-900">{value}</p>
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs flex items-center justify-between">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="mt-1 text-2xl font-black text-slate-900">{value}</p>
+      </div>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+        <Briefcase className="h-5 w-5" />
+      </div>
     </div>
   );
 }

@@ -665,9 +665,9 @@ export async function getAdminExpenseSummary(
   let approvedAmount = 0;
   let pendingAmount = 0;
   let rejectedAmount = 0;
-  let approvedCount = 0;
-  let pendingCount = 0;
-  let rejectedCount = 0;
+  let _approvedCount = 0;
+  let _pendingCount = 0;
+  let _rejectedCount = 0;
 
   const uniqueProfiles = new Set<string>();
   const topEmployeesMap: Record<
@@ -695,13 +695,13 @@ export async function getAdminExpenseSummary(
 
     if (expense.status === EXPENSE_STATUS.APPROVED) {
       approvedAmount += expense.approved_amount ?? expense.amount;
-      approvedCount += 1;
+      _approvedCount += 1;
     } else if (expense.status === EXPENSE_STATUS.PENDING) {
       pendingAmount += expense.amount;
-      pendingCount += 1;
+      _pendingCount += 1;
     } else if (expense.status === EXPENSE_STATUS.REJECTED) {
       rejectedAmount += expense.amount;
-      rejectedCount += 1;
+      _rejectedCount += 1;
     }
 
     // Top employees aggregation

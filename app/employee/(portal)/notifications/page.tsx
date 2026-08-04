@@ -1,30 +1,19 @@
-import { Bell } from "lucide-react";
-
 import { getNotificationsAction } from "@/features/notification/notification.action";
 import NotificationList from "@/features/notification/components/NotificationList";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default async function NotificationsPage() {
   const notifications = await getNotificationsAction();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">
-            Notifications
-          </h1>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="Alerts & Notifications"
+        description="Stay updated with personal system alerts, approvals, and company updates."
+        breadcrumbs={[{ label: "Portal", href: "/employee/dashboard" }, { label: "Notifications" }]}
+      />
 
-          <p className="mt-1 text-sm text-slate-500">
-            View all your recent notifications.
-          </p>
-        </div>
-
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-          <Bell className="h-6 w-6" />
-        </div>
-      </div>
-
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs">
         <NotificationList
           notifications={notifications}
           variant="page"

@@ -3,6 +3,7 @@ import {
   getAuthenticatedProfileId,
   getEmployeeTasks,
 } from "@/features/task/task.service";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default async function EmployeeTasksPage() {
   const profileId = await getAuthenticatedProfileId();
@@ -14,16 +15,12 @@ export default async function EmployeeTasksPage() {
   const tasks = await getEmployeeTasks(profileId);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">
-          My Tasks
-        </h1>
-
-        <p className="text-slate-500">
-          View and update your assigned tasks.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="My Tasks"
+        description="View and update your assigned tasks and completion status."
+        breadcrumbs={[{ label: "Portal", href: "/employee/dashboard" }, { label: "My Tasks" }]}
+      />
 
       <EmployeeTaskTable tasks={tasks} />
     </div>

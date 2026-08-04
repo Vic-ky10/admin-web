@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-
+import PageHeader from "@/components/layout/PageHeader";
 import AdminAttendanceSummary from "./AdminAttendanceSummary";
 import AttendanceHistoryTable from "./AttendanceHistoryTable";
 
@@ -82,7 +82,9 @@ export default function AttendanceClient({
             ? "Short Hours Employees"
             : selected === ATTENDANCE_STATUS.INCOMPLETE
               ? "Incomplete Attendance"
-              : "Absent Employees",
+              : selected === ATTENDANCE_STATUS.HALF_DAY
+                ? "Half Day Attendance"
+                : "Absent Employees",
 
     count:
       selected === "all"
@@ -99,24 +101,29 @@ export default function AttendanceClient({
   };
 
   return (
-    <>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="Attendance Tracker"
+        description="Monitor daily attendance status, clock-in times, and work durations."
+        breadcrumbs={[{ label: "Admin", href: "/dashboard" }, { label: "Attendance" }]}
+      />
+
       <AdminAttendanceSummary
         summary={summary}
         selected={selected}
         onSelect={setSelected}
       />
 
-      <section className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">{tableHeader.title}</h2>
-
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-medium text-slate-600">
-            {tableHeader.count} Records
+          <h2 className="text-lg font-bold text-slate-900">{tableHeader.title}</h2>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+            Total: {tableHeader.count}
           </span>
         </div>
 
-        <AttendanceHistoryTable records={filteredRecords} showEmployee />
-      </section>
-    </>
+        <AttendanceHistoryTable records={filteredRecords} />
+      </div>
+    </div>
   );
 }

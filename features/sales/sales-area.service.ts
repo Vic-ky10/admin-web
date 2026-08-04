@@ -28,6 +28,23 @@ const SALES_AREA_SELECT =
   return data as SalesArea[];
 }
 
+export async function getActiveSalesAreas(): Promise<SalesArea[]> {
+  const { data, error } = await adminClient
+    .from("sales_areas")
+    .select(SALES_AREA_SELECT)
+    .eq("status", "Active")
+    .order("area_name", {
+      ascending: true,
+    });
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data as SalesArea[];
+}
+
 export async function getSalesAreaById(
   id: string
 ): Promise<SalesArea | null> {

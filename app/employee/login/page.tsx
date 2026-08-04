@@ -23,7 +23,7 @@ export default function EmployeeLoginPage() {
       return;
     }
 
-    router.push("/employee/attendance");
+    router.push("/employee/dashboard");
   }
 
   return (

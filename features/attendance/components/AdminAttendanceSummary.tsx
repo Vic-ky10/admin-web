@@ -6,13 +6,10 @@ import {
   CircleCheckBig,
   Clock3,
   UserX,
-  Timer,
   TriangleAlert,
 } from "lucide-react";
 
-import { AttendanceSummary } from "../attendance.types";
-import { formatWorkingHours } from "../attendance.utils";
-import { ATTENDANCE_STATUS } from "../attendance.types";
+import { AttendanceSummary, ATTENDANCE_STATUS } from "../attendance.types";
 
 interface AdminAttendanceSummaryProps {
   summary: AttendanceSummary;

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-
 import { getCurrentEmployeeProfile } from "@/features/employee-portal/employee-portal.service";
 import ProfileForm from "@/features/employee/components/ProfileForm";
+import PageHeader from "@/components/layout/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +13,12 @@ export default async function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-slate-500">
-          Manage your administrator profile information.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="Admin Settings"
+        description="Manage your administrator profile, credentials, and account settings."
+        breadcrumbs={[{ label: "Admin", href: "/dashboard" }, { label: "Settings" }]}
+      />
 
       <ProfileForm profile={profile} theme="admin" />
     </div>

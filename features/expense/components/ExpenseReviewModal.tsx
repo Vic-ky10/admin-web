@@ -412,14 +412,56 @@ export default function ExpenseReviewModal({
             )}
         </div>
         {expense.receipt_url && (
-          <a
-            href={expense.receipt_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-semibold text-blue-600 hover:underline"
-          >
-            View Receipt
-          </a>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-slate-700">Receipt Attachment</span>
+              <span className="text-xs font-medium text-slate-500">📎 Attached</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {expense.receipt_type?.includes("pdf") || expense.receipt_url.toLowerCase().endsWith(".pdf") ? (
+                <div className="w-12 h-12 rounded-md bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                  PDF
+                </div>
+              ) : (
+                <img
+                  src={expense.receipt_url}
+                  alt="Receipt Preview"
+                  className="w-16 h-16 object-cover rounded-md border border-slate-200"
+                />
+              )}
+
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900 truncate">
+                  {expense.receipt_name || (expense.receipt_url.toLowerCase().endsWith(".pdf") ? "Receipt.pdf" : "Receipt.jpg")}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {expense.receipt_type?.includes("pdf") || expense.receipt_url.toLowerCase().endsWith(".pdf") ? "PDF Document" : "Image File"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
+              <a
+                href={expense.receipt_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+              >
+                {expense.receipt_url.toLowerCase().endsWith(".pdf") ? "Open PDF" : "Open Fullscreen"}
+              </a>
+
+              <a
+                href={expense.receipt_url}
+                download={expense.receipt_name || "receipt"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-200 rounded-md hover:bg-slate-300 transition-colors"
+              >
+                Download
+              </a>
+            </div>
+          </div>
         )}
       </form>
     </Modal>

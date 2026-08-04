@@ -1,18 +1,17 @@
 import ExpenseTable from "@/features/expense/components/ExpenseTable";
 import { getExpenses } from "@/features/expense/expense.service";
-
+import PageHeader from "@/components/layout/PageHeader";
 
 export default async function ExpensesPage() {
   const expenses = await getExpenses();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Expenses</h1>
-        <p className="text-slate-500">
-          Review employee expense requests 
-        </p>
-      </div>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="Expense Claims"
+        description="Validate reimbursement claims, review receipts, and mark payments."
+        breadcrumbs={[{ label: "Admin", href: "/dashboard" }, { label: "Expenses" }]}
+      />
 
       <ExpenseTable expenses={expenses} />
     </div>

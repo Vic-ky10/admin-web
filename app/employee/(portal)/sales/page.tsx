@@ -8,6 +8,7 @@ import {
   getMySalesAreas,
   getEmployeeSalesDashboardData,
 } from "@/features/employee-sales/employee-sales.service";
+import { getActiveSalesAreas } from "@/features/sales/sales-area.service";
 import EmployeeSalesClient from "@/features/employee-sales/components/EmployeeSalesClient";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ export default async function EmployeeSalesPage() {
     followups,
     incentives,
     salesAreas,
+    activeSalesAreas,
     dashboardData,
   ] = await Promise.all([
     getMyCustomers(profileId),
@@ -34,6 +36,7 @@ export default async function EmployeeSalesPage() {
     getMyCustomerFollowups(profileId),
     getMyIncentives(profileId),
     getMySalesAreas(profileId),
+    getActiveSalesAreas(),
     getEmployeeSalesDashboardData(profileId),
   ]);
 
@@ -45,6 +48,7 @@ export default async function EmployeeSalesPage() {
       followups={followups}
       incentives={incentives}
       salesAreas={salesAreas}
+      activeSalesAreas={activeSalesAreas}
       dashboardData={dashboardData}
     />
   );

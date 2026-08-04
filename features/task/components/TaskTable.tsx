@@ -33,11 +33,14 @@ interface TaskTableProps {
 }
 export default function TaskTable({ tasks, projects }: TaskTableProps) {
   const [search, setSearch] = useState("");
-  const [open, setOpen] = useState(false);
 
-  const [selectedTask, setSelectedTask] = useState<TaskWithProject | null>(
-    null,
-  );
+  const [dialog, setDialog] = useState<{
+    mode: "create" | "view" | "edit" | null;
+    task: TaskWithProject | null;
+  }>({
+    mode: null,
+    task: null,
+  });
 
   const filteredTasks = useMemo(() => {
     const keyword = search.toLowerCase();
@@ -55,59 +58,44 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
   return (
     <>
       <div className="space-y-5">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
           <Input
-            placeholder="Search task..."
+            placeholder="Search task title, code, project, or employee..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
+            className="w-full sm:w-80"
           />
 
           <Button
-            onClick={() => {
-              setSelectedTask(null);
-              setOpen(true);
-            }}
+            onClick={() => setDialog({ mode: "create", task: null })}
+            className="flex items-center justify-center gap-2"
           >
             New Task
           </Button>
         </div>
 
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Task Code</TableHeader>
-
-              <TableHeader>Title</TableHeader>
-
-              <TableHeader>Project</TableHeader>
-
-              <TableHeader>Employee</TableHeader>
-
-              <TableHeader>Priority</TableHeader>
-
-              <TableHeader>Status</TableHeader>
-
-              <TableHeader>Due Date</TableHeader>
-
-              <TableHeader>Actions</TableHeader>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {filteredTasks.length === 0 ? (
+        {filteredTasks.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-xs">
+            <h3 className="text-base font-bold text-slate-900">No Tasks Found</h3>
+            <p className="mt-1 text-xs text-slate-500">No tasks match your search query. Click New Task to assign work.</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell>No tasks found.</TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
+                <TableHeader>Task Code</TableHeader>
+                <TableHeader>Title</TableHeader>
+                <TableHeader>Project</TableHeader>
+                <TableHeader>Employee</TableHeader>
+                <TableHeader>Priority</TableHeader>
+                <TableHeader>Status</TableHeader>
+                <TableHeader>Due Date</TableHeader>
+                <TableHeader className="text-right">Actions</TableHeader>
               </TableRow>
-            ) : (
-              filteredTasks.map((task) => (
+            </TableHead>
+
+            <TableBody>
+              {filteredTasks.map((task) => (
                 <TableRow key={task.id}>
                   <TableCell>
                     <span className="font-semibold">{task.task_code}</span>
@@ -160,18 +148,13 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
                       <div className="flex gap-2">
                         <Button
                           variant="secondary"
-                          onClick={() => {
-                            setSelectedTask(task);
-                          }}
+                          onClick={() => setDialog({ mode: "view", task })}
                         >
                           View
                         </Button>
 
                         <Button
-                          onClick={() => {
-                            setSelectedTask(task);
-                            setOpen(true);
-                          }}
+                          onClick={() => setDialog({ mode: "edit", task })}
                         >
                           Edit
                         </Button>
@@ -209,25 +192,22 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       <TaskDetailsModal
-        open={!!selectedTask}
-        task={selectedTask}
-        onClose={() => setSelectedTask(null)}
+        open={dialog.mode === "view"}
+        task={dialog.task}
+        onClose={() => setDialog({ mode: null, task: null })}
       />
       <TaskForm
-        open={open}
-        task={selectedTask}
+        open={dialog.mode === "create" || dialog.mode === "edit"}
+        task={dialog.mode === "edit" ? dialog.task : null}
         projects={projects}
-        onClose={() => {
-          setOpen(false);
-          setSelectedTask(null);
-        }}
+        onClose={() => setDialog({ mode: null, task: null })}
       />
     </>
   );

@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { Eye, Edit2, Trash2, Users } from "lucide-react";
 
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import EmptyState from "@/components/ui/EmptyState";
 import {
   Table,
   TableBody,
@@ -64,11 +66,11 @@ export default function EmployeeTable({
 
   if (employees.length === 0) {
     return (
-      <div className="rounded-xl border bg-white p-10 text-center">
-        <h2 className="text-xl font-semibold">No Employees Found</h2>
-
-        <p className="mt-2 text-slate-500">Click Add Employee to create one.</p>
-      </div>
+      <EmptyState
+        title="No Employees Found"
+        description="There are no employee profiles matching your query. Add a new employee to get started."
+        icon={<Users className="h-6 w-6 text-slate-400" />}
+      />
     );
   }
 
@@ -77,18 +79,12 @@ export default function EmployeeTable({
       <TableHead>
         <TableRow>
           <TableHeader>Employee ID</TableHeader>
-
           <TableHeader>Name</TableHeader>
-
           <TableHeader>Email</TableHeader>
-
           <TableHeader>Department</TableHeader>
-
           <TableHeader>Designation</TableHeader>
-
           <TableHeader>Status</TableHeader>
-
-          <TableHeader>Actions</TableHeader>
+          <TableHeader className="text-right">Actions</TableHeader>
         </TableRow>
       </TableHead>
 
@@ -99,11 +95,15 @@ export default function EmployeeTable({
             className="cursor-pointer"
             onClick={() => onView(employee)}
           >
-            <TableCell>{employee.employee_id}</TableCell>
+            <TableCell className="font-mono text-xs font-semibold text-slate-600">
+              {employee.employee_id}
+            </TableCell>
 
-            <TableCell>{employee.full_name}</TableCell>
+            <TableCell className="font-bold text-slate-900">
+              {employee.full_name}
+            </TableCell>
 
-            <TableCell>{employee.email}</TableCell>
+            <TableCell className="text-slate-600">{employee.email}</TableCell>
 
             <TableCell>{employee.department ?? "-"}</TableCell>
 
@@ -111,6 +111,7 @@ export default function EmployeeTable({
 
             <TableCell>
               <Badge
+                showDot
                 variant={
                   employee.status === EMPLOYEE_STATUS.ACTIVE
                     ? "success"
@@ -123,42 +124,39 @@ export default function EmployeeTable({
               </Badge>
             </TableCell>
 
-            <TableCell>
-              <div className="flex flex-wrap gap-2">
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-1.5" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                 <Button
                   type="button"
-                  variant="secondary"
-                  className="px-3 py-1 text-sm"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onView(employee);
-                  }}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onView(employee)}
+                  title="View profile"
                 >
+                  <Eye className="h-3.5 w-3.5" />
                   View
                 </Button>
 
                 <Button
                   type="button"
                   variant="secondary"
-                  className="px-3 py-1 text-sm"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onEdit(employee);
-                  }}
+                  size="sm"
+                  onClick={() => onEdit(employee)}
+                  title="Edit details"
                 >
+                  <Edit2 className="h-3.5 w-3.5" />
                   Edit
                 </Button>
 
                 <Button
                   type="button"
                   variant="danger"
-                  className="px-3 py-1 text-sm"
+                  size="sm"
                   disabled={isDeleting}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    confirmDelete(employee);
-                  }}
+                  onClick={() => confirmDelete(employee)}
+                  title="Delete employee"
                 >
+                  <Trash2 className="h-3.5 w-3.5" />
                   Delete
                 </Button>
               </div>

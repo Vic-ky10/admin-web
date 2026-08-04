@@ -1,16 +1,14 @@
 import { redirect } from "next/navigation";
-
 import EmployeeIncentiveClient from "@/features/incentive/components/EmployeeIncentiveClient";
 import { getCurrentEmployeeProfile } from "@/features/employee-portal/employee-portal.service";
-import {
-  getEmployeeIncentives,
-} from "@/features/incentive/incentive.service";
+import { getEmployeeIncentives } from "@/features/incentive/incentive.service";
 import {
   INCENTIVE_PAYMENT_STATUS,
   INCENTIVE_STATUS,
   INCENTIVE_TYPE,
   IncentiveFilters,
 } from "@/features/incentive/incentive.types";
+import PageHeader from "@/components/layout/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -29,13 +27,13 @@ export default async function EmployeeIncentivesPage({
 
   const params = await searchParams;
   const type = Object.values(INCENTIVE_TYPE).find(
-    (value) => value === params.type,
+    (value) => value === params.type
   );
   const status = Object.values(INCENTIVE_STATUS).find(
-    (value) => value === params.status,
+    (value) => value === params.status
   );
   const paymentStatus = Object.values(INCENTIVE_PAYMENT_STATUS).find(
-    (value) => value === params.paymentStatus,
+    (value) => value === params.paymentStatus
   );
   const filters: IncentiveFilters = {
     type,
@@ -45,13 +43,12 @@ export default async function EmployeeIncentivesPage({
   const incentives = await getEmployeeIncentives(profile.id, filters);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Incentives</h1>
-        <p className="text-slate-500">
-          View your rewards, approval status, and payment status.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
+      <PageHeader
+        title="My Incentives"
+        description="View your performance bonuses, approval decisions, and payout status."
+        breadcrumbs={[{ label: "Portal", href: "/employee/dashboard" }, { label: "Incentives" }]}
+      />
 
       <EmployeeIncentiveClient
         incentives={incentives}
