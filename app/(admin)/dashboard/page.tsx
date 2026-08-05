@@ -13,6 +13,9 @@ import {
   UserCheck,
   ShieldCheck,
   ChevronRight,
+  Activity,
+  CheckSquare2,
+  Target,
 } from "lucide-react";
 
 import { getProjectDashboardStats } from "@/features/project/project.service";
@@ -24,6 +27,7 @@ import { ANNOUNCEMENT_STATUS } from "@/features/announcement/announcement.types"
 import NotificationList from "@/features/notification/components/NotificationList";
 import { getAdminExpenseSummary } from "@/features/expense/expense.service";
 import { MonthlyOverview } from "@/features/expense/components/analytics/MonthlyOverview";
+import { getTodayDate } from "@/features/attendance/attendance.utils";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +70,15 @@ interface SupabaseAttendanceActivityRecord {
   status: string;
   created_at: string;
   employee: { full_name: string } | { full_name: string }[] | null;
+}
+
+interface DeadlineProject {
+  id: string;
+  project_name: string;
+  project_code: string;
+  end_date: string;
+  status: string;
+  priority: string;
 }
 
 export async function getAdminRecentActivity(): Promise<AdminActivity[]> {
@@ -182,6 +195,11 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const today = getTodayDate();
+  const thirtyDaysLater = new Date();
+  thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+  const thirtyDaysFromNowStr = thirtyDaysLater.toISOString().split("T")[0];
+
   const [
     employeeCount,
     pendingLeaveCount,
@@ -195,6 +213,10 @@ export default async function DashboardPage() {
     pendingExpensesReview,
     approvedPurchasesRes,
     expenseSummary,
+    todayPresentCount,
+    todayAbsentCount,
+    upcomingDeadlines,
+    openTaskCount,
   ] = await Promise.all([
     adminClient.from("profiles").select("id", { count: "exact", head: true }),
     adminClient
@@ -235,6 +257,31 @@ export default async function DashboardPage() {
       .select("amount, purchase_date")
       .eq("status", "Approved"),
     getAdminExpenseSummary().catch(() => null),
+    // NEW: Today's attendance presence
+    adminClient
+      .from("attendance")
+      .select("id", { count: "exact", head: true })
+      .eq("attendance_date", today)
+      .eq("status", "Present"),
+    adminClient
+      .from("attendance")
+      .select("id", { count: "exact", head: true })
+      .eq("attendance_date", today)
+      .eq("status", "Absent"),
+    // NEW: Upcoming project deadlines (next 30 days)
+    adminClient
+      .from("projects")
+      .select("id, project_name, project_code, end_date, status, priority")
+      .eq("status", "Active")
+      .gte("end_date", today)
+      .lte("end_date", thirtyDaysFromNowStr)
+      .order("end_date", { ascending: true })
+      .limit(4),
+    // NEW: Open task count
+    adminClient
+      .from("tasks")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["Todo", "In Progress", "In Review"]),
   ]);
 
   for (const response of [
@@ -245,6 +292,10 @@ export default async function DashboardPage() {
     pendingLeavesReview,
     pendingExpensesReview,
     approvedPurchasesRes,
+    todayPresentCount,
+    todayAbsentCount,
+    upcomingDeadlines,
+    openTaskCount,
   ]) {
     if (response && "error" in response && response.error) {
       console.error(response.error);
@@ -256,6 +307,7 @@ export default async function DashboardPage() {
     .slice(0, 3);
 
   const recentNotifications = notifications.slice(0, 5);
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   // Process monthly sales revenue data (last 6 months)
   const approvedPurchases = approvedPurchasesRes.data || [];
@@ -297,9 +349,18 @@ export default async function DashboardPage() {
     .substring(0, 2)
     .toUpperCase();
 
+  const deadlines = (upcomingDeadlines.data ?? []) as DeadlineProject[];
+
+  const todayFormatted = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
     <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
-      {/* 1. Profile Welcome Section */}
+      {/* 1. Profile Welcome Banner */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 md:p-6 shadow-xs">
         <div className="absolute -top-12 -right-12 h-36 w-36 rounded-full bg-blue-50/50 blur-2xl pointer-events-none" />
         <div className="absolute -bottom-16 -right-8 h-40 w-40 rounded-full bg-indigo-50/40 blur-3xl pointer-events-none" />
@@ -335,23 +396,27 @@ export default async function DashboardPage() {
                 Welcome back, {firstName}
               </h1>
 
-              <p className="text-sm text-slate-500 mt-0.5">
-                Dept: <span className="font-semibold text-slate-700">{adminProfile?.data?.department || "Executive"}</span> &bull; Email: <span className="font-medium text-slate-600">{user.email}</span>
+              <p className="text-sm text-slate-600 mt-0.5">
+                Dept:{" "}
+                <span className="font-semibold text-slate-800">
+                  {adminProfile?.data?.department || "Executive"}
+                </span>{" "}
+                &bull; Email:{" "}
+                <span className="font-medium text-slate-700">{user.email}</span>
               </p>
             </div>
           </div>
 
           <div className="shrink-0 flex flex-col items-start md:items-end gap-1 text-xs font-medium text-slate-500 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
             <span className="text-slate-800 font-bold text-xs md:text-sm">
-              {new Date().toLocaleDateString("en-IN", {
-                weekday: "long",
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
+              {todayFormatted}
             </span>
             <span className="flex items-center gap-1 text-slate-500 text-xs">
-              System Status: <span className="text-emerald-600 font-semibold flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />Online</span>
+              System Status:{" "}
+              <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                Online
+              </span>
             </span>
           </div>
         </div>
@@ -389,10 +454,88 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Main Content Layout */}
+      {/* 3. Today's Overview Strip */}
+     <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+  {/* Header */}
+  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+    <div>
+      <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">
+        Today&apos;s Workforce Overview
+      </p>
+      <h3 className="mt-1 text-2xl font-bold text-slate-900">
+        {todayFormatted}
+      </h3>
+      <p className="mt-1 text-sm text-slate-500">
+        Quick summary of today&apos;s organization activity
+      </p>
+    </div>
+  </div>
+
+  {/* Statistics */}
+  <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+
+    <Link href="/attendance">
+      <div className="cursor-pointer rounded-2xl border border-emerald-200 bg-emerald-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+        <TodayStatPill
+          label="Present"
+          value={todayPresentCount.count ?? 0}
+          icon={<UserCheck className="h-5 w-5" />}
+          color="emerald"
+        />
+      </div>
+    </Link>
+
+    <Link href="/attendance">
+      <div className="cursor-pointer rounded-2xl border border-rose-200 bg-rose-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+        <TodayStatPill
+          label="Absent"
+          value={todayAbsentCount.count ?? 0}
+          icon={<UsersRound className="h-5 w-5" />}
+          color="rose"
+        />
+      </div>
+    </Link>
+
+    <Link href="/leave">
+      <div className="cursor-pointer rounded-2xl border border-amber-200 bg-amber-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+        <TodayStatPill
+          label="Pending Leaves"
+          value={pendingLeaveCount.count ?? 0}
+          icon={<CalendarCheck className="h-5 w-5" />}
+          color="amber"
+        />
+      </div>
+    </Link>
+
+    <Link href="/expenses">
+      <div className="cursor-pointer rounded-2xl border border-blue-200 bg-blue-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+        <TodayStatPill
+          label="Pending Expenses"
+          value={pendingExpenseCount.count ?? 0}
+          icon={<CreditCard className="h-5 w-5" />}
+          color="blue"
+        />
+      </div>
+    </Link>
+
+    <Link href="/tasks">
+      <div className="cursor-pointer rounded-2xl border border-violet-200 bg-violet-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+        <TodayStatPill
+          label="Open Tasks"
+          value={openTaskCount.count ?? 0}
+          icon={<CheckSquare2 className="h-5 w-5" />}
+          color="violet"
+        />
+      </div>
+    </Link>
+
+  </div>
+</div>
+
+      {/* 4. Main Content Layout */}
       <div className="grid gap-6 lg:grid-cols-3 items-start">
         <div className="lg:col-span-2 space-y-6">
-          {/* 3. Monthly Sales Revenue */}
+          {/* Monthly Sales Revenue */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
@@ -400,13 +543,16 @@ export default async function DashboardPage() {
                   <TrendingUp className="h-5 w-5 text-blue-600" />
                   Monthly Sales Revenue
                 </h2>
-                <p className="text-sm text-slate-500 mt-0.5">Approved customer purchase revenue generated over the last 6 months</p>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Approved customer purchase revenue generated over the last 6 months
+                </p>
               </div>
               <Link
                 href="/sales"
                 className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-bold group"
               >
-                Sales Portal <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                Sales Portal{" "}
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
 
@@ -418,7 +564,9 @@ export default async function DashboardPage() {
                   <span className="w-full h-0 border-t border-dashed border-slate-100/50 ml-2" />
                 </div>
                 <div className="w-full border-t border-dashed border-slate-100/80 pt-1 flex justify-between">
-                  <span>₹{Math.round(maxChartAmount / 2).toLocaleString("en-IN")}</span>
+                  <span>
+                    ₹{Math.round(maxChartAmount / 2).toLocaleString("en-IN")}
+                  </span>
                   <span className="w-full h-0 border-t border-dashed border-slate-100/50 ml-2" />
                 </div>
                 <div className="w-full border-t border-slate-100/90 pt-1" />
@@ -428,7 +576,10 @@ export default async function DashboardPage() {
                 {chartData.map((data, idx) => {
                   const heightPercent = (data.amount / maxChartAmount) * 100;
                   return (
-                    <div key={idx} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+                    <div
+                      key={idx}
+                      className="group relative flex h-full flex-1 flex-col items-center justify-end"
+                    >
                       <div className="absolute -top-10 scale-0 rounded-lg bg-slate-900 px-2.5 py-1 text-[11px] text-white transition-all duration-200 group-hover:scale-100 shadow-xl font-bold whitespace-nowrap z-30">
                         ₹{data.amount.toLocaleString("en-IN")}
                         <span className="absolute left-1/2 bottom-[-4px] h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-900" />
@@ -448,18 +599,22 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* 4. Monthly Expense Overview */}
+          {/* Monthly Expense Overview */}
           {expenseSummary?.monthlySummary && (
-            <MonthlyOverview monthlySummary={expenseSummary.monthlySummary} />
+            <div className="[&>div]:rounded-2xl [&>div]:shadow-xs">
+              <MonthlyOverview monthlySummary={expenseSummary.monthlySummary} />
+            </div>
           )}
 
-          {/* 5. Quick Management Grid */}
+          {/* Quick Management Grid */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
             <div>
               <h2 className="text-lg font-bold tracking-tight text-slate-900">
                 Quick Management
               </h2>
-              <p className="text-sm text-slate-500 mt-0.5">Frequently accessed administrative controls</p>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Frequently accessed administrative controls
+              </p>
             </div>
 
             <div className="mt-4 grid gap-3 grid-cols-2 sm:grid-cols-4">
@@ -494,41 +649,151 @@ export default async function DashboardPage() {
             </div>
           </div>
 
+          {/* Upcoming Project Deadlines */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h2 className="text-base font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                  <Target className="h-4.5 w-4.5 text-blue-600" />
+                  Upcoming Project Deadlines
+                </h2>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Active projects due in the next 30 days
+                </p>
+              </div>
+              <Link
+                href="/projects"
+                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-bold group"
+              >
+                All Projects{" "}
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+
+            <div className="mt-3 space-y-2">
+              {deadlines.length === 0 ? (
+                <div className="py-7 text-center">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400">
+                    ✓
+                  </span>
+                  <p className="text-xs text-slate-500 mt-2">
+                    No project deadlines in the next 30 days.
+                  </p>
+                </div>
+              ) : (
+                deadlines.map((project) => {
+                  const daysLeft = Math.ceil(
+                    (new Date(project.end_date).getTime() -
+                      new Date().getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  );
+                  const urgency =
+                    daysLeft <= 7
+                      ? "rose"
+                      : daysLeft <= 14
+                        ? "amber"
+                        : "blue";
+
+                  return (
+                    <div
+                      key={project.id}
+                      className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-3 hover:bg-white hover:border-slate-200 hover:shadow-xs transition-all duration-200 group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={[
+                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-black ring-1",
+                            urgency === "rose"
+                              ? "bg-rose-50 text-rose-700 ring-rose-100"
+                              : urgency === "amber"
+                                ? "bg-amber-50 text-amber-700 ring-amber-100"
+                                : "bg-blue-50 text-blue-700 ring-blue-100",
+                          ].join(" ")}
+                        >
+                          {daysLeft}d
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-700 transition-colors">
+                            {project.project_name}
+                          </p>
+                          <p className="text-[10px] text-slate-500 font-mono">
+                            {project.project_code} &bull;{" "}
+                            {new Date(project.end_date).toLocaleDateString(
+                              "en-IN",
+                              { day: "2-digit", month: "short" }
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={[
+                          "shrink-0 ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ring-1",
+                          project.priority === "High"
+                            ? "bg-rose-50 text-rose-700 ring-rose-100"
+                            : project.priority === "Medium"
+                              ? "bg-amber-50 text-amber-700 ring-amber-100"
+                              : "bg-slate-50 text-slate-600 ring-slate-100",
+                        ].join(" ")}
+                      >
+                        {project.priority}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
           {/* Pending Reviews Row */}
           <div className="grid gap-6 sm:grid-cols-2">
             {/* Pending Leaves */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs flex flex-col">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs flex flex-col min-h-[220px]">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
-                  <h3 className="text-base font-semibold tracking-tight text-slate-900">
+                  <h3 className="text-base font-bold tracking-tight text-slate-900">
                     Pending Leaves
                   </h3>
-                  <p className="text-sm text-slate-500">Requires admin approval</p>
+                  <p className="text-xs text-slate-600">Requires admin approval</p>
                 </div>
                 <Link
                   href="/leave?status=Pending"
                   className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold group"
                 >
-                  Review <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  Review{" "}
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
 
               <div className="mt-3 divide-y divide-slate-100 flex-1">
                 {(pendingLeavesReview.data ?? []).length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-6 text-center h-full">
-                    <span className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs">✓</span>
-                    <p className="text-xs text-slate-400 mt-1.5">No pending leaves</p>
+                    <span className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs">
+                      ✓
+                    </span>
+                    <p className="text-xs text-slate-500 mt-1.5">
+                      No pending leaves
+                    </p>
                   </div>
                 ) : (
                   (
                     (pendingLeavesReview.data ??
                       []) as unknown as SupabaseLeaveActivityRecord[]
                   ).map((l) => {
-                    const emp = Array.isArray(l.employee) ? l.employee[0] : l.employee;
+                    const emp = Array.isArray(l.employee)
+                      ? l.employee[0]
+                      : l.employee;
                     const name = emp?.full_name || "Employee";
-                    const empInitials = name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+                    const empInitials = name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .substring(0, 2);
                     return (
-                      <div key={l.id} className="py-2.5 flex items-center justify-between gap-3 group">
+                      <div
+                        key={l.id}
+                        className="py-2.5 flex items-center justify-between gap-3 group"
+                      >
                         <div className="flex items-center gap-2.5">
                           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-[10px] font-bold text-rose-700 ring-1 ring-rose-100/60">
                             {empInitials}
@@ -553,38 +818,55 @@ export default async function DashboardPage() {
             </div>
 
             {/* Pending Expenses */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs flex flex-col">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs flex flex-col min-h-[220px]">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
-                  <h3 className="text-base font-semibold tracking-tight text-slate-900">
+                  <h3 className="text-base font-bold tracking-tight text-slate-900">
                     Pending Expenses
                   </h3>
-                  <p className="text-sm text-slate-500">Awaiting expense validation</p>
+                  <p className="text-xs text-slate-600">
+                    Awaiting expense validation
+                  </p>
                 </div>
                 <Link
                   href="/expenses?status=Pending"
                   className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold group"
                 >
-                  Review <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  Review{" "}
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
 
               <div className="mt-3 divide-y divide-slate-100 flex-1">
                 {(pendingExpensesReview.data ?? []).length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-6 text-center h-full">
-                    <span className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs">✓</span>
-                    <p className="text-xs text-slate-400 mt-1.5">No pending expense claims</p>
+                    <span className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs">
+                      ✓
+                    </span>
+                    <p className="text-xs text-slate-500 mt-1.5">
+                      No pending expense claims
+                    </p>
                   </div>
                 ) : (
                   (
                     (pendingExpensesReview.data ??
                       []) as unknown as SupabaseExpenseActivityRecord[]
                   ).map((e) => {
-                    const emp = Array.isArray(e.employee) ? e.employee[0] : e.employee;
+                    const emp = Array.isArray(e.employee)
+                      ? e.employee[0]
+                      : e.employee;
                     const name = emp?.full_name || "Employee";
-                    const empInitials = name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+                    const empInitials = name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .substring(0, 2);
                     return (
-                      <div key={e.id} className="py-2.5 flex items-center justify-between gap-3 group">
+                      <div
+                        key={e.id}
+                        className="py-2.5 flex items-center justify-between gap-3 group"
+                      >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-[10px] font-bold text-amber-700 ring-1 ring-amber-100/60">
                             {empInitials}
@@ -612,18 +894,68 @@ export default async function DashboardPage() {
 
         {/* Right Sidebar Column */}
         <div className="space-y-6">
-          {/* 6. Recent Activity Timeline */}
+          {/* System Snapshot */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h2 className="text-base font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                <Activity className="h-4.5 w-4.5 text-blue-600" />
+                System Snapshot
+              </h2>
+            </div>
+            <div className="mt-4 space-y-1">
+              <SnapshotRow
+                icon={<UsersRound className="h-3.5 w-3.5 text-blue-600" />}
+                label="Total Employees"
+                value={String(employeeCount.count ?? 0)}
+              />
+              <SnapshotRow
+                icon={
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-indigo-600" />
+                }
+                label="Active Projects"
+                value={String(projectStats.activeProjects)}
+              />
+              <SnapshotRow
+                icon={
+                  <CheckSquare2 className="h-3.5 w-3.5 text-violet-600" />
+                }
+                label="Open Tasks"
+                value={String(openTaskCount.count ?? 0)}
+              />
+              <SnapshotRow
+                icon={<CreditCard className="h-3.5 w-3.5 text-amber-600" />}
+                label="Pending Expenses"
+                value={String(pendingExpenseCount.count ?? 0)}
+              />
+              <SnapshotRow
+                icon={
+                  <CalendarCheck className="h-3.5 w-3.5 text-rose-600" />
+                }
+                label="Pending Leaves"
+                value={String(pendingLeaveCount.count ?? 0)}
+              />
+              <SnapshotRow
+                icon={<Megaphone className="h-3.5 w-3.5 text-emerald-600" />}
+                label="Announcements"
+                value={String(publishedAnnouncements.length)}
+              />
+            </div>
+          </div>
+
+          {/* Recent Activity Timeline */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
             <div>
-              <h2 className="text-lg font-bold tracking-tight text-slate-900">
+              <h2 className="text-base font-bold tracking-tight text-slate-900">
                 Recent Activity
               </h2>
-              <p className="text-sm text-slate-500 mt-0.5">Live workspace update activity log</p>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Live workspace update activity log
+              </p>
             </div>
 
             <div className="mt-5 relative pl-5 border-l-2 border-slate-100 space-y-5">
               {activities.length === 0 ? (
-                <p className="py-4 text-center text-xs text-slate-400">
+                <p className="py-4 text-center text-xs text-slate-500">
                   No recent activity records.
                 </p>
               ) : (
@@ -634,16 +966,29 @@ export default async function DashboardPage() {
                   const titleLower = act.title.toLowerCase();
                   const descLower = act.description.toLowerCase();
 
-                  if (titleLower.includes("leave") || descLower.includes("leave")) {
+                  if (
+                    titleLower.includes("leave") ||
+                    descLower.includes("leave")
+                  ) {
                     IconComponent = CalendarCheck;
                     colorClass = "bg-rose-50 text-rose-600 ring-rose-100";
-                  } else if (titleLower.includes("expense") || descLower.includes("expense")) {
+                  } else if (
+                    titleLower.includes("expense") ||
+                    descLower.includes("expense")
+                  ) {
                     IconComponent = CreditCard;
                     colorClass = "bg-amber-50 text-amber-600 ring-amber-100";
-                  } else if (titleLower.includes("incentive") || descLower.includes("incentive")) {
+                  } else if (
+                    titleLower.includes("incentive") ||
+                    descLower.includes("incentive")
+                  ) {
                     IconComponent = Award;
-                    colorClass = "bg-purple-50 text-purple-600 ring-purple-100";
-                  } else if (titleLower.includes("attendance") || descLower.includes("attendance")) {
+                    colorClass =
+                      "bg-purple-50 text-purple-600 ring-purple-100";
+                  } else if (
+                    titleLower.includes("attendance") ||
+                    descLower.includes("attendance")
+                  ) {
                     IconComponent = UserCheck;
                     colorClass = "bg-teal-50 text-teal-600 ring-teal-100";
                   }
@@ -651,19 +996,24 @@ export default async function DashboardPage() {
                   return (
                     <div key={act.id} className="relative group">
                       <span className="absolute -left-[29px] top-0 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-4 ring-white transition-transform group-hover:scale-110">
-                        <span className={["flex h-5 w-5 items-center justify-center rounded-full ring-1", colorClass].join(" ")}>
+                        <span
+                          className={[
+                            "flex h-5 w-5 items-center justify-center rounded-full ring-1",
+                            colorClass,
+                          ].join(" ")}
+                        >
                           <IconComponent className="h-2.5 w-2.5" />
                         </span>
                       </span>
 
                       <div className="flex flex-col gap-1">
-                        <p className="text-sm font-semibold text-slate-800 group-hover:text-blue-700 transition-colors leading-snug">
+                        <p className="text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors leading-snug">
                           {act.title}
                         </p>
-                        <p className="text-sm text-slate-500 leading-relaxed">
+                        <p className="text-xs text-slate-600 leading-relaxed">
                           {act.description}
                         </p>
-                        <span className="text-xs font-medium text-slate-400 self-start mt-0.5">
+                        <span className="text-[10px] font-medium text-slate-400 self-start mt-0.5">
                           {new Date(act.createdAt).toLocaleDateString("en-IN", {
                             day: "2-digit",
                             month: "short",
@@ -683,7 +1033,7 @@ export default async function DashboardPage() {
           {/* Announcements Widget */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900">
+              <h2 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900">
                 <Megaphone className="h-4.5 w-4.5 text-blue-600" />
                 Announcements
               </h2>
@@ -691,15 +1041,20 @@ export default async function DashboardPage() {
                 href="/announcements"
                 className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold group"
               >
-                All <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                All{" "}
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
 
             <div className="mt-4 space-y-3">
               {publishedAnnouncements.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-6 text-center">
-                  <span className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs">📢</span>
-                  <p className="text-xs text-slate-400 mt-1.5">No active announcements</p>
+                  <span className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs">
+                    📢
+                  </span>
+                  <p className="text-xs text-slate-500 mt-1.5">
+                    No active announcements
+                  </p>
                 </div>
               ) : (
                 publishedAnnouncements.map((ann) => (
@@ -714,7 +1069,7 @@ export default async function DashboardPage() {
                       {ann.title}
                     </Link>
 
-                    <p className="mt-1 line-clamp-2 text-[11px] text-slate-500 leading-relaxed">
+                    <p className="mt-1 line-clamp-2 text-xs text-slate-600 leading-relaxed">
                       {ann.message}
                     </p>
 
@@ -741,16 +1096,23 @@ export default async function DashboardPage() {
           <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
             <div className="mb-4 flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">
+                <h2 className="text-base font-bold text-slate-900">
                   Notifications
                 </h2>
-                <p className="mt-0.5 text-sm text-slate-500">
+                <p className="mt-0.5 text-xs text-slate-600">
                   System alerts and updates
                 </p>
               </div>
 
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-100/60">
-                <Bell className="h-4 w-4" />
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-100/60">
+                  <Bell className="h-4 w-4" />
+                </div>
               </div>
             </div>
 
@@ -769,6 +1131,66 @@ export default async function DashboardPage() {
   );
 }
 
+// ─── Helper: Today Stat Pill ──────────────────────────────────────────────────
+function TodayStatPill({
+  label,
+  value,
+  icon,
+  color,
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  color: "emerald" | "rose" | "amber" | "blue" | "violet";
+}) {
+  const colorMap = {
+    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100/80",
+    rose: "bg-rose-50 text-rose-700 ring-rose-100/80",
+    amber: "bg-amber-50 text-amber-700 ring-amber-100/80",
+    blue: "bg-blue-50 text-blue-700 ring-blue-100/80",
+    violet: "bg-violet-50 text-violet-700 ring-violet-100/80",
+  };
+
+  return (
+    <div
+      className={[
+        "flex items-center gap-2.5 rounded-xl px-3 py-2 ring-1",
+        colorMap[color],
+      ].join(" ")}
+    >
+      {icon}
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70 leading-none">
+          {label}
+        </p>
+        <p className="text-base font-black leading-tight mt-0.5">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Helper: Snapshot Row ─────────────────────────────────────────────────────
+function SnapshotRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+      <div className="flex items-center gap-2.5">
+        <span className="shrink-0">{icon}</span>
+        <span className="text-xs font-semibold text-slate-700">{label}</span>
+      </div>
+      <span className="text-sm font-black text-slate-900">{value}</span>
+    </div>
+  );
+}
+
+// ─── Dashboard Stat Card ──────────────────────────────────────────────────────
 function DashboardStatCard({
   label,
   value,
@@ -806,11 +1228,21 @@ function DashboardStatCard({
   return (
     <Link
       href={href}
-      className={["group flex flex-col justify-between h-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all duration-200", currentTheme.hover].join(" ")}
+      className={[
+        "group flex flex-col justify-between h-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all duration-200",
+        currentTheme.hover,
+      ].join(" ")}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</span>
-        <span className={["flex h-9 w-9 items-center justify-center rounded-xl ring-1 transition-transform group-hover:scale-105", currentTheme.bg].join(" ")}>
+        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          {label}
+        </span>
+        <span
+          className={[
+            "flex h-9 w-9 items-center justify-center rounded-xl ring-1 transition-transform group-hover:scale-105",
+            currentTheme.bg,
+          ].join(" ")}
+        >
           {icon}
         </span>
       </div>
@@ -827,6 +1259,7 @@ function DashboardStatCard({
   );
 }
 
+// ─── Quick Action Item ────────────────────────────────────────────────────────
 function QuickActionItem({
   title,
   description,
@@ -842,9 +1275,11 @@ function QuickActionItem({
 }) {
   const colorMap = {
     blue: "bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700",
-    indigo: "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700",
+    indigo:
+      "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700",
     rose: "bg-rose-50 text-rose-600 group-hover:bg-rose-100 group-hover:text-rose-700",
-    amber: "bg-amber-50 text-amber-600 group-hover:bg-amber-100 group-hover:text-amber-700",
+    amber:
+      "bg-amber-50 text-amber-600 group-hover:bg-amber-100 group-hover:text-amber-700",
   };
 
   return (
@@ -852,13 +1287,20 @@ function QuickActionItem({
       href={href}
       className="group flex flex-col p-4 rounded-xl border border-slate-100 bg-white hover:border-slate-300 hover:shadow-2xs transition-all duration-200"
     >
-      <span className={["p-2 rounded-xl w-fit transition-colors", colorMap[color]].join(" ")}>
+      <span
+        className={[
+          "p-2 rounded-xl w-fit transition-colors",
+          colorMap[color],
+        ].join(" ")}
+      >
         {icon}
       </span>
-      <span className="mt-2.5 text-sm font-semibold text-slate-800 group-hover:text-blue-700 transition-colors">
+      <span className="mt-2.5 text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors">
         {title}
       </span>
-      <span className="mt-0.5 text-xs font-medium text-slate-500 truncate">{description}</span>
+      <span className="mt-0.5 text-xs font-medium text-slate-600 truncate">
+        {description}
+      </span>
     </Link>
   );
 }

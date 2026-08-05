@@ -42,6 +42,7 @@ export default function TaskForm({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<TaskInput>({
     resolver: zodResolver(taskSchema) as never,
@@ -62,6 +63,24 @@ export default function TaskForm({
   const [projectMembers, setProjectMembers] = useState<
     ProjectMemberWithEmployee[]
   >([]);
+
+  const selectedProjectId = watch("project_id");
+
+  useEffect(() => {
+    async function loadMembers() {
+      if (!selectedProjectId) {
+        setProjectMembers([]);
+        return;
+      }
+      try {
+        const members = await getProjectMembersAction(selectedProjectId);
+        setProjectMembers(members);
+      } catch (error) {
+        console.error("Failed to load project members:", error);
+      }
+    }
+    loadMembers();
+  }, [selectedProjectId]);
 
   useEffect(() => {
     if (task) {
@@ -124,18 +143,6 @@ export default function TaskForm({
             <select
               {...register("project_id")}
               className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-              onChange={async (e) => {
-                const projectId = e.target.value;
-
-                if (!projectId) {
-                  setProjectMembers([]);
-                  return;
-                }
-
-                const members = await getProjectMembersAction(projectId);
-
-                setProjectMembers(members);
-              }}
             >
               <option value="">Select Project</option>
 

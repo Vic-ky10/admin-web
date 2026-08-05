@@ -22,7 +22,7 @@ export default async function EmployeeTasksPage() {
         breadcrumbs={[{ label: "Portal", href: "/employee/dashboard" }, { label: "My Tasks" }]}
       />
 
-      <EmployeeTaskTable tasks={tasks} />
+      <EmployeeTaskTable tasks={tasks} profileId={profileId} />
     </div>
   );
 }

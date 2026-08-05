@@ -39,7 +39,6 @@ export default function ProjectForm({
       project_code: project?.project_code ?? "",
       project_name: project?.project_name ?? "",
       description: project?.description ?? "",
-      department: "",
       priority: project?.priority ?? PROJECT_PRIORITY.MEDIUM,
       status: project?.status ?? PROJECT_STATUS.PLANNING,
       start_date: project?.start_date ?? "",

@@ -25,6 +25,9 @@ export default function NotificationDropdown({
   notifications,
   theme = "emerald",
 }: NotificationDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const [pending, startTransition] = useTransition();
   const [prevNotifications, setPrevNotifications] =
     useState<Notification[]>(notifications);
@@ -39,6 +42,41 @@ export default function NotificationDropdown({
     setPrevNotifications(notifications);
     setLocalNotifications(notifications);
   }
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   // Dynamic unread count based on current local/optimistic state
   const localUnreadCount = localNotifications.filter((n) => !n.is_read).length;
@@ -157,139 +195,132 @@ export default function NotificationDropdown({
   }
 
   return (
-    <details className="relative">
-      <summary
-        className={[
-          "relative inline-flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all duration-200",
-          isBlue
-            ? "hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-            : "hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700",
-        ].join(" ")}
-      >
-        <Bell className="h-5 w-5" />
+    <div ref={dropdownRef} className="relative">
+      <button type="button" onClick={() => setOpen(!open)} className="...">
+        <Bell className="h-7 w-7" />
 
         {localUnreadCount > 0 && (
           <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white">
             {localUnreadCount}
           </span>
         )}
-      </summary>
+      </button>
+      {open && (
+        <div className="absolute right-0 z-50 mt-3 w-[370px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">
+                Notifications
+              </h3>
 
-      <div className="absolute right-0 z-50 mt-3 w-[420px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">Notifications</h3>
-
-            <p className="mt-1 text-sm text-slate-500">
-              {localUnreadCount} unread notifications
-            </p>
-          </div>
-
-          {localUnreadCount > 0 && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={markAllRead}
-              disabled={pending}
-            >
-              <CheckCheck className="mr-2 h-4 w-4" />
-              Read All
-            </Button>
-          )}
-        </div>
-
-        <div className="max-h-[500px] overflow-y-auto">
-          {localNotifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-              <Bell className="mb-4 h-12 w-12 text-slate-300" />
-
-              <p className="text-base font-semibold text-slate-700">
-                No notifications
-              </p>
-
-              <p className="mt-2 text-sm text-slate-500">
-                You&apos;re all caught up.
+              <p className="mt-1 text-sm text-slate-500">
+                {localUnreadCount} unread notifications
               </p>
             </div>
-          ) : (
-            localNotifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={[
-                  "border-b border-slate-100 px-6 py-5 transition-all duration-200 hover:bg-slate-50",
-                  !notification.is_read ? "bg-emerald-50/40" : "bg-white",
-                ].join(" ")}
+
+            {localUnreadCount > 0 && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={markAllRead}
+                disabled={pending}
               >
-                <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700">
-                    {notification.title.charAt(0).toUpperCase()}
-                  </div>
+                <CheckCheck className="mr-2 h-4 w-4" />
+                Read All
+              </Button>
+            )}
+          </div>
 
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
-                          {notification.title}
-                        </p>
+          <div className="max-h-[400px] overflow-y-auto">
+            {localNotifications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <Bell className="mb-4 h-12 w-12 text-slate-300" />
 
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">
-                          {notification.message}
-                        </p>
+                <p className="text-base font-semibold text-slate-700">
+                  No notifications
+                </p>
 
-                        <p className="mt-3 text-xs text-slate-400">
-                          {new Date(notification.created_at)
-                            .toISOString()
-                            .replace("T", " ")
-                            .slice(0, 16)}
-                        </p>
-                      </div>
-
-                      {!notification.is_read && (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => markRead(notification.id)}
-                          disabled={pending}
-                        >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                      )}
+                <p className="mt-2 text-sm text-slate-500">
+                  You&apos;re all caught up.
+                </p>
+              </div>
+            ) : (
+              localNotifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={[
+                    "border-b border-slate-100 px-6 py-5 transition-all duration-200 hover:bg-slate-50",
+                    !notification.is_read ? "bg-emerald-50/40" : "bg-white",
+                  ].join(" ")}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700">
+                      {notification.title.charAt(0).toUpperCase()}
                     </div>
 
-                    {notification.action_url && (
-                      <Link
-                        href={notification.action_url}
-                        className={[
-                          "mt-4 inline-block text-sm font-medium hover:underline",
-                          isBlue ? "text-blue-700" : "text-emerald-700",
-                        ].join(" ")}
-                      >
-                        Open →
-                      </Link>
-                    )}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {notification.title}
+                          </p>
+
+                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">
+                            {notification.message}
+                          </p>
+
+                          <p className="mt-3 text-xs text-slate-400">
+                            {new Date(notification.created_at)
+                              .toISOString()
+                              .replace("T", " ")
+                              .slice(0, 16)}
+                          </p>
+                        </div>
+
+                        {!notification.is_read && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => markRead(notification.id)}
+                            disabled={pending}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+
+                      {notification.action_url && (
+                        <Link
+                          href={notification.action_url}
+                          onClick={() => setOpen(false)}
+                        >
+                          Open →
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              ))
+            )}
+          </div>
+
+          {localNotifications.length > 0 && (
+            <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 text-center">
+              <Link
+                href={notificationPage}
+                className={[
+                  "text-sm font-semibold transition",
+                  isBlue
+                    ? "text-blue-700 hover:text-blue-800"
+                    : "text-emerald-700 hover:text-emerald-800",
+                ].join(" ")}
+              >
+                View All Notifications →
+              </Link>
+            </div>
           )}
         </div>
-
-        {localNotifications.length > 0 && (
-          <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 text-center">
-            <Link
-              href={notificationPage}
-              className={[
-                "text-sm font-semibold transition",
-                isBlue
-                  ? "text-blue-700 hover:text-blue-800"
-                  : "text-emerald-700 hover:text-emerald-800",
-              ].join(" ")}
-            >
-              View All Notifications →
-            </Link>
-          </div>
-        )}
-      </div>
-    </details>
+      )}
+    </div>
   );
 }

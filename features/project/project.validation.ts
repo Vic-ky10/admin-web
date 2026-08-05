@@ -33,7 +33,6 @@ export const projectSchema = z
       .trim()
       .max(1000, "Description must be at most 1000 characters.")
       .optional(),
-    department: z.string().trim().max(80).optional(),
     priority: z.enum(priorityValues, {
       error: "Select a valid priority.",
     }),

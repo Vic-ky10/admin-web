@@ -28,7 +28,8 @@ updated_at,
 
 project:projects!tasks_project_id_fkey(
   project_code,
-  project_name
+  project_name,
+  status
 ),
 
 member:project_members!tasks_project_member_id_fkey(
@@ -49,6 +50,7 @@ type MaybeArray<T> = T | T[] | null;
 type TaskProjectRelation = {
   project_code: string;
   project_name: string;
+  status: string;
 };
 
 type TaskProfileRelation = {
@@ -222,8 +224,11 @@ export async function createTask(
       error: error.message,
     };
   }
-  // notification bell icons
 
+  // Sync project progress
+  await syncProjectProgress(values.project_id);
+
+  // notification bell icons
   const { data: member } = await adminClient
     .from("project_members")
     .select("profile_id")
@@ -270,6 +275,10 @@ export async function updateTask(
     };
   }
 
+  if (data?.project_id) {
+    await syncProjectProgress(data.project_id);
+  }
+
   return {
     success: true,
     message: "Task updated successfully.",
@@ -278,6 +287,12 @@ export async function updateTask(
 }
 
 export async function deleteTask(id: string): Promise<ActionResponse> {
+  const { data: currentTask } = await adminClient
+    .from("tasks")
+    .select("project_id")
+    .eq("id", id)
+    .single();
+
   const { error } = await adminClient.from("tasks").delete().eq("id", id);
 
   if (error) {
@@ -285,6 +300,10 @@ export async function deleteTask(id: string): Promise<ActionResponse> {
       success: false,
       error: error.message,
     };
+  }
+
+  if (currentTask?.project_id) {
+    await syncProjectProgress(currentTask.project_id);
   }
 
   return {
@@ -314,7 +333,6 @@ export async function updateTaskStatus(
 
   if (status === "Completed") {
     updateData.completed_at = new Date().toISOString();
-  // admin recive it so
     await notifyAdmins({
       title: "Task Completed",
       message: "An employee has completed a task.",
@@ -322,10 +340,12 @@ export async function updateTaskStatus(
     });
   }
 
-  const { error } = await adminClient
+  const { data: updatedTask, error } = await adminClient
     .from("tasks")
     .update(updateData)
-    .eq("id", id);
+    .eq("id", id)
+    .select("project_id")
+    .single();
 
   if (error) {
     return {
@@ -334,8 +354,80 @@ export async function updateTaskStatus(
     };
   }
 
+  if (updatedTask?.project_id) {
+    await syncProjectProgress(updatedTask.project_id);
+  }
+
   return {
     success: true,
     message: "Task updated successfully.",
   };
+}
+
+/**
+ * Shared synchronization helper to update project completion percentage and lifecycle status
+ */
+export async function syncProjectProgress(projectId: string): Promise<void> {
+  const { data: project, error: projectError } = await adminClient
+    .from("projects")
+    .select("status")
+    .eq("id", projectId)
+    .single();
+
+  if (projectError || !project) {
+    console.error("syncProjectProgress: Project not found or error", projectError);
+    return;
+  }
+
+  // Re-evaluation rule: Do not overwrite Cancelled or On Hold
+  if (project.status === "Cancelled" || project.status === "On Hold") {
+    return;
+  }
+
+  const { data: tasks, error: tasksError } = await adminClient
+    .from("tasks")
+    .select("status")
+    .eq("project_id", projectId);
+
+  if (tasksError) {
+    console.error("syncProjectProgress: Failed to fetch tasks", tasksError);
+    return;
+  }
+
+  const totalTasks = tasks?.length || 0;
+  const completedTasks = tasks?.filter((t) => t.status === "Completed").length || 0;
+
+  // Formula check
+  const progress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+  // Status Lifecycle rules
+  let newStatus = project.status;
+  if (totalTasks > 0) {
+    if (project.status === "Planning") {
+      newStatus = "Active";
+    }
+    if (progress === 100) {
+      newStatus = "Completed";
+    } else if (progress < 100 && project.status === "Completed") {
+      newStatus = "Active";
+    }
+  } else {
+    // If tasks are empty, revert to planning (if active/completed)
+    if (project.status === "Active" || project.status === "Completed") {
+      newStatus = "Planning";
+    }
+  }
+
+  const { error: updateError } = await adminClient
+    .from("projects")
+    .update({
+      progress,
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", projectId);
+
+  if (updateError) {
+    console.error("syncProjectProgress: Update project progress failed", updateError);
+  }
 }
