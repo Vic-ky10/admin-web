@@ -21,10 +21,11 @@ export default async function AdminAttendancePage({
     date: params.date,
     status: params.status,
     search: params.search,
+    department: params.department,
   }) as AttendanceFilters;
  const [employees, dashboard] = await Promise.all([
   getEmployees(),
-  getTodayAttendanceDashboard(),
+  getTodayAttendanceDashboard(filters),
 ]);
 
   return (
@@ -37,14 +38,15 @@ export default async function AdminAttendancePage({
       </div>
 
       <AdminAttendanceFilters employees={employees} defaultValues={filters} />
-  <AttendanceClient
-  summary={dashboard.summary}
-  presentRecords={dashboard.present}
-  shortHoursRecords={dashboard.shortHours}
-  halfDayRecords={dashboard.halfDay}
-  incompleteRecords={dashboard.incomplete}
-  absentRecords={dashboard.absent}
-/>
+      <AttendanceClient
+        summary={dashboard.summary}
+        presentRecords={dashboard.present}
+        shortHoursRecords={dashboard.shortHours}
+        halfDayRecords={dashboard.halfDay}
+        incompleteRecords={dashboard.incomplete}
+        absentRecords={dashboard.absent}
+        initialStatus={filters.status || "all"}
+      />
     </div>
   );
 }

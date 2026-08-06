@@ -25,7 +25,7 @@ export default async function EmployeeLeavePage({
   const filters = leaveFiltersSchema.parse({
     status: params.status,
   }) as LeaveFilters;
-  const leaves = await getEmployeeLeaveRequests(profile.id, filters);
+  const leaves = await getEmployeeLeaveRequests(profile.id, {});
 
   return (
     <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">

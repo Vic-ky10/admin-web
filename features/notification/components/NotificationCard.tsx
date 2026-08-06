@@ -10,6 +10,7 @@ import {
   CheckSquare,
   FileText,
   UserCheck,
+  Check,
 } from "lucide-react";
 
 import { Notification } from "../notification.types";
@@ -19,6 +20,7 @@ interface NotificationCardProps {
   theme?: "emerald" | "blue";
   compact?: boolean;
   href?: string;
+  onMarkAsRead?: (id: string) => void;
 }
 
 function getNotificationStyles(notification: Notification, isBlue: boolean) {
@@ -71,6 +73,7 @@ export default function NotificationCard({
   theme = "emerald",
   compact = false,
   href,
+  onMarkAsRead,
 }: NotificationCardProps) {
   const isBlue = theme === "blue";
   const { Icon, iconBg } = getNotificationStyles(notification, isBlue);
@@ -131,25 +134,46 @@ export default function NotificationCard({
           <p className="mt-1.5 text-xs md:text-sm text-slate-500 leading-relaxed break-words">
             {notification.message}
           </p>
+<div className="mt-4 flex items-center justify-between">
+  <div className="flex items-center gap-3">
+    <span className="text-[11px] font-medium text-slate-400">
+      {new Date(notification.created_at).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })}
+    </span>
 
-          <div className="mt-3.5 flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-400">
-              {new Date(notification.created_at).toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
+    {!notification.is_read ? (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onMarkAsRead?.(notification.id);
+        }}
+        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-emerald-600 transition hover:bg-emerald-50"
+      >
+        <Check className="h-3.5 w-3.5" />
+        Mark as Read
+      </button>
+    ) : (
+      <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
+        <Check className="h-3.5 w-3.5" />
+        Read
+      </span>
+    )}
+  </div>
 
-            <span
-              className={[
-                "text-xs font-semibold flex items-center gap-1 opacity-0 translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0",
-                isBlue ? "text-blue-600" : "text-emerald-600",
-              ].join(" ")}
-            >
-              View <span className="text-[10px]">→</span>
-            </span>
-          </div>
+  <span
+    className={[
+      "text-xs font-semibold flex items-center gap-1 opacity-0 translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0",
+      isBlue ? "text-blue-600" : "text-emerald-600",
+    ].join(" ")}
+  >
+    View <span className="text-[10px]">→</span>
+  </span>
+</div>
         </div>
       </div>
     </div>
@@ -164,4 +188,4 @@ export default function NotificationCard({
   }
 
   return cardContent;
-}
+}

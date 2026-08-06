@@ -12,11 +12,16 @@ export const EMPLOYEE_ROLE = {
 } as const;
 
 export const DEPARTMENTS = [
-  "IT",
+  "Engineering",
   "HR",
+  "Finance",
   "Sales",
   "Marketing",
-] as const;
+  "IT",
+  "Delivery",
+  "Warehouse",
+  "Administration",
+]as const;
 
 export const EMPLOYEE_ID_PREFIX = "EMP";
 

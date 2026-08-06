@@ -21,7 +21,7 @@ export default async function AdminLeavePage({
   }) as LeaveFilters;
   const [employees, leaves] = await Promise.all([
     getEmployees(),
-    getLeaveRequests(filters),
+    getLeaveRequests({}),
   ]);
 
   return (

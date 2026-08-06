@@ -232,61 +232,61 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
           <Table className="animate-fade-in">
             <TableHead>
               <TableRow>
-                <TableHeader>Task Code</TableHeader>
-                <TableHeader>Title</TableHeader>
-                <TableHeader>Project</TableHeader>
-                <TableHeader>Employee</TableHeader>
-                <TableHeader>Priority</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Due Date</TableHeader>
-                <TableHeader className="text-right">Actions</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Task Code</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Title</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Project</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Employee</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Priority</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Status</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Due Date</TableHeader>
+                <TableHeader className="text-right !text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Actions</TableHeader>
               </TableRow>
             </TableHead>
 
             <TableBody>
               {filteredTasks.map((task) => (
                 <TableRow key={task.id}>
-                  <TableCell>
-                    <span className="font-semibold">{task.task_code}</span>
+                  <TableCell className="!py-4.5">
+                    <span className="font-bold text-slate-700 text-[14px]">{task.task_code}</span>
                   </TableCell>
 
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-slate-900">{task.title}</p>
-                      <p className="text-xs text-slate-500">
+                  <TableCell className="!py-4.5">
+                    <div className="space-y-1">
+                      <p className="font-bold text-slate-900 text-[15px] leading-snug">{task.title}</p>
+                      <p className="text-[13px] text-slate-500 max-w-md line-clamp-1">
                         {task.description || "No description"}
                       </p>
                     </div>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="!py-4.5">
                     <div>
-                      <p className="font-medium text-slate-900">
+                      <p className="font-semibold text-slate-800 text-[14px]">
                         {task.project?.project_name}
                       </p>
                     </div>
                   </TableCell>
 
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-slate-900">
+                  <TableCell className="!py-4.5">
+                    <div className="space-y-0.5">
+                      <p className="font-semibold text-slate-800 text-[14px]">
                         {task.member?.profile?.full_name}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-[13px] text-slate-500 font-medium">
                         {task.member?.profile?.employee_id}
                       </p>
                     </div>
                   </TableCell>
 
-                  <TableCell>
-                    <TaskPriorityBadge priority={task.priority} />
+                  <TableCell className="!py-4.5">
+                    <TaskPriorityBadge priority={task.priority} className="text-[12px] px-2.5 py-0.5 font-bold" />
                   </TableCell>
 
-                  <TableCell>
-                    <TaskStatusBadge status={task.status} />
+                  <TableCell className="!py-4.5">
+                    <TaskStatusBadge status={task.status} className="text-[12px] px-2.5 py-0.5 font-bold" />
                   </TableCell>
 
-                  <TableCell className="text-slate-600">
+                  <TableCell className="text-slate-600 font-semibold !text-sm md:!text-[14px] !py-4.5">
                     {task.due_date
                       ? new Date(task.due_date).toLocaleDateString("en-IN", {
                           day: "2-digit",
@@ -296,19 +296,21 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
                       : "-"}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="!py-4.5">
                     <div className="flex justify-end">
                       <div className="flex gap-2">
                         <Button
                           variant="secondary"
-                          size="sm"
+                          size="md"
+                          className="font-semibold text-[13px]"
                           onClick={() => setDialog({ mode: "view", task })}
                         >
                           View
                         </Button>
 
                         <Button
-                          size="sm"
+                          size="md"
+                          className="font-semibold text-[13px]"
                           onClick={() => setDialog({ mode: "edit", task })}
                         >
                           Edit
@@ -316,7 +318,8 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
 
                         <Button
                           variant="danger"
-                          size="sm"
+                          size="md"
+                          className="font-semibold text-[13px]"
                           onClick={() => {
                             toast.warning("Delete this task?", {
                               description: "This action cannot be undone.",

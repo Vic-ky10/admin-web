@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { 
   Calendar, 
@@ -8,7 +9,6 @@ import {
   MessageSquare, 
   Paperclip, 
   CheckSquare, 
-  User, 
   Plus, 
   AlertCircle,
   CheckCircle2
@@ -17,13 +17,18 @@ import { TaskWithProject, TASK_STATUS, TASK_PRIORITY } from "../task.types";
 import TaskDetailsModal from "./TaskDetailsModal";
 import TaskForm from "./TaskForm";
 import Button from "@/components/ui/Button";
+import { deleteTaskAction } from "../task.action";
 
 interface KanbanBoardProps {
   tasks: TaskWithProject[];
-  projects: any[];
+  projects: {
+    id: string;
+    project_name: string;
+    project_code: string;
+  }[];
   isAdmin: boolean;
   profileId?: string | null;
-  onStatusChange: (taskId: string, newStatus: string, actualHours?: number) => Promise<any>;
+  onStatusChange: (taskId: string, newStatus: string, actualHours?: number) => Promise<{ success: boolean; message?: string; error?: string }>;
 }
 
 export default function KanbanBoard({
@@ -33,11 +38,11 @@ export default function KanbanBoard({
   profileId,
   onStatusChange,
 }: KanbanBoardProps) {
+  const router = useRouter();
   const [draggedOverColumn, setDraggedOverColumn] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskWithProject | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [createDefaultStatus, setCreateDefaultStatus] = useState<string>(TASK_STATUS.TODO);
 
   // Quick Filters
   const [quickFilter, setQuickFilter] = useState<"All" | "Mine" | "High" | "Overdue" | "Completed">("All");
@@ -48,6 +53,9 @@ export default function KanbanBoard({
     targetStatus: string;
   } | null>(null);
   const [actualHoursInput, setActualHoursInput] = useState<number>(0);
+
+  // Task Deletion Modal state
+  const [deleteConfirm, setDeleteConfirm] = useState<TaskWithProject | null>(null);
 
   // Group columns
   const columns = [
@@ -169,6 +177,24 @@ export default function KanbanBoard({
     await executeStatusChange(task.id, targetStatus, actualHoursInput);
   };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const taskToDelete = deleteConfirm;
+    setDeleteConfirm(null);
+    try {
+      const response = await deleteTaskAction(taskToDelete.id);
+      if (response.success) {
+        toast.success(response.message || "Task deleted successfully.");
+        router.refresh();
+      } else {
+        toast.error(response.error || "Failed to delete task.");
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      toast.error(errMsg);
+    }
+  };
+
   const getPriorityBadgeColor = (priority: string) => {
     switch (priority) {
       case TASK_PRIORITY.URGENT:
@@ -223,7 +249,6 @@ export default function KanbanBoard({
           <Button
             size="sm"
             onClick={() => {
-              setCreateDefaultStatus(TASK_STATUS.TODO);
               setIsCreateOpen(true);
             }}
             className="flex items-center gap-1.5"
@@ -264,7 +289,6 @@ export default function KanbanBoard({
                   <button
                     type="button"
                     onClick={() => {
-                      setCreateDefaultStatus(col.id);
                       setIsCreateOpen(true);
                     }}
                     className="p-1 rounded-md text-slate-400 hover:bg-slate-200/50 hover:text-slate-600 transition"
@@ -287,14 +311,6 @@ export default function KanbanBoard({
                 ) : (
                   colTasks.map((task) => {
                     const isOverdue = isTaskOverdue(task);
-                    const initials = task.member?.profile?.full_name
-                      ? task.member.profile.full_name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .substring(0, 2)
-                          .toUpperCase()
-                      : "??";
 
                     return (
                       <div
@@ -366,9 +382,15 @@ export default function KanbanBoard({
                               />
                             </div>
                           </div>
+ 
+                          {/* Assignee Name (Replaced avatar bubble) */}
+                          <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 bg-slate-50 px-2 py-1 rounded-lg w-fit border border-slate-100">
+                            <span>👤</span>
+                            <span>{task.member?.profile?.full_name || "Unassigned"}</span>
+                          </div>
 
                           {/* Divider */}
-                          <div className="border-t border-slate-100 my-1 pt-2 flex items-center justify-between" />
+                          <div className="border-t border-slate-100 my-1 pt-2" />
 
                           {/* Card Footer Widgets */}
                           <div className="flex items-center justify-between text-[11px] text-slate-400">
@@ -383,19 +405,6 @@ export default function KanbanBoard({
                                     })
                                   : "No due date"}
                               </span>
-                            </div>
-
-                            {/* Assignee Avatar Bubble */}
-                            <div className="flex items-center gap-1.5">
-                              {task.member?.profile?.full_name ? (
-                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/10 text-[9px] font-bold text-blue-600 ring-1 ring-blue-500/20" title={task.member.profile.full_name}>
-                                  {initials}
-                                </div>
-                              ) : (
-                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[9px] text-slate-400">
-                                  <User className="h-3 w-3" />
-                                </div>
-                              )}
                             </div>
                           </div>
 
@@ -422,6 +431,22 @@ export default function KanbanBoard({
                               </span>
                             )}
                           </div>
+
+                          {/* Delete Button for Completed Tasks (Admins only) */}
+                          {isAdmin && task.status === TASK_STATUS.COMPLETED && (
+                            <div className="flex justify-end pt-1 border-t border-slate-100 mt-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteConfirm(task);
+                                }}
+                                className="px-2.5 py-1 text-[11px] font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-lg transition-all duration-150 cursor-pointer"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -444,7 +469,7 @@ export default function KanbanBoard({
               <div>
                 <h3 className="font-bold text-slate-900 text-sm">Complete Task?</h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Marking <span className="font-semibold text-slate-800">"{completionConfirm.task.title}"</span> as finished.
+                  Marking <span className="font-semibold text-slate-800">&quot;{completionConfirm.task.title}&quot;</span> as finished.
                 </p>
               </div>
             </div>
@@ -479,6 +504,42 @@ export default function KanbanBoard({
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Complete Task
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 max-w-sm w-full shadow-2xl space-y-4 animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-rose-100">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">Delete this completed task?</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setDeleteConfirm(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleConfirmDelete}
+              >
+                Delete
               </Button>
             </div>
           </div>

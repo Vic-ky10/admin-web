@@ -1,11 +1,8 @@
 import { redirect } from "next/navigation";
 import EmployeeExpenseClient from "@/features/expense/components/EmployeeExpenseClient";
 import { getEmployeeExpenses } from "@/features/expense/expense.service";
-import {
-  EXPENSE_STATUS,
-  ExpenseFilters,
-  PAYMENT_STATUS,
-} from "@/features/expense/expense.types";
+import { ExpenseFilters } from "@/features/expense/expense.types";
+import { expenseFiltersSchema } from "@/features/expense/expense.validation";
 import { getCurrentEmployeeProfile } from "@/features/employee-portal/employee-portal.service";
 import PageHeader from "@/components/layout/PageHeader";
 
@@ -25,16 +22,14 @@ export default async function EmployeeExpensesPage({
   }
 
   const params = await searchParams;
-  const status = Object.values(EXPENSE_STATUS).find(
-    (value) => value === params.status
-  );
-  const paymentStatus = Object.values(PAYMENT_STATUS).find(
-    (value) => value === params.paymentStatus
-  );
-  const filters: ExpenseFilters = {
-    status,
-    paymentStatus,
-  };
+  const filters = expenseFiltersSchema.parse({
+    search: params.search,
+    status: params.status,
+    paymentStatus: params.paymentStatus,
+    expenseType: params.expenseType,
+    date: params.date,
+  }) as ExpenseFilters;
+
   const expenses = await getEmployeeExpenses(profile.id, filters);
 
   return (
@@ -42,13 +37,19 @@ export default async function EmployeeExpensesPage({
       <PageHeader
         title="My Expenses"
         description="Submit expense reimbursement claims, track approvals, and review receipts."
-        breadcrumbs={[{ label: "Portal", href: "/employee/dashboard" }, { label: "Expenses" }]}
+        breadcrumbs={[
+          { label: "Portal", href: "/employee/dashboard" },
+          { label: "Expenses" },
+        ]}
       />
 
       <EmployeeExpenseClient
         expenses={expenses}
+        profile={profile}
         selectedStatus={filters.status}
-        selectedPaymentStatus={filters.paymentStatus}
+        selectedExpenseType={filters.expenseType}
+        selectedSearch={filters.search}
+        selectedDate={filters.date}
       />
     </div>
   );

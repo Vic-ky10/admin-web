@@ -236,7 +236,11 @@ export default function SalesClient({
 
       if (res.success) {
         toast.success(res.message || "Purchase recorded successfully.");
-        setPurchaseModal({ open: false, item: null });
+        if (!purchaseModal.item) {
+          setPurchaseModal({ open: false, item: null });
+        } else if (res.data) {
+          setPurchaseModal({ open: true, item: res.data as CustomerPurchase });
+        }
         router.refresh();
       } else {
         toast.error(res.error || "Failed to save purchase.");

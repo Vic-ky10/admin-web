@@ -5,6 +5,7 @@ import AdminShell from "@/components/layout/AdminShell";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getNotifications } from "@/features/notification/notification.service";
+import RealtimeSync from "@/components/providers/RealtimeSync";
 
 interface LayoutProps {
   children: ReactNode;
@@ -51,6 +52,12 @@ export default async function AdminLayout({ children }: LayoutProps) {
   unreadNotifications={notificationsResponse.count ?? 0}
   notifications={notifications}
 >
+      {profileResponse.data && (
+        <RealtimeSync
+          profileId={profileResponse.data.id}
+          role={profileResponse.data.role}
+        />
+      )}
       {children}
     </AdminShell>
   );

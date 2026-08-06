@@ -159,7 +159,7 @@ export default function LeaveRequestForm({
         />
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <div className="rounded-lg border border-slate-200 bg-white p-4">
         <p className="text-sm font-medium text-slate-500">Total Days</p>
         <p className="mt-1 text-xl font-semibold text-slate-900">
           {totalDays > 0 ? totalDays : "Select dates"}

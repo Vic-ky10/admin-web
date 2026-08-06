@@ -18,7 +18,6 @@ import { useMemo, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import PageHeader from "@/components/layout/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
-import Button from "@/components/ui/Button";
 
 import {
   PROJECT_STATUS,
@@ -26,7 +25,6 @@ import {
   ProjectStatus,
 } from "../project.types";
 import {
-  calculateTimelineProgress,
   formatProjectDate,
 } from "../project.utils";
 import ProjectMemberList from "./ProjectMemberList";

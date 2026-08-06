@@ -185,36 +185,40 @@ export default function EmployeeTaskTable({ tasks, profileId }: EmployeeTaskTabl
         <Table className="animate-fade-in">
           <TableHead>
             <TableRow>
-              <TableHeader>Task</TableHeader>
-              <TableHeader>Project</TableHeader>
-              <TableHeader>Priority</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Due Date</TableHeader>
-              <TableHeader className="text-right">Actions</TableHeader>
+              <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Task</TableHeader>
+              <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Project</TableHeader>
+              <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Priority</TableHeader>
+              <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Status</TableHeader>
+              <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Due Date</TableHeader>
+              <TableHeader className="text-right !text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Actions</TableHeader>
             </TableRow>
           </TableHead>
 
           <TableBody>
             {filteredTasks.map((task) => (
               <TableRow key={task.id}>
-                <TableCell>
-                  <div>
-                    <p className="font-bold text-slate-900">{task.title}</p>
-                    <p className="text-xs text-slate-500 font-mono">{task.task_code}</p>
+                <TableCell className="!py-4.5">
+                  <div className="space-y-1">
+                    <p className="font-bold text-slate-900 text-[15px] leading-snug">{task.title}</p>
+                    <p className="text-[13px] text-slate-500 font-mono font-medium">{task.task_code}</p>
                   </div>
                 </TableCell>
 
-                <TableCell>{task.project?.project_name ?? "-"}</TableCell>
-
-                <TableCell>
-                  <TaskPriorityBadge priority={task.priority} />
+                <TableCell className="!py-4.5">
+                  <p className="font-semibold text-slate-800 text-[14px]">
+                    {task.project?.project_name ?? "-"}
+                  </p>
                 </TableCell>
 
-                <TableCell>
-                  <TaskStatusBadge status={task.status} />
+                <TableCell className="!py-4.5">
+                  <TaskPriorityBadge priority={task.priority} className="text-[12px] px-2.5 py-0.5 font-bold" />
                 </TableCell>
 
-                <TableCell className="text-slate-600">
+                <TableCell className="!py-4.5">
+                  <TaskStatusBadge status={task.status} className="text-[12px] px-2.5 py-0.5 font-bold" />
+                </TableCell>
+
+                <TableCell className="text-slate-600 font-semibold !text-sm md:!text-[14px] !py-4.5">
                   {task.due_date
                     ? new Date(task.due_date).toLocaleDateString("en-IN", {
                         day: "2-digit",
@@ -224,12 +228,13 @@ export default function EmployeeTaskTable({ tasks, profileId }: EmployeeTaskTabl
                     : "-"}
                 </TableCell>
 
-                <TableCell className="text-right">
+                <TableCell className="text-right !py-4.5">
                   <div className="flex items-center justify-end gap-2">
                     <Button
                       type="button"
                       variant="ghost"
-                      size="sm"
+                      size="md"
+                      className="font-semibold text-slate-600 text-[13px]"
                       onClick={() => setSelectedTask(task)}
                     >
                       View
@@ -237,7 +242,8 @@ export default function EmployeeTaskTable({ tasks, profileId }: EmployeeTaskTabl
                     <Button
                       type="button"
                       variant="secondary"
-                      size="sm"
+                      size="md"
+                      className="font-semibold text-[13px]"
                       onClick={() => {
                         setSelectedTask(task);
                         setStatusOpen(true);

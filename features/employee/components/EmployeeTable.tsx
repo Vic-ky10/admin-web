@@ -5,7 +5,6 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Eye, Edit2, Trash2, Users } from "lucide-react";
 
-import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import {
@@ -17,7 +16,6 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 
-import { EMPLOYEE_STATUS } from "../employee.constants";
 import { deleteEmployee } from "../employee.actions";
 import { Employee } from "../employee.types";
 
@@ -83,7 +81,7 @@ export default function EmployeeTable({
           <TableHeader>Email</TableHeader>
           <TableHeader>Department</TableHeader>
           <TableHeader>Designation</TableHeader>
-          <TableHeader>Status</TableHeader>
+          <TableHeader>Joined Date</TableHeader>
           <TableHeader className="text-right">Actions</TableHeader>
         </TableRow>
       </TableHead>
@@ -109,19 +107,8 @@ export default function EmployeeTable({
 
             <TableCell>{employee.designation ?? "-"}</TableCell>
 
-            <TableCell>
-              <Badge
-                showDot
-                variant={
-                  employee.status === EMPLOYEE_STATUS.ACTIVE
-                    ? "success"
-                    : employee.status === EMPLOYEE_STATUS.PENDING
-                      ? "warning"
-                      : "danger"
-                }
-              >
-                {employee.status}
-              </Badge>
+            <TableCell className="text-slate-600">
+              {employee.joined_date ? formatJoinedDate(employee.joined_date) : "-"}
             </TableCell>
 
             <TableCell className="text-right">
@@ -166,4 +153,16 @@ export default function EmployeeTable({
       </TableBody>
     </Table>
   );
+}
+
+const joinedDateFormatter = new Intl.DateTimeFormat("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+
+function formatJoinedDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return joinedDateFormatter.format(date);
 }

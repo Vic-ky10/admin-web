@@ -20,6 +20,15 @@ export const EXPENSE_CATEGORY = {
 } as const;
  
 
+export interface ExpenseFilters {
+  search?: string;
+  status?: ExpenseStatus;
+  paymentStatus?: PaymentStatus;
+  expenseType?: string;
+  date?: string;
+  profileId?: string;
+}
+
  export interface Expense {
   id: string;
   profile_id: string;
@@ -80,19 +89,7 @@ export const PAYMENT_STATUS = {
   PAID: "Paid",
 } as const;
 
-export interface ExpenseFilters {
-  profileId?: string;
-  status?: ExpenseStatus | "All";
-  paymentStatus?: PaymentStatus;
-  category?: ExpenseCategory | "All";
-  month?: string;
-  year?: string;
-  employeeId?: string;
-  amountMin?: number;
-  amountMax?: number;
-  hasReceipt?: boolean | null;
-  searchQuery?: string;
-}
+// Filter fields are declared above in a single ExpenseFilters interface
 
 export interface ExpenseWithEmployee extends Expense {
   employee: {

@@ -43,6 +43,11 @@ export const employeeSchema = z.object({
   role: z.enum(roleValues, {
     message: "Role is required.",
   }),
+
+  joined_date: z
+    .string()
+    .trim()
+    .min(1, "Joined date is required."),
 });
 
 export type EmployeeFormData =

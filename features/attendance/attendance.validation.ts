@@ -20,6 +20,7 @@ export const attendanceFiltersSchema = z.object({
   date: z.string().trim().optional(),
   status: z.enum(statusValues).or(z.literal("")).optional(),
   search: z.string().trim().optional(),
+  department: z.string().trim().optional(),
 });
 
 export type AttendanceNotesInput = z.infer<

@@ -315,6 +315,19 @@ export async function getEmployeeExpenses(
     query = query.eq("payment_status", filters.paymentStatus);
   }
 
+  if (filters.expenseType) {
+    query = query.eq("expense_type", filters.expenseType);
+  }
+
+  if (filters.date) {
+    query = query.eq("expense_date", filters.date);
+  }
+
+  if (filters.search) {
+    const searchVal = `%${filters.search}%`;
+    query = query.or(`expense_code.ilike.${searchVal},description.ilike.${searchVal}`);
+  }
+
   const { data, error } = await query;
 
   if (error) {
@@ -345,6 +358,14 @@ export async function getExpenses(
     query = query.eq("payment_status", filters.paymentStatus);
   }
 
+  if (filters.expenseType) {
+    query = query.eq("expense_type", filters.expenseType);
+  }
+
+  if (filters.date) {
+    query = query.eq("expense_date", filters.date);
+  }
+
   const { data, error } = await query;
 
   if (error) {
@@ -352,12 +373,28 @@ export async function getExpenses(
     return [];
   }
 
-  return (data as unknown as SupabaseExpenseRecord[]).map((record) => ({
+  const records = (data as unknown as SupabaseExpenseRecord[]).map((record) => ({
     ...record,
     employee: Array.isArray(record.employee)
       ? (record.employee[0] ?? null)
       : record.employee,
   }));
+
+  const search = filters.search?.toLowerCase();
+  if (!search) {
+    return records;
+  }
+
+  return records.filter((record) => {
+    const employee = record.employee;
+    return (
+      record.expense_code.toLowerCase().includes(search) ||
+      record.description.toLowerCase().includes(search) ||
+      employee?.employee_id.toLowerCase().includes(search) ||
+      employee?.full_name.toLowerCase().includes(search) ||
+      employee?.email.toLowerCase().includes(search)
+    );
+  });
 }
 
 async function getExpenseById(id: string) {
@@ -665,9 +702,6 @@ export async function getAdminExpenseSummary(
   let approvedAmount = 0;
   let pendingAmount = 0;
   let rejectedAmount = 0;
-  let _approvedCount = 0;
-  let _pendingCount = 0;
-  let _rejectedCount = 0;
 
   const uniqueProfiles = new Set<string>();
   const topEmployeesMap: Record<
@@ -695,13 +729,10 @@ export async function getAdminExpenseSummary(
 
     if (expense.status === EXPENSE_STATUS.APPROVED) {
       approvedAmount += expense.approved_amount ?? expense.amount;
-      _approvedCount += 1;
     } else if (expense.status === EXPENSE_STATUS.PENDING) {
       pendingAmount += expense.amount;
-      _pendingCount += 1;
     } else if (expense.status === EXPENSE_STATUS.REJECTED) {
       rejectedAmount += expense.amount;
-      _rejectedCount += 1;
     }
 
     // Top employees aggregation

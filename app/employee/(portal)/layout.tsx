@@ -6,6 +6,7 @@ import {
   getCurrentEmployeeProfile,
   getUnreadNotificationCount,
 } from "@/features/employee-portal/employee-portal.service";
+import RealtimeSync from "@/components/providers/RealtimeSync";
 
 interface EmployeePortalLayoutProps {
   children: ReactNode;
@@ -32,6 +33,12 @@ export default async function EmployeePortalLayout({
   unreadNotifications={unreadNotifications}
   notifications={notifications}
 >
+      {profile && (
+        <RealtimeSync
+          profileId={profile.id}
+          role={profile.role || "Employee"}
+        />
+      )}
       {children}
     </EmployeeShell>
   );

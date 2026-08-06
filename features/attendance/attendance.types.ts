@@ -36,6 +36,7 @@ export interface AttendanceFilters {
   date?: string;
   status?: AttendanceStatus | "";
   search?: string;
+  department?: string;
 }
 
 export interface AttendanceSummary {

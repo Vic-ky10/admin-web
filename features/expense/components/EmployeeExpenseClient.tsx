@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 
 import LoadingButton from "@/components/feedback/LoadingButton";
 import Button from "@/components/ui/Button";
@@ -18,11 +19,10 @@ import {
 
 import { deleteExpenseAction } from "../expense.action";
 import {
+  EXPENSE_CATEGORY,
   EXPENSE_STATUS,
   Expense,
   ExpenseStatus,
-  PAYMENT_STATUS,
-  PaymentStatus,
 } from "../expense.types";
 import ExpenseDetailsModal from "./ExpenseDetailsModal";
 import ExpenseForm from "./ExpenseForm";
@@ -30,17 +30,24 @@ import {
   ExpenseStatusBadge,
   PaymentStatusBadge,
 } from "./ExpenseStatusBadge";
+import { EmployeeProfile } from "@/features/employee-portal/employee-portal.types";
 
 interface EmployeeExpenseClientProps {
   expenses: Expense[];
+  profile: EmployeeProfile;
   selectedStatus?: ExpenseStatus | "" | "All";
-  selectedPaymentStatus?: PaymentStatus | "";
+  selectedExpenseType?: string;
+  selectedSearch?: string;
+  selectedDate?: string;
 }
 
 export default function EmployeeExpenseClient({
   expenses,
+  profile,
   selectedStatus = "",
-  selectedPaymentStatus = "",
+  selectedExpenseType = "",
+  selectedSearch = "",
+  selectedDate = "",
 }: EmployeeExpenseClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,6 +58,23 @@ export default function EmployeeExpenseClient({
     useState<Expense | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const [searchVal, setSearchVal] = useState(selectedSearch);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [prevSearch, setPrevSearch] = useState(selectedSearch);
+  if (selectedSearch !== prevSearch) {
+    setSearchVal(selectedSearch);
+    setPrevSearch(selectedSearch);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   function handleFilterChange(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -64,6 +88,18 @@ export default function EmployeeExpenseClient({
     const query = params.toString();
     router.push(`/employee/expenses${query ? `?${query}` : ""}`);
   }
+
+  const handleSearchChange = (value: string) => {
+    setSearchVal(value);
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      handleFilterChange("search", value);
+    }, 500);
+  };
 
   function openCreateForm() {
     setEditingExpense(null);
@@ -98,48 +134,70 @@ export default function EmployeeExpenseClient({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-end lg:justify-between">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Request Status</label>
-            <select
-              value={selectedStatus}
-              onChange={(event) =>
-                handleFilterChange("status", event.target.value)
-              }
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 sm:w-56"
-            >
-              <option value="">All Statuses</option>
-              {Object.values(EXPENSE_STATUS).map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Payment Status</label>
-            <select
-              value={selectedPaymentStatus}
-              onChange={(event) =>
-                handleFilterChange("paymentStatus", event.target.value)
-              }
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 sm:w-56"
-            >
-              <option value="">All Payments</option>
-              {Object.values(PAYMENT_STATUS).map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-slate-900">Expense Claims</h2>
         <Button type="button" onClick={openCreateForm}>
           Add Expense
         </Button>
+      </div>
+
+      <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-1 md:grid-cols-4">
+        {/* Search */}
+        <div className="relative">
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="text"
+            placeholder="Search Expense..."
+            value={searchVal}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="h-11 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          />
+        </div>
+
+        {/* Expense Type */}
+        <div>
+          <select
+            value={selectedExpenseType}
+            onChange={(e) => handleFilterChange("expenseType", e.target.value)}
+            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          >
+            <option value="">All Expense Types</option>
+            {Object.values(EXPENSE_CATEGORY).map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Status */}
+        <div>
+          <select
+            value={selectedStatus}
+            onChange={(e) => handleFilterChange("status", e.target.value)}
+            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          >
+            <option value="">All Statuses</option>
+            {Object.values(EXPENSE_STATUS).map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Date */}
+        <div>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => handleFilterChange("date", e.target.value)}
+            className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-700"
+          />
+        </div>
       </div>
 
       {expenses.length === 0 ? (
@@ -227,6 +285,7 @@ export default function EmployeeExpenseClient({
 
       <ExpenseDetailsModal
         expense={selectedExpense}
+        profile={profile}
         open={selectedExpense !== null}
         onClose={() => setSelectedExpense(null)}
       />

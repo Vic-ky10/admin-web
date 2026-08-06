@@ -88,10 +88,11 @@ export default async function EmployeeDashboardPage() {
 
   const chartData = Object.entries(monthlyRevenueData).map(([key, val]) => {
     const [year, month] = key.split("-");
-    const label = new Date(Number(year), Number(month) - 1, 1).toLocaleDateString(
-      "en-US",
-      { month: "short" }
-    );
+    const label = new Date(
+      Number(year),
+      Number(month) - 1,
+      1,
+    ).toLocaleDateString("en-US", { month: "short" });
     return { label, amount: val };
   });
 
@@ -213,78 +214,76 @@ export default async function EmployeeDashboardPage() {
 
       {/* 3. Today Summary strip  */}
       <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-  {/* Header */}
-  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-600">
-        Today&apos;s Summary
-      </p>
+        {/* Header */}
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-600">
+              Today&apos;s Summary
+            </p>
 
-      <h3 className="mt-1 text-2xl font-bold text-slate-900">
-        {todayFormatted}
-      </h3>
+            <h3 className="mt-1 text-2xl font-bold text-slate-900">
+              {todayFormatted}
+            </h3>
 
-      <p className="mt-1 text-sm text-slate-500">
-        Your work progress and daily activity overview.
-      </p>
-    </div>
-  </div>
+            <p className="mt-1 text-sm text-slate-500">
+              Your work progress and daily activity overview.
+            </p>
+          </div>
+        </div>
 
-  {/* Summary Cards */}
-  <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {/* Summary Cards */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Link href="/employee/attendance">
+            <div className="cursor-pointer rounded-2xl border border-emerald-200 bg-emerald-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+              <TodayStatPill
+                label="Attendance Status"
+                value={todayStatus}
+                icon={<Clock className="h-5 w-5" />}
+                color={
+                  todayStatus === "Present"
+                    ? "emerald"
+                    : todayStatus === "Absent"
+                      ? "rose"
+                      : "amber"
+                }
+              />
+            </div>
+          </Link>
 
-    <Link href="/employee/attendance">
-      <div className="cursor-pointer rounded-2xl border border-emerald-200 bg-emerald-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-        <TodayStatPill
-          label="Attendance Status"
-          value={todayStatus}
-          icon={<Clock className="h-5 w-5" />}
-          color={
-            todayStatus === "Present"
-              ? "emerald"
-              : todayStatus === "Absent"
-              ? "rose"
-              : "amber"
-          }
-        />
+          <Link href="/employee/attendance">
+            <div className="cursor-pointer rounded-2xl border border-blue-200 bg-blue-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+              <TodayStatPill
+                label="Working Hours"
+                value={todayHours !== "-" ? `${todayHours} hrs` : "-"}
+                icon={<Clock className="h-5 w-5" />}
+                color="blue"
+              />
+            </div>
+          </Link>
+
+          <Link href="/employee/tasks">
+            <div className="cursor-pointer rounded-2xl border border-violet-200 bg-violet-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+              <TodayStatPill
+                label="Pending Tasks"
+                value={String(stats.pendingTasks)}
+                icon={<CheckSquare2 className="h-5 w-5" />}
+                color="violet"
+              />
+            </div>
+          </Link>
+
+          <Link href="/employee/leave">
+            <div className="cursor-pointer rounded-2xl border border-emerald-200 bg-emerald-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+              <TodayStatPill
+                label="Leave Balance"
+                value={`${stats.leaveBalance} Days`}
+                icon={<Calendar className="h-5 w-5" />}
+                color="emerald"
+              />
+            </div>
+          </Link>
+        </div>
       </div>
-    </Link>
-
-    <Link href="/employee/attendance">
-      <div className="cursor-pointer rounded-2xl border border-blue-200 bg-blue-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-        <TodayStatPill
-          label="Working Hours"
-          value={todayHours !== "-" ? `${todayHours} hrs` : "-"}
-          icon={<Clock className="h-5 w-5" />}
-          color="blue"
-        />
-      </div>
-    </Link>
-
-    <Link href="/employee/tasks">
-      <div className="cursor-pointer rounded-2xl border border-violet-200 bg-violet-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-        <TodayStatPill
-          label="Pending Tasks"
-          value={String(stats.pendingTasks)}
-          icon={<CheckSquare2 className="h-5 w-5" />}
-          color="violet"
-        />
-      </div>
-    </Link>
-
-    <Link href="/employee/leave">
-      <div className="cursor-pointer rounded-2xl border border-emerald-200 bg-emerald-50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-        <TodayStatPill
-          label="Leave Balance"
-          value={`${stats.leaveBalance} Days`}
-          icon={<Calendar className="h-5 w-5" />}
-          color="emerald"
-        />
-      </div>
-    </Link>
-
-  </div>
-</div>
 
       {/* Main Grid Layout */}
       <div className="grid gap-6 lg:grid-cols-3 items-start">
@@ -311,38 +310,65 @@ export default async function EmployeeDashboardPage() {
             </div>
 
             <div className="relative mt-6 h-56">
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none text-[9px] font-bold text-slate-300">
-                <div className="w-full border-t border-dashed border-slate-100/80 pt-1 flex justify-between">
+              {/* Y-axis */}
+              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none text-[10px] font-semibold text-slate-600">
+                <div className="w-full border-t border-dashed border-slate-200 pt-1 flex justify-between">
                   <span>₹{maxChartAmount.toLocaleString("en-IN")}</span>
-                  <span className="w-full h-0 border-t border-dashed border-slate-100/50 ml-2" />
+                  <span className="w-full h-0 border-t border-dashed border-slate-200 ml-2" />
                 </div>
-                <div className="w-full border-t border-dashed border-slate-100/80 pt-1 flex justify-between">
+
+                <div className="w-full border-t border-dashed border-slate-200 pt-1 flex justify-between">
                   <span>
                     ₹{Math.round(maxChartAmount / 2).toLocaleString("en-IN")}
                   </span>
-                  <span className="w-full h-0 border-t border-dashed border-slate-100/50 ml-2" />
+                  <span className="w-full h-0 border-t border-dashed border-slate-200 ml-2" />
                 </div>
-                <div className="w-full border-t border-slate-100/90 pt-1" />
+
+                <div className="w-full border-t border-slate-300 pt-1">
+                  <span className="text-slate-600">₹0</span>
+                </div>
               </div>
 
+              {/* Bars */}
               <div className="absolute inset-0 flex items-end justify-between gap-3 pb-2 z-10">
                 {chartData.map((data, idx) => {
                   const heightPercent = (data.amount / maxChartAmount) * 100;
+
                   return (
                     <div
                       key={idx}
                       className="group relative flex h-full flex-1 flex-col items-center justify-end"
                     >
-                      <div className="absolute -top-10 scale-0 rounded-lg bg-slate-900 px-2.5 py-1 text-[11px] text-white transition-all duration-200 group-hover:scale-100 shadow-xl font-bold whitespace-nowrap z-30">
-                        ₹{data.amount.toLocaleString("en-IN")}
-                        <span className="absolute left-1/2 bottom-[-4px] h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-900" />
+                      {/* Dynamic Tooltip */}
+                      <div
+                        className="absolute left-1/2 -translate-x-1/2
+              opacity-0 scale-95 group-hover:opacity-60 group-hover:scale-100
+              transition-all duration-200 z-30"
+                        style={{
+                          bottom: `calc(${Math.max(heightPercent, 4)}% + 12px)`,
+                        }}
+                      >
+                        <div className="relative rounded-lg bg-slate-900 px-3 py-1.5 text-[11px] font-bold text-white shadow-xl whitespace-nowrap">
+                          ₹{data.amount.toLocaleString("en-IN")}
+                          {/* Arrow */}
+                          <span className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
+                        </div>
                       </div>
 
+                      {/* Bar */}
                       <div
-                        className="w-full max-w-[48px] rounded-t-xl bg-gradient-to-t from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 transition-all duration-300 hover:shadow-md cursor-pointer"
-                        style={{ height: `${Math.max(heightPercent, 4)}%` }}
+                        className="w-full max-w-[48px] rounded-t-xl bg-gradient-to-t
+              from-emerald-600 to-teal-500
+              hover:from-emerald-700 hover:to-teal-600
+              transition-all duration-300
+              hover:shadow-xl cursor-pointer"
+                        style={{
+                          height: `${Math.max(heightPercent, 4)}%`,
+                        }}
                       />
-                      <span className="mt-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-slate-700 transition-colors">
+
+                      {/* Label */}
+                      <span className="mt-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 group-hover:text-slate-800 transition-colors">
                         {data.label}
                       </span>
                     </div>
@@ -381,7 +407,9 @@ export default async function EmployeeDashboardPage() {
                 <span className="mt-2.5 text-sm font-bold text-slate-800 group-hover:text-emerald-700">
                   Apply Leave
                 </span>
-                <span className="mt-0.5 text-xs text-slate-600">Request time off</span>
+                <span className="mt-0.5 text-xs text-slate-600">
+                  Request time off
+                </span>
               </Link>
 
               <Link
@@ -437,7 +465,9 @@ export default async function EmployeeDashboardPage() {
               <h2 className="text-base font-bold tracking-tight text-slate-900">
                 Recent Activity
               </h2>
-              <p className="text-xs text-slate-600 mt-0.5">Your latest update log</p>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Your latest update log
+              </p>
             </div>
 
             <div className="mt-4 space-y-3">
@@ -498,7 +528,9 @@ export default async function EmployeeDashboardPage() {
                 value={profile.employee_id}
               />
               <SnapshotRow
-                icon={<BriefcaseBusiness className="h-3.5 w-3.5 text-slate-400" />}
+                icon={
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-slate-400" />
+                }
                 label="Role"
                 value={profile.designation || "-"}
               />
@@ -508,7 +540,9 @@ export default async function EmployeeDashboardPage() {
                 value={profile.department || "-"}
               />
               <SnapshotRow
-                icon={<BriefcaseBusiness className="h-3.5 w-3.5 text-emerald-600" />}
+                icon={
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-emerald-600" />
+                }
                 label="Active Projects"
                 value={String(stats.activeProjects)}
               />
@@ -522,8 +556,7 @@ export default async function EmployeeDashboardPage() {
               href="/employee/profile"
               className="mt-4 flex w-full items-center justify-center gap-1 rounded-xl bg-slate-50 border border-slate-200 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-emerald-700 transition-colors"
             >
-              View Full Profile{" "}
-              <ChevronRight className="h-3.5 w-3.5" />
+              View Full Profile <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
@@ -546,8 +579,12 @@ export default async function EmployeeDashboardPage() {
             <div className="mt-4 space-y-3">
               {publishedAnnouncements.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-6 text-center">
-                  <span className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs">📢</span>
-                  <p className="text-xs text-slate-500 mt-1.5">No company announcements</p>
+                  <span className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs">
+                    📢
+                  </span>
+                  <p className="text-xs text-slate-500 mt-1.5">
+                    No company announcements
+                  </p>
                 </div>
               ) : (
                 publishedAnnouncements.map((ann) => (
@@ -584,9 +621,7 @@ export default async function EmployeeDashboardPage() {
           <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
             <div className="mb-4 flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h2 className="text-base font-bold text-slate-900">
-                  Alerts
-                </h2>
+                <h2 className="text-base font-bold text-slate-900">Alerts</h2>
                 <p className="mt-0.5 text-xs text-slate-600">
                   Personal notification alerts
                 </p>
@@ -618,7 +653,6 @@ export default async function EmployeeDashboardPage() {
     </div>
   );
 }
-
 
 function TodayStatPill({
   label,
@@ -678,7 +712,7 @@ function SnapshotRow({
   );
 }
 
-// Employee Stat Card 
+// Employee Stat Card
 function EmployeeStatCard({
   label,
   value,
@@ -746,5 +780,3 @@ function EmployeeStatCard({
     </Link>
   );
 }
-
-

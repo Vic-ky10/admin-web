@@ -26,6 +26,7 @@ interface AttendanceClientProps {
   incompleteRecords: AttendanceWithEmployee[];
   absentRecords: AttendanceWithEmployee[];
   halfDayRecords: AttendanceWithEmployee[];
+  initialStatus?: SummaryFilter;
 }
 
 export default function AttendanceClient({
@@ -35,8 +36,9 @@ export default function AttendanceClient({
   halfDayRecords,
   incompleteRecords,
   absentRecords,
+  initialStatus = "all",
 }: AttendanceClientProps) {
-  const [selected, setSelected] = useState<SummaryFilter>("all");
+  const [selected, setSelected] = useState<SummaryFilter>(initialStatus);
   const filteredRecords = useMemo(() => {
     switch (selected) {
       case ATTENDANCE_STATUS.PRESENT:
@@ -122,7 +124,7 @@ export default function AttendanceClient({
           </span>
         </div>
 
-        <AttendanceHistoryTable records={filteredRecords} />
+        <AttendanceHistoryTable records={filteredRecords} showEmployee={true} />
       </div>
     </div>
   );

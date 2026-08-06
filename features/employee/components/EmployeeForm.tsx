@@ -42,6 +42,7 @@ const defaultValues: EmployeeFormData = {
   department: DEPARTMENTS[0],
   designation: "",
   role: EMPLOYEE_ROLE.EMPLOYEE,
+  joined_date: new Date().toISOString().slice(0, 10),
 };
 
 export default function EmployeeForm({
@@ -181,6 +182,24 @@ export default function EmployeeForm({
       />
 
       <div className="space-y-1">
+        <label className="text-sm font-medium">
+          Joined Date
+        </label>
+
+        <input
+          type="date"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none text-sm"
+          {...register("joined_date")}
+        />
+
+        {errors.joined_date?.message && (
+          <p className="text-sm text-red-500">
+            {errors.joined_date.message}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1">
 
         <label className="text-sm font-medium">
           Role
@@ -239,5 +258,6 @@ function toFormValues(employee: Employee): EmployeeFormData {
     department: employee.department ?? DEPARTMENTS[0],
     designation: employee.designation ?? "",
     role: employee.role,
+    joined_date: employee.joined_date ?? new Date().toISOString().slice(0, 10),
   };
 }

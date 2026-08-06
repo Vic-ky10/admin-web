@@ -100,6 +100,7 @@ export async function createEmployeeProfile(
       department: employee.department,
       designation: employee.designation,
       role: employee.role,
+      joined_date: employee.joined_date,
       status: EMPLOYEE_STATUS.PENDING,
       is_online: false,
     });
@@ -117,6 +118,7 @@ export async function updateEmployeeProfile(
       department: employee.department,
       designation: employee.designation,
       role: employee.role,
+      joined_date: employee.joined_date,
     })
     .eq("id", employeeId)
     .select(EMPLOYEE_SELECT)

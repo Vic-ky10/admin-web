@@ -1,20 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Plus, 
-  Users, 
-  Briefcase, 
-  ArrowLeft, 
-  Calendar, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Flame, 
-  TrendingUp, 
+import {
+  Plus,
+  Users,
+  Briefcase,
+  ArrowLeft,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Flame,
+  TrendingUp,
   Award,
-  Sparkles,
-  ChevronRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -43,7 +40,6 @@ import {
 import { ProjectInput } from "../project.validation";
 import ProjectFilters from "./ProjectFilters";
 import ProjectForm from "./ProjectForm";
-import ProjectMemberList from "./ProjectMemberList";
 import ProjectSearch from "./ProjectSearch";
 import ProjectTable from "./ProjectTable";
 
@@ -67,22 +63,36 @@ export default function AdminProjectClient({
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ProjectStatus | "">("");
   const [priority, setPriority] = useState<ProjectPriority | "">("");
-  
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "az" | "za">(
+    "newest",
+  );
+
   // View mode switcher
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [visibilityFilter, setVisibilityFilter] = useState<"active" | "completed" | "all">("active");
-  
-  // Workspace tabs
-  const [activeTab, setActiveTab] = useState<"dashboard" | "kanban" | "tasks" | "members">("dashboard");
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
+  const [visibilityFilter, setVisibilityFilter] = useState<
+    "active" | "completed" | "all"
+  >("active");
 
-  const [formProject, setFormProject] = useState<ProjectWithMembers | null>(null);
+  // Workspace tabs
+  const [activeTab, setActiveTab] = useState<
+    "dashboard" | "kanban" | "tasks" | "members"
+  >("dashboard");
+
+  const [formProject, setFormProject] = useState<ProjectWithMembers | null>(
+    null,
+  );
   const [formOpen, setFormOpen] = useState(false);
-  const [assignProject, setAssignProject] = useState<ProjectWithMembers | null>(null);
-  const [projectToDelete, setProjectToDelete] = useState<ProjectWithMembers | null>(null);
+  const [assignProject, setAssignProject] = useState<ProjectWithMembers | null>(
+    null,
+  );
+  const [projectToDelete, setProjectToDelete] =
+    useState<ProjectWithMembers | null>(null);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [memberRole, setMemberRole] = useState<ProjectMemberRole>(
-    PROJECT_MEMBER_ROLE.DEVELOPER
+    PROJECT_MEMBER_ROLE.DEVELOPER,
   );
   const [isPending, startTransition] = useTransition();
 
@@ -100,14 +110,18 @@ export default function AdminProjectClient({
         !keyword ||
         project.project_name.toLowerCase().includes(keyword) ||
         project.project_code.toLowerCase().includes(keyword) ||
-        (project.description && project.description.toLowerCase().includes(keyword));
-      
+        (project.description &&
+          project.description.toLowerCase().includes(keyword));
+
       const matchesPriority = !priority || project.priority === priority;
 
       // Handle visibility filter tabs
       let matchesVisibility = true;
       if (visibilityFilter === "active") {
-        matchesVisibility = project.status !== "Completed" && project.status !== "Archived" && project.status !== "Cancelled";
+        matchesVisibility =
+          project.status !== "Completed" &&
+          project.status !== "Archived" &&
+          project.status !== "Cancelled";
       } else if (visibilityFilter === "completed") {
         matchesVisibility = project.status === "Completed";
       } else if (visibilityFilter === "all") {
@@ -115,11 +129,38 @@ export default function AdminProjectClient({
       }
 
       // Explicit status select overrides visibility tabs
-      const matchesStatus = !status ? matchesVisibility : project.status === status;
+      const matchesStatus = !status
+        ? matchesVisibility
+        : project.status === status;
 
       return matchesSearch && matchesStatus && matchesPriority;
     });
   }, [priority, queryProjects, search, status, visibilityFilter]);
+
+  const sortedProjects = useMemo(() => {
+    return [...filteredProjects].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+
+        case "oldest":
+          return (
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+
+        case "az":
+          return a.project_name.localeCompare(b.project_name);
+
+        case "za":
+          return b.project_name.localeCompare(a.project_name);
+
+        default:
+          return 0;
+      }
+    });
+  }, [filteredProjects, sortBy]);
 
   // Selected project details lookup
   const selectedProject = useMemo(() => {
@@ -226,7 +267,7 @@ export default function AdminProjectClient({
     setSelectedEmployees((current) =>
       current.includes(profileId)
         ? current.filter((id) => id !== profileId)
-        : [...current, profileId]
+        : [...current, profileId],
     );
   }
 
@@ -252,14 +293,16 @@ export default function AdminProjectClient({
         percent: 0,
         health: "Healthy" as "Healthy" | "At Risk" | "Delayed",
         healthColor: "text-emerald-600 bg-emerald-50 border-emerald-150",
-        healthBullet: "🟢"
+        healthBullet: "🟢",
       };
     }
 
-    const completed = projectTasks.filter((t) => t.status === "Completed").length;
+    const completed = projectTasks.filter(
+      (t) => t.status === "Completed",
+    ).length;
     const open = projectTasks.filter((t) => t.status !== "Completed").length;
     const highPriority = projectTasks.filter(
-      (t) => t.priority === "High" || t.priority === "Urgent"
+      (t) => t.priority === "High" || t.priority === "Urgent",
     ).length;
 
     const overdue = projectTasks.filter((t) => {
@@ -283,28 +326,45 @@ export default function AdminProjectClient({
       healthBullet = "🟡";
     }
 
-    return { completed, open, overdue, highPriority, percent, health, healthColor, healthBullet };
+    return {
+      completed,
+      open,
+      overdue,
+      highPriority,
+      percent,
+      health,
+      healthColor,
+      healthBullet,
+    };
   }, [projectTasks]);
 
   // Workload distribution data (Heatmap)
   const workloadData = useMemo(() => {
     if (!selectedProject) return [];
-    
-    return selectedProject.members.map((member) => {
-      const memberTasks = projectTasks.filter((t) => t.project_member_id === member.id);
-      const activeTasksCount = memberTasks.filter((t) => t.status !== "Completed").length;
-      const completedTasksCount = memberTasks.filter((t) => t.status === "Completed").length;
 
-      return {
-        memberId: member.id,
-        name: member.employee?.full_name || "Unknown employee",
-        role: member.member_role,
-        designation: member.employee?.designation || "Staff",
-        total: memberTasks.length,
-        active: activeTasksCount,
-        completed: completedTasksCount,
-      };
-    }).sort((a, b) => b.total - a.total);
+    return selectedProject.members
+      .map((member) => {
+        const memberTasks = projectTasks.filter(
+          (t) => t.project_member_id === member.id,
+        );
+        const activeTasksCount = memberTasks.filter(
+          (t) => t.status !== "Completed",
+        ).length;
+        const completedTasksCount = memberTasks.filter(
+          (t) => t.status === "Completed",
+        ).length;
+
+        return {
+          memberId: member.id,
+          name: member.employee?.full_name || "Unknown employee",
+          role: member.member_role,
+          designation: member.employee?.designation || "Staff",
+          total: memberTasks.length,
+          active: activeTasksCount,
+          completed: completedTasksCount,
+        };
+      })
+      .sort((a, b) => b.total - a.total);
   }, [selectedProject, projectTasks]);
 
   // Top Contributors Leaderboard
@@ -325,7 +385,10 @@ export default function AdminProjectClient({
       })
       .map((t) => {
         const msDiff = today.getTime() - new Date(t.due_date!).getTime();
-        const daysLate = Math.max(1, Math.floor(msDiff / (1000 * 60 * 60 * 24)));
+        const daysLate = Math.max(
+          1,
+          Math.floor(msDiff / (1000 * 60 * 60 * 24)),
+        );
         return {
           id: t.id,
           title: t.title,
@@ -362,7 +425,10 @@ export default function AdminProjectClient({
       }
 
       // 3. In Progress event (approximate if updated_at is different from created_at and status is In Progress)
-      if (task.status === "In Progress" && task.updated_at !== task.created_at) {
+      if (
+        task.status === "In Progress" &&
+        task.updated_at !== task.created_at
+      ) {
         feed.push({
           id: `${task.id}-inprogress`,
           date: new Date(task.updated_at),
@@ -377,9 +443,7 @@ export default function AdminProjectClient({
       .slice(0, 15); // limit to 15 items
   }, [projectTasks]);
 
-  const activeProjectsCount = queryProjects.filter(
-    (p) => p.status === PROJECT_STATUS.ACTIVE
-  ).length;
+
 
   // Render detail view workspace
   if (viewMode === "detail" && selectedProject) {
@@ -426,24 +490,43 @@ export default function AdminProjectClient({
                 )}
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Timeline: {new Date(selectedProject.start_date).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })} - {selectedProject.end_date ? new Date(selectedProject.end_date).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                }) : "No end date"}
+                Timeline:{" "}
+                {new Date(selectedProject.start_date).toLocaleDateString(
+                  "en-IN",
+                  {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  },
+                )}{" "}
+                -{" "}
+                {selectedProject.end_date
+                  ? new Date(selectedProject.end_date).toLocaleDateString(
+                      "en-IN",
+                      {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      },
+                    )
+                  : "No end date"}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <Button variant="secondary" size="sm" onClick={() => openEdit(selectedProject)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => openEdit(selectedProject)}
+            >
               Edit Project
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => openAssign(selectedProject)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => openAssign(selectedProject)}
+            >
               Manage Team
             </Button>
             <Button
@@ -466,8 +549,12 @@ export default function AdminProjectClient({
               Progress
             </span>
             <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-black text-slate-900">{stats.percent}%</span>
-              <span className="text-[10px] font-semibold text-slate-400">{progressText}</span>
+              <span className="text-2xl font-black text-slate-900">
+                {stats.percent}%
+              </span>
+              <span className="text-[10px] font-semibold text-slate-400">
+                {progressText}
+              </span>
             </div>
             <div className="mt-2.5 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
               <div
@@ -478,7 +565,9 @@ export default function AdminProjectClient({
           </div>
 
           {/* Health widget */}
-          <div className={`rounded-2xl border p-5 shadow-xs flex flex-col justify-between ${stats.healthColor}`}>
+          <div
+            className={`rounded-2xl border p-5 shadow-xs flex flex-col justify-between ${stats.healthColor}`}
+          >
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-85">
               Health Status
             </span>
@@ -497,7 +586,9 @@ export default function AdminProjectClient({
               Team Members
             </span>
             <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-black text-slate-900">{selectedProject.members.length}</span>
+              <span className="text-2xl font-black text-slate-900">
+                {selectedProject.members.length}
+              </span>
               <Users className="h-4 w-4 text-slate-400" />
             </div>
             <span className="text-[10px] font-semibold mt-2.5 text-slate-400">
@@ -511,7 +602,9 @@ export default function AdminProjectClient({
               Open Tasks
             </span>
             <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-black text-slate-900">{stats.open}</span>
+              <span className="text-2xl font-black text-slate-900">
+                {stats.open}
+              </span>
               <Clock className="h-4 w-4 text-slate-400" />
             </div>
             <span className="text-[10px] font-semibold mt-2.5 text-slate-400">
@@ -525,7 +618,9 @@ export default function AdminProjectClient({
               Completed Tasks
             </span>
             <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-black text-slate-900">{stats.completed}</span>
+              <span className="text-2xl font-black text-slate-900">
+                {stats.completed}
+              </span>
               <CheckCircle2 className="h-4 w-4 text-slate-400" />
             </div>
             <span className="text-[10px] font-semibold mt-2.5 text-slate-400">
@@ -539,7 +634,9 @@ export default function AdminProjectClient({
               High Priority
             </span>
             <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-black text-slate-900">{stats.highPriority}</span>
+              <span className="text-2xl font-black text-slate-900">
+                {stats.highPriority}
+              </span>
               <AlertCircle className="h-4 w-4 text-slate-400" />
             </div>
             <span className="text-[10px] font-semibold mt-2.5 text-slate-400">
@@ -550,26 +647,42 @@ export default function AdminProjectClient({
 
         {/* 100% Celebration Banner */}
         {stats.percent === 100 && projectTasks.length > 0 && (
-          <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white border border-emerald-600 shadow-md relative overflow-hidden animate-fade-in flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <h2 className="text-lg font-black flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-300 animate-pulse" />
-                🎉 Project Completed Successfully!
-              </h2>
-              <p className="text-xs text-emerald-50/90 leading-relaxed max-w-xl">
-                All assigned tasks have been finished. Excellent job by the team members:{" "}
-                <span className="font-bold underline">
-                  {selectedProject.members.map((m) => m.employee?.full_name).join(", ")}
-                </span>
-                . Completed on {new Date().toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}.
-              </p>
-            </div>
-            <div className="shrink-0 flex items-center justify-center bg-white/10 px-4 py-2 rounded-xl border border-white/20 text-xs font-bold font-mono">
-              🚀 100% DONE
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm transition-all duration-300 animate-fade-in">
+            {/* Decorative Background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-50 via-white to-cyan-50 opacity-90" />
+            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-100 blur-3xl opacity-60" />
+            <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-cyan-100 blur-3xl opacity-60" />
+
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2">
+                <h2 className="flex items-center gap-2 text-lg font-black text-gray-800">
+                  🎉 Project Completed Successfully!
+                </h2>
+
+                <p className="max-w-xl text-sm leading-relaxed text-gray-600">
+                  All assigned tasks have been successfully completed. Excellent
+                  work by
+                  <span className="font-semibold text-emerald-700">
+                    {" "}
+                    {selectedProject.members
+                      .map((m) => m.employee?.full_name)
+                      .join(", ")}
+                  </span>
+                  . The project was completed on{" "}
+                  <span className="font-semibold text-gray-800">
+                    {new Date().toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                  .
+                </p>
+              </div>
+
+              <div className="shrink-0 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-700 shadow-sm">
+                ✅ 100% COMPLETE
+              </div>
             </div>
           </div>
         )}
@@ -577,19 +690,25 @@ export default function AdminProjectClient({
         {/* Tabs switcher */}
         <div className="border-b border-slate-200">
           <nav className="flex gap-6">
-            {(["dashboard", "kanban", "tasks", "members"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-3 text-sm font-bold border-b-2 transition duration-150 cursor-pointer capitalize ${
-                  activeTab === tab
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300"
-                }`}
-              >
-                {tab === "tasks" ? "Task List" : tab === "kanban" ? "Kanban Board" : tab}
-              </button>
-            ))}
+            {(["dashboard", "kanban", "tasks", "members"] as const).map(
+              (tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-3 text-sm font-bold border-b-2 transition duration-150 cursor-pointer capitalize ${
+                    activeTab === tab
+                      ? "border-blue-600 text-blue-600"
+                      : "border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300"
+                  }`}
+                >
+                  {tab === "tasks"
+                    ? "Task List"
+                    : tab === "kanban"
+                      ? "Kanban Board"
+                      : tab}
+                </button>
+              ),
+            )}
           </nav>
         </div>
 
@@ -606,17 +725,21 @@ export default function AdminProjectClient({
                     Workload Distribution Heatmap
                   </h3>
                   {workloadData.length === 0 ? (
-                    <p className="text-xs text-slate-400">No members assigned to show distribution.</p>
+                    <p className="text-xs text-slate-400">
+                      No members assigned to show distribution.
+                    </p>
                   ) : (
                     <div className="space-y-4">
                       {workloadData.map((row) => {
                         const totalTasks = projectTasks.length || 1;
-                        const percent = Math.round((row.total / totalTasks) * 100);
+
                         return (
                           <div key={row.memberId} className="space-y-1">
                             <div className="flex justify-between text-xs font-semibold text-slate-700">
                               <div>
-                                <span className="font-bold text-slate-900">{row.name}</span>
+                                <span className="font-bold text-slate-900">
+                                  {row.name}
+                                </span>
                                 <span className="text-[11px] text-slate-400 font-medium ml-2">
                                   {row.designation} ({row.role})
                                 </span>
@@ -628,12 +751,16 @@ export default function AdminProjectClient({
                             <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
                               <div
                                 className="h-full bg-blue-500 transition-all duration-300"
-                                style={{ width: `${(row.active / totalTasks) * 100}%` }}
+                                style={{
+                                  width: `${(row.active / totalTasks) * 100}%`,
+                                }}
                                 title="Active Tasks"
                               />
                               <div
                                 className="h-full bg-emerald-500 transition-all duration-300"
-                                style={{ width: `${(row.completed / totalTasks) * 100}%` }}
+                                style={{
+                                  width: `${(row.completed / totalTasks) * 100}%`,
+                                }}
                                 title="Completed Tasks"
                               />
                             </div>
@@ -651,17 +778,27 @@ export default function AdminProjectClient({
                     ⚠️ Overdue Tasks
                   </h3>
                   {overdueTasksList.length === 0 ? (
-                    <p className="text-xs text-slate-400">🎉 No overdue tasks. Everything is running healthy.</p>
+                    <p className="text-xs text-slate-400">
+                      🎉 No overdue tasks. Everything is running healthy.
+                    </p>
                   ) : (
                     <div className="divide-y divide-slate-100">
                       {overdueTasksList.map((t) => (
-                        <div key={t.id} className="py-3 flex justify-between items-center text-xs first:pt-0 last:pb-0">
+                        <div
+                          key={t.id}
+                          className="py-3 flex justify-between items-center text-xs first:pt-0 last:pb-0"
+                        >
                           <div>
-                            <p className="font-bold text-slate-800">{t.title}</p>
-                            <p className="text-[10px] text-slate-400 mt-0.5">Assigned to {t.assignee}</p>
+                            <p className="font-bold text-slate-800">
+                              {t.title}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              Assigned to {t.assignee}
+                            </p>
                           </div>
                           <span className="text-rose-600 font-bold bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100 animate-pulse shrink-0">
-                            {t.daysLate} {t.daysLate === 1 ? "Day" : "Days"} Late
+                            {t.daysLate} {t.daysLate === 1 ? "Day" : "Days"}{" "}
+                            Late
                           </span>
                         </div>
                       ))}
@@ -676,19 +813,34 @@ export default function AdminProjectClient({
                     Top Contributors Leaderboard
                   </h3>
                   {leaderboard.length === 0 ? (
-                    <p className="text-xs text-slate-400">No completed tasks yet. Keep pushing!</p>
+                    <p className="text-xs text-slate-400">
+                      No completed tasks yet. Keep pushing!
+                    </p>
                   ) : (
                     <div className="grid sm:grid-cols-3 gap-4">
                       {leaderboard.map((row, index) => {
-                        const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉";
-                        const medalBg = index === 0 ? "bg-amber-50 text-amber-700 border-amber-100" : index === 1 ? "bg-slate-100 text-slate-700 border-slate-200" : "bg-orange-50/50 text-orange-700 border-orange-100";
+                        const medal =
+                          index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉";
+                        const medalBg =
+                          index === 0
+                            ? "bg-amber-50 text-amber-700 border-amber-100"
+                            : index === 1
+                              ? "bg-slate-100 text-slate-700 border-slate-200"
+                              : "bg-orange-50/50 text-orange-700 border-orange-100";
 
                         return (
-                          <div key={row.memberId} className={`rounded-xl border p-4 flex flex-col items-center text-center space-y-2 shadow-xs ${medalBg}`}>
+                          <div
+                            key={row.memberId}
+                            className={`rounded-xl border p-4 flex flex-col items-center text-center space-y-2 shadow-xs ${medalBg}`}
+                          >
                             <span className="text-2xl">{medal}</span>
                             <div>
-                              <p className="font-extrabold text-xs text-slate-900">{row.name}</p>
-                              <p className="text-[10px] text-slate-500 font-medium">{row.designation}</p>
+                              <p className="font-extrabold text-xs text-slate-900">
+                                {row.name}
+                              </p>
+                              <p className="text-[10px] text-slate-500 font-medium">
+                                {row.designation}
+                              </p>
                             </div>
                             <span className="font-bold text-xs bg-white/70 px-2.5 py-0.5 rounded-full border border-white">
                               {row.completed} Tasks Done
@@ -708,14 +860,23 @@ export default function AdminProjectClient({
                   Recent Activity Timeline
                 </h3>
                 {activityTimeline.length === 0 ? (
-                  <p className="text-xs text-slate-400">No activities tracked on this project.</p>
+                  <p className="text-xs text-slate-400">
+                    No activities tracked on this project.
+                  </p>
                 ) : (
                   <div className="space-y-4">
                     {activityTimeline.map((act) => (
-                      <div key={act.id} className="flex gap-3 text-xs leading-normal">
-                        <span className="text-sm select-none shrink-0 pt-0.5">{act.icon}</span>
+                      <div
+                        key={act.id}
+                        className="flex gap-3 text-xs leading-normal"
+                      >
+                        <span className="text-sm select-none shrink-0 pt-0.5">
+                          {act.icon}
+                        </span>
                         <div>
-                          <p className="text-slate-700 font-semibold">{act.text}</p>
+                          <p className="text-slate-700 font-semibold">
+                            {act.text}
+                          </p>
                           <p className="text-[9px] text-slate-400 font-medium mt-0.5">
                             {act.date.toLocaleString("en-IN", {
                               day: "2-digit",
@@ -751,7 +912,9 @@ export default function AdminProjectClient({
           {activeTab === "members" && (
             <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-sm font-bold text-slate-800">Project Members Grouped</h3>
+                <h3 className="text-sm font-bold text-slate-800">
+                  Project Members Grouped
+                </h3>
                 <Button size="sm" onClick={() => openAssign(selectedProject)}>
                   Manage Team Members
                 </Button>
@@ -764,10 +927,16 @@ export default function AdminProjectClient({
               ) : (
                 <div className="divide-y divide-slate-100">
                   {selectedProject.members.map((member) => {
-                    const memberT = projectTasks.filter((t) => t.project_member_id === member.id);
-                    const activeCount = memberT.filter((t) => t.status !== "Completed").length;
-                    const completedCount = memberT.filter((t) => t.status === "Completed").length;
-                    
+                    const memberT = projectTasks.filter(
+                      (t) => t.project_member_id === member.id,
+                    );
+                    const activeCount = memberT.filter(
+                      (t) => t.status !== "Completed",
+                    ).length;
+                    const completedCount = memberT.filter(
+                      (t) => t.status === "Completed",
+                    ).length;
+
                     const initials = member.employee?.full_name
                       ? member.employee.full_name
                           .split(" ")
@@ -791,7 +960,9 @@ export default function AdminProjectClient({
                               {member.employee?.full_name || "Unknown employee"}
                             </p>
                             <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
-                              {member.employee?.designation || "Staff"} • {member.employee?.department || "No Department"} • {member.member_role}
+                              {member.employee?.designation || "Staff"} •{" "}
+                              {member.employee?.department || "No Department"} •{" "}
+                              {member.member_role}
                             </p>
                           </div>
                         </div>
@@ -844,7 +1015,9 @@ export default function AdminProjectClient({
                 </label>
                 <select
                   value={memberRole}
-                  onChange={(e) => setMemberRole(e.target.value as ProjectMemberRole)}
+                  onChange={(e) =>
+                    setMemberRole(e.target.value as ProjectMemberRole)
+                  }
                   className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-900 shadow-xs outline-none focus:ring-2 focus:ring-blue-100"
                 >
                   {Object.values(PROJECT_MEMBER_ROLE).map((role) => (
@@ -860,58 +1033,70 @@ export default function AdminProjectClient({
                   Grouped Available Staff
                 </label>
                 <div className="max-h-80 overflow-y-auto space-y-4 pr-1">
-                  {Object.entries(employeesByDepartment).map(([dept, deptEmployees]) => (
-                    <div key={dept} className="space-y-2">
-                      <h4 className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md uppercase tracking-wider border border-slate-150">
-                        {dept} ({deptEmployees.length})
-                      </h4>
-                      <div className="space-y-2">
-                        {deptEmployees.map((emp) => {
-                          const isSelected = selectedEmployees.includes(emp.id);
-                          const initials = emp.full_name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .substring(0, 2)
-                            .toUpperCase();
+                  {Object.entries(employeesByDepartment).map(
+                    ([dept, deptEmployees]) => (
+                      <div key={dept} className="space-y-2">
+                        <h4 className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md uppercase tracking-wider border border-slate-150">
+                          {dept} ({deptEmployees.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {deptEmployees.map((emp) => {
+                            const isSelected = selectedEmployees.includes(
+                              emp.id,
+                            );
+                            const initials = emp.full_name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .substring(0, 2)
+                              .toUpperCase();
 
-                          return (
-                            <div
-                              key={emp.id}
-                              onClick={() => toggleEmployee(emp.id)}
-                              className={[
-                                "flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-150",
-                                isSelected ? "border-blue-500 bg-blue-50/40 shadow-xs scale-[1.01]" : "border-slate-100 hover:bg-slate-50",
-                              ].join(" ")}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                  {initials}
+                            return (
+                              <div
+                                key={emp.id}
+                                onClick={() => toggleEmployee(emp.id)}
+                                className={[
+                                  "flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-150",
+                                  isSelected
+                                    ? "border-blue-500 bg-blue-50/40 shadow-xs scale-[1.01]"
+                                    : "border-slate-100 hover:bg-slate-50",
+                                ].join(" ")}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="h-8 w-8 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                    {initials}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-slate-900">
+                                      {emp.full_name}
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                                      {emp.designation || "Staff"} •{" "}
+                                      {emp.employee_id}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="text-xs font-bold text-slate-900">{emp.full_name}</p>
-                                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
-                                    {emp.designation || "Staff"} • {emp.employee_id}
-                                  </p>
-                                </div>
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {}}
+                                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
                               </div>
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={() => {}}
-                                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                              />
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <Button variant="secondary" onClick={() => setAssignProject(null)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setAssignProject(null)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleAssign} disabled={isPending}>
@@ -931,13 +1116,24 @@ export default function AdminProjectClient({
         >
           <div className="space-y-4">
             <p className="text-sm text-slate-600">
-              Deleting <span className="font-bold text-slate-900">{projectToDelete?.project_name}</span> is permanent and cannot be undone.
+              Deleting{" "}
+              <span className="font-bold text-slate-900">
+                {projectToDelete?.project_name}
+              </span>{" "}
+              is permanent and cannot be undone.
             </p>
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <Button variant="secondary" onClick={() => setProjectToDelete(null)}>
+              <Button
+                variant="secondary"
+                onClick={() => setProjectToDelete(null)}
+              >
                 Cancel
               </Button>
-              <Button variant="danger" onClick={handleDelete} disabled={isPending}>
+              <Button
+                variant="danger"
+                onClick={handleDelete}
+                disabled={isPending}
+              >
                 Delete Project
               </Button>
             </div>
@@ -949,7 +1145,7 @@ export default function AdminProjectClient({
 
   // Original list view
   const activeProjects = queryProjects.filter(
-    (project) => project.status === PROJECT_STATUS.ACTIVE
+    (project) => project.status === PROJECT_STATUS.ACTIVE,
   );
 
   return (
@@ -957,7 +1153,10 @@ export default function AdminProjectClient({
       <PageHeader
         title="Projects"
         description="Create projects, manage assignments, and keep team access aligned."
-        breadcrumbs={[{ label: "Admin", href: "/dashboard" }, { label: "Projects" }]}
+        breadcrumbs={[
+          { label: "Admin", href: "/dashboard" },
+          { label: "Projects" },
+        ]}
       >
         <Button onClick={openCreate} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -972,7 +1171,7 @@ export default function AdminProjectClient({
           label="Archived Projects"
           value={
             queryProjects.filter(
-              (project) => project.status === PROJECT_STATUS.ARCHIVED
+              (project) => project.status === PROJECT_STATUS.ARCHIVED,
             ).length
           }
         />
@@ -1030,12 +1229,31 @@ export default function AdminProjectClient({
               onStatusChange={setStatus}
               onPriorityChange={setPriority}
             />
+
+           <div className="flex flex-col gap-1">
+  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+    Sort
+  </label>
+
+  <select
+    value={sortBy}
+    onChange={(e) =>
+      setSortBy(e.target.value as "newest" | "oldest" | "az" | "za")
+    }
+    className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+  >
+    <option value="newest">Recent</option>
+    <option value="oldest">Oldest</option>
+    <option value="az">Name (A-Z)</option>
+    <option value="za">Name (Z-A)</option>
+  </select>
+</div>
           </div>
         </div>
       </div>
 
       <ProjectTable
-        projects={filteredProjects}
+        projects={sortedProjects}
         onView={(project) => {
           setSelectedProjectId(project.id);
           setViewMode("detail");
@@ -1068,13 +1286,24 @@ export default function AdminProjectClient({
       >
         <div className="space-y-4">
           <p className="text-sm text-slate-600">
-            Deleting <span className="font-bold text-slate-900">{projectToDelete?.project_name}</span> is permanent and cannot be undone.
+            Deleting{" "}
+            <span className="font-bold text-slate-900">
+              {projectToDelete?.project_name}
+            </span>{" "}
+            is permanent and cannot be undone.
           </p>
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <Button variant="secondary" onClick={() => setProjectToDelete(null)}>
+            <Button
+              variant="secondary"
+              onClick={() => setProjectToDelete(null)}
+            >
               Cancel
             </Button>
-            <Button variant="danger" onClick={handleDelete} disabled={isPending}>
+            <Button
+              variant="danger"
+              onClick={handleDelete}
+              disabled={isPending}
+            >
               Delete Project
             </Button>
           </div>
@@ -1088,7 +1317,9 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs flex items-center justify-between">
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          {label}
+        </p>
         <p className="mt-1 text-2xl font-black text-slate-900">{value}</p>
       </div>
       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">

@@ -44,13 +44,18 @@ export default function AttendanceHistoryTable({
     <Table>
       <TableHead>
         <TableRow>
-          {showEmployee && <TableHeader>Employee</TableHeader>}
+          {showEmployee && (
+            <>
+              <TableHeader>Employee ID</TableHeader>
+              <TableHeader>Employee Name</TableHeader>
+              <TableHeader>Department</TableHeader>
+            </>
+          )}
           <TableHeader>Date</TableHeader>
-          <TableHeader>Login</TableHeader>
-          <TableHeader>Logout</TableHeader>
+          <TableHeader>Login Time</TableHeader>
+          <TableHeader>Logout Time</TableHeader>
           <TableHeader>Working Hours</TableHeader>
           <TableHeader>Status</TableHeader>
-       
         </TableRow>
       </TableHead>
 
@@ -58,18 +63,23 @@ export default function AttendanceHistoryTable({
         {records.map((record) => (
           <TableRow key={record.id}>
             {showEmployee && (
-              <TableCell>
-                <div className="font-medium text-slate-900">
-                  {"employee" in record && record.employee
-                    ? record.employee.full_name
-                    : record.profile_id}
-                </div>
-                <div className="text-xs text-slate-500">
+              <>
+                <TableCell className="font-mono text-xs font-semibold text-slate-600">
                   {"employee" in record && record.employee
                     ? record.employee.employee_id
-                    : record.profile_id}
-                </div>
-              </TableCell>
+                    : "-"}
+                </TableCell>
+                <TableCell className="font-bold text-slate-900">
+                  {"employee" in record && record.employee
+                    ? record.employee.full_name
+                    : "-"}
+                </TableCell>
+                <TableCell className="text-slate-600">
+                  {"employee" in record && record.employee
+                    ? record.employee.department
+                    : "-"}
+                </TableCell>
+              </>
             )}
             <TableCell>
               {formatAttendanceDate(record.attendance_date)}

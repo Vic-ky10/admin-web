@@ -283,7 +283,7 @@ export default function SalesDashboard({
 
         <div className="mt-6 flex h-60 items-end justify-between gap-4 border-b border-slate-100 pb-2">
           {chartData.map((data, idx) => {
-            const heightPercent = (data.amount / maxChartAmount) * 100;
+           const heightPercent = Math.max((data.amount / maxChartAmount) * 100, 3);
             return (
               <div key={idx} className="group relative flex h-full flex-1 flex-col items-center justify-end">
                 {/* Tooltip */}
@@ -292,6 +292,7 @@ export default function SalesDashboard({
                 </div>
                 {/* Visual Bar */}
                 <div
+                
                   className="w-full max-w-[64px] rounded-t-lg bg-gradient-to-t from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 transition-all duration-300 shadow-sm"
                   style={{ height: `${Math.max(heightPercent, 2)}%` }}
                 />

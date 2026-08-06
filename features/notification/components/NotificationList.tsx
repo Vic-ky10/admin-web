@@ -100,7 +100,7 @@ export default function NotificationList({
       ) : (
         <>
           {variant === "compact" ? (
-            <div className={compact ? "space-y-3.5" : "space-y-4.5"}>
+          <div className="space-y-4">
               {notifications.map((notification) => (
                 <NotificationCard
                   key={notification.id}
@@ -112,7 +112,7 @@ export default function NotificationList({
               ))}
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white">
+            <div className="border-b border-dashed border-slate-200 py-5">
               {notifications.map((notification) => {
                 const actionUrl =
                   theme === "blue"

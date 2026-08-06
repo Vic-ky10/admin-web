@@ -4,19 +4,21 @@ import { TASK_STATUS } from "../task.types";
 
 interface TaskStatusBadgeProps {
   status: string;
+  className?: string;
 }
 
 export default function TaskStatusBadge({
   status,
+  className,
 }: TaskStatusBadgeProps) {
   switch (status) {
     case TASK_STATUS.COMPLETED:
-      return <Badge variant="success">{status}</Badge>;
+      return <Badge variant="success" className={className}>{status}</Badge>;
 
     case TASK_STATUS.IN_PROGRESS:
-      return <Badge variant="info">{status}</Badge>;
+      return <Badge variant="info" className={className}>{status}</Badge>;
 
     default:
-      return <Badge variant="warning">{status}</Badge>;
+      return <Badge variant="warning" className={className}>{status}</Badge>;
   }
 }
