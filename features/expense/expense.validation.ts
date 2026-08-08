@@ -23,6 +23,7 @@ export const expenseFiltersSchema = z.object({
   expenseType: z.string().trim().optional(),
   date: z.string().trim().optional(),
   profileId: z.string().trim().optional(),
+  hasReceipt: z.string().trim().optional(),
 });
 
 export type ExpenseFiltersInput = z.infer<typeof expenseFiltersSchema>;

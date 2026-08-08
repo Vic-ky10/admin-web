@@ -11,11 +11,11 @@ import {
   Employee,
   EmployeeOnboardingResult,
 } from "./employee.types";
-import { EmployeeFormData } from "./employee.validation";
+import { EmployeeFormData, ProfileFormData } from "./employee.validation";
 
 const WELCOME_EMAIL_SUBJECT = "Welcome to InfiniGoal Portal";
 const EMPLOYEE_SELECT =
-  "id, employee_id, full_name, email, phone, department, designation, role, avatar_url, status, is_online, last_login, joined_date, created_at, updated_at";
+  "id, employee_id, full_name, email, phone, department, designation, role, avatar_url, status, is_online, last_login, joined_date, date_of_birth, current_address, qualification, degree, experience_years, emergency_contact, created_at, updated_at";
 
 export async function getEmployees(): Promise<Employee[]> {
   const { data, error } = await adminClient
@@ -101,6 +101,12 @@ export async function createEmployeeProfile(
       designation: employee.designation,
       role: employee.role,
       joined_date: employee.joined_date,
+      date_of_birth: employee.date_of_birth || null,
+      current_address: employee.current_address || null,
+      qualification: employee.qualification || null,
+      degree: employee.degree || null,
+      experience_years: employee.experience_years || null,
+      emergency_contact: employee.emergency_contact || null,
       status: EMPLOYEE_STATUS.PENDING,
       is_online: false,
     });
@@ -119,6 +125,12 @@ export async function updateEmployeeProfile(
       designation: employee.designation,
       role: employee.role,
       joined_date: employee.joined_date,
+      date_of_birth: employee.date_of_birth || null,
+      current_address: employee.current_address || null,
+      qualification: employee.qualification || null,
+      degree: employee.degree || null,
+      experience_years: employee.experience_years || null,
+      emergency_contact: employee.emergency_contact || null,
     })
     .eq("id", employeeId)
     .select(EMPLOYEE_SELECT)
@@ -386,16 +398,20 @@ function escapeHtml(value: string) {
 
 export async function updateSelfProfile(
   profileId: string,
-  fullName: string,
-  phone: string | null,
-  avatarUrl: string | null
+  values: ProfileFormData
 ): Promise<ActionResponse<Employee>> {
   const { data, error } = await adminClient
     .from("profiles")
     .update({
-      full_name: fullName,
-      phone: phone || null,
-      avatar_url: avatarUrl || null,
+      full_name: values.full_name,
+      phone: values.phone || null,
+      avatar_url: values.avatar_url || null,
+      date_of_birth: values.date_of_birth || null,
+      current_address: values.current_address || null,
+      qualification: values.qualification || null,
+      degree: values.degree || null,
+      experience_years: values.experience_years || null,
+      emergency_contact: values.emergency_contact || null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", profileId)

@@ -14,7 +14,7 @@ interface SalesDashboardProps {
   purchases: CustomerPurchase[];
   followups: CustomerFollowup[];
   employees: Employee[];
-  onViewCustomer: (c: Customer) => void;
+  onViewCustomer: (c: Customer, followupId?: string) => void;
   onEditPurchase?: (p: CustomerPurchase) => void;
   onDeletePurchase?: (p: CustomerPurchase) => void;
   deletingId?: string | null;
@@ -46,20 +46,29 @@ export default function SalesDashboard({
     const totalPurchases = purchases.length;
 
     // Followups categories
-    const now = new Date().getTime();
-    let pendingF = 0;
-    let completedF = 0;
+    let todayF = 0;
+    let tomorrowF = 0;
+    let overdueF = 0;
+    let completedTodayF = 0;
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().substring(0, 10);
 
     followups.forEach((f) => {
-      if (f.next_followup_date) {
-        const nextTime = new Date(f.next_followup_date).getTime();
-        if (nextTime >= now) {
-          pendingF++;
-        } else {
-          completedF++;
+      if (!f.next_followup_date) {
+        if (f.followup_date && f.followup_date.startsWith(todayStr)) {
+          completedTodayF++;
         }
       } else {
-        completedF++;
+        const nextStr = new Date(f.next_followup_date).toISOString().substring(0, 10);
+        if (nextStr === todayStr) {
+          todayF++;
+        } else if (nextStr === tomorrowStr) {
+          tomorrowF++;
+        } else if (nextStr < todayStr) {
+          overdueF++;
+        }
       }
     });
 
@@ -73,8 +82,10 @@ export default function SalesDashboard({
       todayRev,
       totalCustomers,
       totalPurchases,
-      pendingF,
-      completedF,
+      todayF,
+      tomorrowF,
+      overdueF,
+      completedTodayF,
       totalIncentives,
       totalAreas,
     };
@@ -226,18 +237,32 @@ export default function SalesDashboard({
       trend: "All invoices",
     },
     {
-      title: "Pending Follow-ups",
-      value: stats.pendingF.toString(),
-      icon: <Clock className="h-5 w-5 text-amber-700" />,
-      bgClass: "bg-amber-50 ring-amber-100",
-      trend: "Scheduled ahead",
+      title: "Today's Follow-ups",
+      value: stats.todayF.toString(),
+      icon: <Clock className="h-5 w-5 text-blue-700" />,
+      bgClass: "bg-blue-50 ring-blue-100",
+      trend: "Scheduled Today",
     },
     {
-      title: "Completed Follow-ups",
-      value: stats.completedF.toString(),
+      title: "Tomorrow's Follow-ups",
+      value: stats.tomorrowF.toString(),
+      icon: <Clock className="h-5 w-5 text-purple-700" />,
+      bgClass: "bg-purple-50 ring-purple-100",
+      trend: "Scheduled Tomorrow",
+    },
+    {
+      title: "Overdue Follow-ups",
+      value: stats.overdueF.toString(),
+      icon: <Clock className="h-5 w-5 text-rose-700" />,
+      bgClass: "bg-rose-50 ring-rose-100",
+      trend: "Action Overdue",
+    },
+    {
+      title: "Completed Today",
+      value: stats.completedTodayF.toString(),
       icon: <CheckCircle className="h-5 w-5 text-emerald-700" />,
       bgClass: "bg-emerald-50 ring-emerald-100",
-      trend: "Resolved interactions",
+      trend: "Resolved Today",
     },
     {
       title: "Total Incentives",
@@ -369,7 +394,7 @@ export default function SalesDashboard({
                     <td className="py-3">
                       {f.customer ? (
                         <button
-                          onClick={() => onViewCustomer(f.customer!)}
+                          onClick={() => onViewCustomer(f.customer!, f.id)}
                           className="font-semibold text-blue-600 hover:underline text-left"
                         >
                           {f.customer.full_name}

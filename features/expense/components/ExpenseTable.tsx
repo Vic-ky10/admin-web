@@ -30,6 +30,7 @@ interface ExpenseTableProps {
   selectedExpenseType?: string;
   selectedSearch?: string;
   selectedDate?: string;
+  selectedHasReceipt?: string;
 }
 
 function getExpenseStatusVariant(
@@ -57,6 +58,7 @@ export default function ExpenseTable({
   selectedExpenseType = "",
   selectedSearch = "",
   selectedDate = "",
+  selectedHasReceipt = "",
 }: ExpenseTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -71,6 +73,8 @@ export default function ExpenseTable({
     setSearchVal(selectedSearch);
     setPrevSearch(selectedSearch);
   }
+
+
 
   useEffect(() => {
     return () => {
@@ -108,7 +112,8 @@ export default function ExpenseTable({
   return (
     <>
       <div className="space-y-5">
-        <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-1 md:grid-cols-4">
+
+        <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-5">
           {/* Search */}
           <div className="relative">
             <Search
@@ -164,6 +169,19 @@ export default function ExpenseTable({
               onChange={(e) => handleFilterChange("date", e.target.value)}
               className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-700"
             />
+          </div>
+
+          {/* Receipt Attachment */}
+          <div>
+            <select
+              value={selectedHasReceipt}
+              onChange={(e) => handleFilterChange("hasReceipt", e.target.value)}
+              className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            >
+              <option value="">All Receipts</option>
+              <option value="true">Has Receipt</option>
+              <option value="false">No Receipt</option>
+            </select>
           </div>
         </div>
 

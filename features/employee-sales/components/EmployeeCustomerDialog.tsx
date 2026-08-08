@@ -108,9 +108,16 @@ export default function EmployeeCustomerDialog({
         <div className="grid gap-4 md:grid-cols-2">
           <Input
             label="Alternate Phone (Optional)"
+            type="tel"
             placeholder="Alternate phone..."
+            maxLength={10}
             error={errors.alternate_phone?.message}
             {...register("alternate_phone")}
+            onInput={(e) => {
+              e.currentTarget.value = e.currentTarget.value
+                .replace(/\D/g, "")
+                .slice(0, 10);
+            }}
             className="focus:border-emerald-500 focus:ring-emerald-100"
           />
           <Input

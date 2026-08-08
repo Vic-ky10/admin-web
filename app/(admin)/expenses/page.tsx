@@ -20,6 +20,7 @@ export default async function ExpensesPage({
     paymentStatus: params.paymentStatus,
     expenseType: params.expenseType,
     date: params.date,
+    hasReceipt: params.hasReceipt,
   }) as ExpenseFilters;
 
   const expenses = await getExpenses(filters);
@@ -38,6 +39,7 @@ export default async function ExpensesPage({
         selectedStatus={filters.status}
         selectedExpenseType={filters.expenseType}
         selectedDate={filters.date}
+        selectedHasReceipt={filters.hasReceipt}
       />
     </div>
   );

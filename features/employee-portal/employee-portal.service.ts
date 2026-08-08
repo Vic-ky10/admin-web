@@ -7,7 +7,7 @@ import { TOTAL_DEFAULT_LEAVE_ALLOWANCE } from "@/features/leave/leave.types";
 import { EmployeeDashboardStats } from "./employee-portal.types";
 
 const PROFILE_SELECT =
-  "id, employee_id, full_name, email, phone, department, designation, role, avatar_url, status, is_online, last_login, joined_date, created_at, updated_at";
+  "id, employee_id, full_name, email, phone, department, designation, role, avatar_url, status, is_online, last_login, joined_date, date_of_birth, current_address, qualification, degree, experience_years, emergency_contact, created_at, updated_at";
 
 export async function getCurrentEmployeeProfile(): Promise<Employee | null> {
   const supabase = await createClient();
@@ -30,7 +30,7 @@ export async function getCurrentEmployeeProfile(): Promise<Employee | null> {
     return null;
   }
 
-  return data as Employee | null;
+  return data as unknown as Employee | null;
 }
 
 export async function getCurrentEmployeeProfileFromToken(

@@ -22,8 +22,8 @@ export const salesAreaSchema = z.object({
 
 export const customerSchema = z.object({
   full_name: z.string().min(2).max(100),
-  phone: z.string().min(10).max(15),
-  alternate_phone: z.string().optional(),
+  phone: z.string().regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
+  alternate_phone: z.string().optional().refine(val => !val || /^\d{10}$/.test(val), "Alternate phone number must be exactly 10 digits"),
   email: z.string().email().optional().or(z.literal("")),
   address: z.string().optional(),
   sales_area_id: z.string().uuid(),
@@ -45,7 +45,7 @@ export const customerPurchaseSchema = z.object({
 
 export const customerFollowupSchema = z.object({
   customer_id: z.string().uuid(),
-  followup_date: z.string(),
+  followup_date: z.string().optional(),
   followup_type: z.enum([
     "Call",
     "Visit",
@@ -54,7 +54,7 @@ export const customerFollowupSchema = z.object({
     "Other",
   ]),
   remarks: z.string().optional(),
-  next_followup_date: z.string().optional(),
+  next_followup_date: z.string().optional().nullable(),
 });
 
 export const incentiveRuleSchema = z.object({

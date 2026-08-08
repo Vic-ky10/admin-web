@@ -11,10 +11,15 @@ import {
   updateExpense,
   getEmployeeExpenseSummary,
   getAdminExpenseSummary,
+  getEmployeeExpenses,
+  getExpenses,
+  createCashOut,
+  getEmployeeCashOuts,
+  getAllCashOuts,
 } from "./expense.service";
 
 import { ActionResponse } from "@/types/action";
-import { EmployeeExpenseSummary, AdminExpenseSummary } from "./expense.types";
+import { EmployeeExpenseSummary, AdminExpenseSummary, Expense, ExpenseWithEmployee } from "./expense.types";
 
 import {
   ExpenseInput,
@@ -171,4 +176,72 @@ export async function getAdminExpenseSummaryAction(): Promise<ActionResponse<Adm
       error: error.message || "Failed to fetch admin expense summary.",
     };
   }
+}
+
+export async function getEmployeeExpensesUnfilteredAction(): Promise<ActionResponse<Expense[]>> {
+  try {
+    const profileId = await getAuthenticatedProfileId();
+    if (!profileId) {
+      return {
+        success: false,
+        error: "Employee profile not found.",
+      };
+    }
+    const data = await getEmployeeExpenses(profileId);
+    return {
+      success: true,
+      data,
+    };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "Failed to fetch unfiltered employee expenses.",
+    };
+  }
+}
+
+export async function getAdminExpensesUnfilteredAction(): Promise<ActionResponse<ExpenseWithEmployee[]>> {
+  try {
+    const data = await getExpenses();
+    return {
+      success: true,
+      data,
+    };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "Failed to fetch unfiltered admin expenses.",
+    };
+  }
+}
+
+export async function createCashOutAction(amount: number, description?: string) {
+  const profileId = await getAuthenticatedProfileId();
+  if (!profileId) {
+    return {
+      success: false,
+      error: "Employee profile not found.",
+    };
+  }
+
+  const result = await createCashOut(profileId, amount, description);
+  if (result.success) {
+    revalidatePath("/employee/expenses");
+    revalidatePath("/expenses");
+  }
+  return result;
+}
+
+export async function getEmployeeCashOutsAction() {
+  const profileId = await getAuthenticatedProfileId();
+  if (!profileId) {
+    return [];
+  }
+  return getEmployeeCashOuts(profileId);
+}
+
+export async function getAllCashOutsAction() {
+  return getAllCashOuts();
 }

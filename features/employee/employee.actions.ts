@@ -132,9 +132,7 @@ export async function updateSelfProfileAction(
   try {
     const response = await updateSelfProfile(
       profile.id,
-      result.data.full_name,
-      result.data.phone || null,
-      result.data.avatar_url || null
+      result.data
     );
 
     if (response.success) {

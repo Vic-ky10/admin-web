@@ -165,6 +165,8 @@ export default function EmployeeSalesClient({
     item: null,
   });
 
+  const [highlightFollowupId, setHighlightFollowupId] = useState<string | null>(null);
+
   useEffect(() => {
     const purchaseId = searchParams?.get("purchaseId");
     if (purchaseId) {
@@ -175,6 +177,18 @@ export default function EmployeeSalesClient({
           setPurchaseModal({ open: true, item: match });
         }, 0);
       }
+    }
+
+    const customerId = searchParams?.get("customerId");
+    const followupId = searchParams?.get("followupId");
+    if (customerId) {
+      setTimeout(() => {
+        setActiveTab("customers");
+        setSelectedCustomerId(customerId);
+        if (followupId) {
+          setHighlightFollowupId(followupId);
+        }
+      }, 0);
     }
   }, [searchParams, purchases]);
 
@@ -422,25 +436,45 @@ export default function EmployeeSalesClient({
     { id: "reports", label: "My Reports", icon: BarChart3 },
   ];
 
+  const pendingFollowupsCount = useMemo(() => {
+    const todayStr = new Date().toISOString().substring(0, 10);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().substring(0, 10);
+
+    return followups.filter((f) => {
+      if (!f.next_followup_date) return false;
+      const nextStr = new Date(f.next_followup_date).toISOString().substring(0, 10);
+      return nextStr <= todayStr || nextStr === tomorrowStr;
+    }).length;
+  }, [followups]);
+
   return (
     <div className="space-y-6">
       {/* Header section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            {activeTab === "dashboard"
-              ? "Sales Dashboard"
-              : activeTab === "customers"
-              ? "My Customers"
-              : activeTab === "purchases"
-              ? "My Customer Purchases"
-              : activeTab === "followups"
-              ? "CRM Follow-ups"
-              : activeTab === "areas"
-              ? "Assigned Sales Areas"
-              : activeTab === "incentives"
-              ? "Incentive Tracking"
-              : "My Performance Reports"}
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            <span>
+              {activeTab === "dashboard"
+                ? "Sales Dashboard"
+                : activeTab === "customers"
+                ? "My Customers"
+                : activeTab === "purchases"
+                ? "My Customer Purchases"
+                : activeTab === "followups"
+                ? "CRM Follow-ups"
+                : activeTab === "areas"
+                ? "Assigned Sales Areas"
+                : activeTab === "incentives"
+                ? "Incentive Tracking"
+                : "My Performance Reports"}
+            </span>
+            {pendingFollowupsCount > 0 && (
+              <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                🔔 {pendingFollowupsCount}
+              </span>
+            )}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             {activeTab === "dashboard" && "Overview of sales performance and customer activities."}
@@ -520,7 +554,11 @@ export default function EmployeeSalesClient({
             salesAreas={salesAreas}
             purchases={purchases}
             followups={followups}
-            onBack={() => setSelectedCustomerId(null)}
+            onBack={() => {
+              setSelectedCustomerId(null);
+              setHighlightFollowupId(null);
+            }}
+            highlightFollowupId={highlightFollowupId}
           />
         ) : (
           <>
@@ -720,10 +758,6 @@ export default function EmployeeSalesClient({
                           <p className="flex justify-between">
                             <span className="font-semibold text-slate-400">Interaction Type:</span>
                             <span className="font-medium text-slate-800">{f.followup_type}</span>
-                          </p>
-                          <p className="flex justify-between">
-                            <span className="font-semibold text-slate-400">Completed Date:</span>
-                            <span className="font-medium text-slate-800">{new Date(f.followup_date).toLocaleDateString("en-IN")}</span>
                           </p>
                           {f.next_followup_date && (
                             <p className="flex justify-between">

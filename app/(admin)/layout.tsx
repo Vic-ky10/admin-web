@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import AdminShell from "@/components/layout/AdminShell";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { Employee } from "@/features/employee/employee.types";
 import { getNotifications } from "@/features/notification/notification.service";
 import RealtimeSync from "@/components/providers/RealtimeSync";
 
@@ -12,7 +13,7 @@ interface LayoutProps {
 }
 
 const PROFILE_SELECT =
-  "id, employee_id, full_name, email, phone, department, designation, role, avatar_url, status, is_online, last_login, joined_date, created_at, updated_at";
+  "id, employee_id, full_name, email, phone, department, designation, role, avatar_url, status, is_online, last_login, joined_date, date_of_birth, current_address, qualification, degree, experience_years, emergency_contact, created_at, updated_at";
 
 export default async function AdminLayout({ children }: LayoutProps) {
   const supabase = await createClient();
@@ -48,7 +49,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
 
   return (
    <AdminShell
-  profile={profileResponse.data}
+  profile={profileResponse.data as unknown as Employee}
   unreadNotifications={notificationsResponse.count ?? 0}
   notifications={notifications}
 >

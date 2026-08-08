@@ -21,14 +21,14 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 
-// Dialog components
+
 import CustomerDialog from "./CustomerDialog";
 import PurchaseDialog from "./PurchaseDialog";
 import FollowupDialog from "./FollowupDialog";
 import SalesAreaDialog from "./SalesAreaDialog";
 import IncentiveRuleDialog from "./IncentiveRuleDialog";
 
-// Display Components
+
 import SalesDashboard from "./SalesDashboard";
 import CustomerDetails from "./CustomerDetails";
 import SalesFilters from "./SalesFilters";
@@ -39,7 +39,7 @@ import {
   IncentiveRuleTable,
 } from "./SalesTable";
 
-// Server Actions
+
 import {
   createCustomerAction,
   updateCustomerAction,
@@ -150,6 +150,8 @@ export default function SalesClient({
     item: null,
   });
 
+  const [highlightFollowupId, setHighlightFollowupId] = useState<string | null>(null);
+
   useEffect(() => {
     const purchaseId = searchParams?.get("purchaseId");
     if (purchaseId) {
@@ -162,6 +164,18 @@ export default function SalesClient({
           setPurchaseModal({ open: true, item: match });
         }, 0);
       }
+    }
+
+    const customerId = searchParams?.get("customerId");
+    const followupId = searchParams?.get("followupId");
+    if (customerId) {
+      setTimeout(() => {
+        setActiveTab("customers");
+        setSelectedCustomerId(customerId);
+        if (followupId) {
+          setHighlightFollowupId(followupId);
+        }
+      }, 0);
     }
   }, [searchParams, initialPurchases]);
 
@@ -185,13 +199,13 @@ export default function SalesClient({
     onConfirm: () => {},
   });
 
-  // Selected Customer details object lookup
+
   const selectedCustomer = useMemo(() => {
     if (!selectedCustomerId) return null;
     return initialCustomers.find((c) => c.id === selectedCustomerId) || null;
   }, [selectedCustomerId, initialCustomers]);
 
-  // --- SUBMISSIONS & CRUDS ---
+
   const handleCustomerSubmit = async (values: CustomerForm) => {
     startTransition(async () => {
       const res = customerModal.item
@@ -298,6 +312,7 @@ export default function SalesClient({
             toast.error(res.error || "Unable to delete follow-up.");
           }
         });
+        
       },
     });
   };
@@ -410,7 +425,7 @@ export default function SalesClient({
     });
   }, [initialPurchases, initialCustomers, search, areaId, employeeId, status]);
 
-  // Compute followups categorized
+  
   const computedFollowups = useMemo(() => {
     const now = new Date().getTime();
 
@@ -476,6 +491,16 @@ export default function SalesClient({
     followupStatusFilter,
   ]);
 
+  const handleViewCustomer = (customer: Customer, followupId?: string) => {
+    setActiveTab("customers");
+    setSelectedCustomerId(customer.id);
+    if (followupId) {
+      setHighlightFollowupId(followupId);
+    } else {
+      setHighlightFollowupId(null);
+    }
+  };
+
   // Tab configurations
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -487,25 +512,45 @@ export default function SalesClient({
     { id: "reports", label: "Reports", icon: BarChart3 },
   ];
 
+  const pendingFollowupsCount = useMemo(() => {
+    const todayStr = new Date().toISOString().substring(0, 10);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().substring(0, 10);
+
+    return initialFollowups.filter((f) => {
+      if (!f.next_followup_date) return false;
+      const nextStr = new Date(f.next_followup_date).toISOString().substring(0, 10);
+      return nextStr <= todayStr || nextStr === tomorrowStr;
+    }).length;
+  }, [initialFollowups]);
+
   return (
     <div className="space-y-6">
       {/* Header section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            {activeTab === "dashboard"
-              ? "Sales Dashboard"
-              : activeTab === "customers"
-                ? "Customers"
-                : activeTab === "purchases"
-                  ? "Customer Purchases"
-                  : activeTab === "followups"
-                    ? "Customer Follow-ups"
-                    : activeTab === "areas"
-                      ? "Sales Areas"
-                      : activeTab === "rules"
-                        ? "Incentive Rules"
-                        : "Reports & Analytics"}
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            <span>
+              {activeTab === "dashboard"
+                ? "Sales Dashboard"
+                : activeTab === "customers"
+                  ? "Customers"
+                  : activeTab === "purchases"
+                    ? "Customer Purchases"
+                    : activeTab === "followups"
+                      ? "Customer Follow-ups"
+                      : activeTab === "areas"
+                        ? "Sales Areas"
+                        : activeTab === "rules"
+                          ? "Incentive Rules"
+                          : "Reports & Analytics"}
+            </span>
+            {pendingFollowupsCount > 0 && (
+              <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                🔔 {pendingFollowupsCount}
+              </span>
+            )}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             {activeTab === "dashboard" &&
@@ -613,7 +658,11 @@ export default function SalesClient({
             employees={employees}
             purchases={initialPurchases}
             followups={initialFollowups}
-            onBack={() => setSelectedCustomerId(null)}
+            onBack={() => {
+              setSelectedCustomerId(null);
+              setHighlightFollowupId(null);
+            }}
+            highlightFollowupId={highlightFollowupId}
           />
         ) : (
           <>
@@ -625,10 +674,7 @@ export default function SalesClient({
                 purchases={initialPurchases}
                 followups={initialFollowups}
                 employees={employees}
-                onViewCustomer={(c) => {
-                  setActiveTab("customers");
-                  setSelectedCustomerId(c.id);
-                }}
+                onViewCustomer={handleViewCustomer}
                 onEditPurchase={(p) =>
                   setPurchaseModal({ open: true, item: p })
                 }
@@ -794,16 +840,6 @@ export default function SalesClient({
                             </span>
                             <span className="font-medium text-slate-800">
                               {f.followup_type}
-                            </span>
-                          </p>
-                          <p className="flex justify-between">
-                            <span className="font-semibold text-slate-400">
-                              Completed Date:
-                            </span>
-                            <span className="font-medium text-slate-800">
-                              {new Date(f.followup_date).toLocaleDateString(
-                                "en-IN",
-                              )}
                             </span>
                           </p>
                           {f.next_followup_date && (

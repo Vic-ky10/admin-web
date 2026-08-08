@@ -27,6 +27,7 @@ export interface ExpenseFilters {
   expenseType?: string;
   date?: string;
   profileId?: string;
+  hasReceipt?: string;
 }
 
  export interface Expense {
@@ -176,4 +177,13 @@ export interface AdminExpenseSummary {
   departmentSummary: DepartmentSummary[];
   monthlySummary: MonthlySummary[];
   recentExpenses: ExpenseWithEmployee[];
+}
+
+export interface ExpenseCashOut {
+  id: string;
+  profile_id: string;
+  amount: number;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
 }

@@ -24,17 +24,27 @@ export default function EmployeeClient({ employees }: Props) {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [credentials, setCredentials] = useState<EmployeeCredentials | null>(null);
   const [search, setSearch] = useState("");
+  const [department, setDepartment] = useState("");
+
+  const departments = useMemo(() => {
+    return Array.from(new Set(employees.map(e => e.department).filter(Boolean))) as string[];
+  }, [employees]);
 
   const filteredEmployees = useMemo(() => {
     const keyword = search.toLowerCase();
     return employees.filter(
-      (employee) =>
-        employee.full_name.toLowerCase().includes(keyword) ||
-        employee.email.toLowerCase().includes(keyword) ||
-        employee.employee_id.toLowerCase().includes(keyword) ||
-        (employee.department && employee.department.toLowerCase().includes(keyword))
+      (employee) => {
+        const matchesSearch = employee.full_name.toLowerCase().includes(keyword) ||
+          employee.email.toLowerCase().includes(keyword) ||
+          employee.employee_id.toLowerCase().includes(keyword) ||
+          (employee.department && employee.department.toLowerCase().includes(keyword));
+        
+        const matchesDepartment = department ? employee.department === department : true;
+
+        return matchesSearch && matchesDepartment;
+      }
     );
-  }, [employees, search]);
+  }, [employees, search, department]);
 
   return (
     <div className="space-y-6 max-w-[1920px] mx-auto animate-fade-in">
@@ -49,8 +59,22 @@ export default function EmployeeClient({ employees }: Props) {
         </Button>
       </PageHeader>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-        <SearchBar value={search} onChange={setSearch} />
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <SearchBar value={search} onChange={setSearch} />
+        </div>
+        <div className="w-full sm:w-64">
+           <select 
+             value={department} 
+             onChange={(e) => setDepartment(e.target.value)}
+             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 h-full min-h-[44px] text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+           >
+             <option value="">All Departments</option>
+             {departments.map((dept) => (
+               <option key={dept} value={dept}>{dept}</option>
+             ))}
+           </select>
+        </div>
       </div>
 
       <EmployeeTable

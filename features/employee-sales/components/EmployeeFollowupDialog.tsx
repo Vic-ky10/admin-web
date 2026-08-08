@@ -22,7 +22,7 @@ interface EmployeeFollowupDialogProps {
 
 const defaultValues: CustomerFollowupForm = {
   customer_id: "",
-  followup_date: "",
+  followup_date: new Date().toISOString().substring(0, 10),
   followup_type: "Call",
   remarks: "",
   next_followup_date: "",
@@ -95,38 +95,29 @@ export default function EmployeeFollowupDialog({
           )}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            type="date"
-            label="Interaction Date"
-            error={errors.followup_date?.message}
-            {...register("followup_date")}
-            className="focus:border-emerald-500 focus:ring-emerald-100"
-          />
-
-          <div className="space-y-1">
-            <label className="text-sm font-semibold text-slate-700">
-              Interaction Type
-            </label>
-            <select
-              {...register("followup_type")}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm"
-            >
-              {Object.values(FOLLOWUP_TYPES).map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-            {errors.followup_type?.message && (
-              <p className="text-sm text-red-600">{errors.followup_type.message}</p>
-            )}
-          </div>
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+            Interaction Type
+          </label>
+          <select
+            {...register("followup_type")}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-slate-900 shadow-xs outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-sm"
+          >
+            {Object.values(FOLLOWUP_TYPES).map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          {errors.followup_type?.message && (
+            <p className="text-sm text-red-600">{errors.followup_type.message}</p>
+          )}
         </div>
 
         <Input
           type="date"
-          label="Next Scheduled Follow-up (Optional - leave blank if completed)"
+          label="Next Scheduled Follow-up"
+          helperText="When should you contact this customer again?"
           error={errors.next_followup_date?.message}
           {...register("next_followup_date")}
           className="focus:border-emerald-500 focus:ring-emerald-100"

@@ -15,6 +15,7 @@ import {
   ExpenseWithEmployee,
   EmployeeExpenseSummary,
   AdminExpenseSummary,
+  ExpenseCashOut,
 } from "./expense.types";
 
 import {
@@ -323,6 +324,14 @@ export async function getEmployeeExpenses(
     query = query.eq("expense_date", filters.date);
   }
 
+  if (filters.hasReceipt) {
+    if (filters.hasReceipt === "true") {
+      query = query.not("receipt_url", "is", null);
+    } else if (filters.hasReceipt === "false") {
+      query = query.is("receipt_url", null);
+    }
+  }
+
   if (filters.search) {
     const searchVal = `%${filters.search}%`;
     query = query.or(`expense_code.ilike.${searchVal},description.ilike.${searchVal}`);
@@ -364,6 +373,14 @@ export async function getExpenses(
 
   if (filters.date) {
     query = query.eq("expense_date", filters.date);
+  }
+
+  if (filters.hasReceipt) {
+    if (filters.hasReceipt === "true") {
+      query = query.not("receipt_url", "is", null);
+    } else if (filters.hasReceipt === "false") {
+      query = query.is("receipt_url", null);
+    }
   }
 
   const { data, error } = await query;
@@ -901,3 +918,62 @@ export async function getAdminExpenseSummary(
 //     message.includes("Could not find")
 //   );
 // }
+
+// ExpenseCashOut interface is defined in expense.types.ts and imported above
+export type { ExpenseCashOut };
+
+export async function getEmployeeCashOuts(profileId: string): Promise<ExpenseCashOut[]> {
+  const { data, error } = await adminClient
+    .from("expense_cash_outs")
+    .select("*")
+    .eq("profile_id", profileId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching employee cash outs:", error);
+    return [];
+  }
+  return data as ExpenseCashOut[];
+}
+
+export async function getAllCashOuts(): Promise<ExpenseCashOut[]> {
+  const { data, error } = await adminClient
+    .from("expense_cash_outs")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching all cash outs:", error);
+    return [];
+  }
+  return data as ExpenseCashOut[];
+}
+
+export async function createCashOut(
+  profileId: string,
+  amount: number,
+  description?: string
+): Promise<ActionResponse<ExpenseCashOut>> {
+  const { data, error } = await adminClient
+    .from("expense_cash_outs")
+    .insert({
+      profile_id: profileId,
+      amount,
+      description: description || null,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+    message: "Cash out recorded successfully.",
+    data: data as ExpenseCashOut,
+  };
+}

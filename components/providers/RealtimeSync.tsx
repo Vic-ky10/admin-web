@@ -204,6 +204,87 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
       )
       .subscribe();
 
+    const leaveRequestsChannel = supabase
+      .channel("realtime-leave_requests-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "leave_requests" },
+        (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
+          if (role === "Admin") {
+            triggerRefresh();
+            return;
+          }
+
+          const newRow = payload.new;
+          const oldRow = payload.old;
+          const affectedProfileId = (newRow?.profile_id || oldRow?.profile_id) as string | undefined;
+
+          if (affectedProfileId === profileId) {
+            triggerRefresh();
+          }
+        }
+      )
+      .subscribe();
+
+    const expensesChannel = supabase
+      .channel("realtime-expenses-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "expenses" },
+        (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
+          if (role === "Admin") {
+            triggerRefresh();
+            return;
+          }
+
+          const newRow = payload.new;
+          const oldRow = payload.old;
+          const affectedProfileId = (newRow?.profile_id || oldRow?.profile_id) as string | undefined;
+
+          if (affectedProfileId === profileId) {
+            triggerRefresh();
+          }
+        }
+      )
+      .subscribe();
+
+    const attendanceChannel = supabase
+      .channel("realtime-attendance-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "attendance" },
+        (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
+          if (role === "Admin") {
+            triggerRefresh();
+            return;
+          }
+
+          const newRow = payload.new;
+          const oldRow = payload.old;
+          const affectedProfileId = (newRow?.profile_id || oldRow?.profile_id) as string | undefined;
+
+          if (affectedProfileId === profileId) {
+            triggerRefresh();
+          }
+        }
+      )
+      .subscribe();
+
+    const followupsSyncChannel = supabase
+      .channel("realtime-customer_followups-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "customer_followups" },
+        () => {
+          triggerRefresh();
+          fetch("/api/admin/followup-reminders", { method: "POST" }).catch(console.error);
+        }
+      )
+      .subscribe();
+
+    // Trigger initial reminders check on load
+    fetch("/api/admin/followup-reminders", { method: "POST" }).catch(console.error);
+
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -214,6 +295,10 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
       supabase.removeChannel(incentivesChannel);
       supabase.removeChannel(customerPurchasesChannel);
       supabase.removeChannel(notificationsChannel);
+      supabase.removeChannel(leaveRequestsChannel);
+      supabase.removeChannel(expensesChannel);
+      supabase.removeChannel(attendanceChannel);
+      supabase.removeChannel(followupsSyncChannel);
     };
   }, [router, isPending, userMemberIds, userProjectIds, role, profileId, fetchUserAssociations, supabase]);
 

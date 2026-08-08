@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { ArrowLeft, Calendar, DollarSign, Phone, Mail, MapPin, User, Shield } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -15,6 +15,7 @@ interface CustomerDetailsProps {
   purchases: CustomerPurchase[];
   followups: CustomerFollowup[];
   onBack: () => void;
+  highlightFollowupId?: string | null;
 }
 
 export default function CustomerDetails({
@@ -24,6 +25,7 @@ export default function CustomerDetails({
   purchases,
   followups,
   onBack,
+  highlightFollowupId,
 }: CustomerDetailsProps) {
   // Find lookup values
   const salesAreaName = useMemo(() => {
@@ -78,6 +80,17 @@ export default function CustomerDetails({
     if (status === "Rejected") return "danger";
     return "info";
   };
+
+  useEffect(() => {
+    if (highlightFollowupId) {
+      setTimeout(() => {
+        const element = document.getElementById(`followup-${highlightFollowupId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+    }
+  }, [highlightFollowupId]);
 
   return (
     <div className="space-y-6">
@@ -260,8 +273,8 @@ export default function CustomerDetails({
           </div>
 
           {/* CRM Timeline (Followup History) */}
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900 mb-6 pb-3 border-b border-slate-100">
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
               CRM Interaction Timeline
             </h2>
 
@@ -270,37 +283,83 @@ export default function CustomerDetails({
                 <p className="text-sm">No follow-up activities logged yet.</p>
               </div>
             ) : (
-              <div className="relative pl-6 border-l border-slate-200 space-y-6 ml-2">
-                {customerFollowups.map((f) => (
-                  <div key={f.id} className="relative">
-                    {/* Circle marker */}
-                    <span className="absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 border-2 border-white ring-1 ring-blue-300">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
-                    </span>
+              <div className="space-y-6">
+                {/* 1. Upcoming Scheduled Actions */}
+                {(() => {
+                  const upcomingItems = customerFollowups.filter((f) => f.next_followup_date);
+                  if (upcomingItems.length === 0) return null;
 
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-bold text-slate-900">
-                          {new Date(f.followup_date).toLocaleDateString("en-IN")}
-                        </span>
-                        <span className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                          {f.followup_type}
-                        </span>
-                        {f.next_followup_date && (
-                          <span className="text-[11px] text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded">
-                            Next Followup: {new Date(f.next_followup_date).toLocaleDateString("en-IN")}
-                          </span>
-                        )}
+                  const getFollowupStatus = (nextDateStr: string) => {
+                    const today = new Date().toISOString().substring(0, 10);
+                    const formattedNext = new Date(nextDateStr).toISOString().substring(0, 10);
+                    if (formattedNext > today) return { label: "Upcoming", variant: "info" as const };
+                    if (formattedNext === today) return { label: "Due Today", variant: "warning" as const };
+                    return { label: "Overdue", variant: "danger" as const };
+                  };
+
+                  return (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <span>📅 Upcoming Scheduled Actions</span>
+                      </h3>
+                      <div className="relative pl-6 border-l border-blue-200 space-y-4 ml-2">
+                        {upcomingItems.map((f) => {
+                          const statusInfo = getFollowupStatus(f.next_followup_date!);
+                          return (
+                            <div key={`upcoming-${f.id}`} className="relative p-3 rounded-lg border border-slate-100 bg-slate-50/50">
+                              <span className="absolute -left-[31px] top-4 flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 border-2 border-white ring-1 ring-blue-300">
+                                <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                              </span>
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="text-sm font-bold text-slate-800">
+                                  Next Follow-up: {new Date(f.next_followup_date!).toLocaleDateString("en-IN")}
+                                </span>
+                                <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-1">
+                                Scheduled Action ({f.followup_type})
+                              </p>
+                            </div>
+                          );
+                        })}
                       </div>
-                      
-                      {f.remarks && (
-                        <p className="text-sm text-slate-600 leading-relaxed bg-slate-50/55 p-3 rounded-lg border border-slate-100">
-                          {f.remarks}
-                        </p>
-                      )}
                     </div>
+                  );
+                })()}
+
+                {/* 2. Completed Interactions */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                    📞 Completed Interactions
+                  </h3>
+                  <div className="relative pl-6 border-l border-slate-200 space-y-4 ml-2">
+                    {customerFollowups.map((f) => (
+                      <div key={f.id} id={`followup-${f.id}`} className={`relative p-3 rounded-lg transition-all duration-300 ${f.id === highlightFollowupId ? "ring-2 ring-blue-500 bg-blue-50/30 border border-blue-200" : "border border-slate-100 bg-white"}`}>
+                        {/* Circle marker */}
+                        <span className="absolute -left-[31px] top-4 flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-slate-700 border-2 border-white ring-1 ring-slate-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+                        </span>
+
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                                {f.followup_type}
+                              </span>
+                            </div>
+                            <Badge variant="success">Completed</Badge>
+                          </div>
+                          
+                          {f.remarks && (
+                            <p className="text-sm text-slate-600 leading-relaxed bg-slate-50/50 p-2.5 rounded-md border border-slate-100 mt-2">
+                              {f.remarks}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             )}
           </div>

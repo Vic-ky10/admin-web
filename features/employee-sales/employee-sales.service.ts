@@ -135,21 +135,14 @@ export async function getEmployeeSalesDashboardData(profileId: string) {
   let completedFollowupsCount = 0;
   let todayFollowupsCount = 0;
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
+  const todayStr = new Date().toISOString().substring(0, 10);
 
   followups.forEach((f) => {
     if (f.next_followup_date) {
-      const nextTime = new Date(f.next_followup_date).getTime();
-      if (nextTime >= todayStart.getTime() && nextTime <= todayEnd.getTime()) {
+      pendingFollowupsCount++;
+      const nextStr = new Date(f.next_followup_date).toISOString().substring(0, 10);
+      if (nextStr === todayStr) {
         todayFollowupsCount++;
-      }
-      if (nextTime >= now) {
-        pendingFollowupsCount++;
-      } else {
-        completedFollowupsCount++;
       }
     } else {
       completedFollowupsCount++;

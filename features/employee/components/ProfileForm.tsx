@@ -45,11 +45,18 @@ export default function ProfileForm({ profile, theme }: ProfileFormProps) {
     watch,
     formState: { errors },
   } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(profileSchema) as any,
     defaultValues: {
       full_name: profile.full_name,
       phone: profile.phone || "",
       avatar_url: profile.avatar_url || "",
+      date_of_birth: profile.date_of_birth || "",
+      current_address: profile.current_address || "",
+      qualification: profile.qualification || "",
+      degree: profile.degree || "",
+      experience_years: profile.experience_years || undefined,
+      emergency_contact: profile.emergency_contact || "",
     },
   });
 
@@ -156,7 +163,8 @@ export default function ProfileForm({ profile, theme }: ProfileFormProps) {
     return `${day}/${month}/${year}`;
   }
 
-  function onSubmit(values: ProfileFormData) {
+  function onSubmit(v: unknown) {
+    const values = v as ProfileFormData;
     startTransition(async () => {
       const response = await updateSelfProfileAction(values);
 
@@ -250,7 +258,6 @@ export default function ProfileForm({ profile, theme }: ProfileFormProps) {
             {profile.role}
           </span>
         </div>
-
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             type="text"
@@ -259,12 +266,86 @@ export default function ProfileForm({ profile, theme }: ProfileFormProps) {
             {...register("full_name")}
             disabled={isBusy}
           />
-
           <Input
             type="tel"
             label="Phone Number"
             error={errors.phone?.message}
             {...register("phone")}
+            placeholder="10-digit number"
+            disabled={isBusy}
+          />
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Date of Birth</label>
+            <input
+              type="date"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none text-sm"
+              {...register("date_of_birth")}
+              disabled={isBusy}
+            />
+            {errors.date_of_birth?.message && <p className="text-sm text-red-500">{errors.date_of_birth.message}</p>}
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-5 pb-3">
+          <h2 className="text-base font-bold text-slate-900">Address</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Input
+              label="Current Address"
+              error={errors.current_address?.message}
+              {...register("current_address")}
+              placeholder="Enter full address"
+              disabled={isBusy}
+            />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-5 pb-3">
+          <h2 className="text-base font-bold text-slate-900">Education</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            label="Qualification"
+            error={errors.qualification?.message}
+            {...register("qualification")}
+            placeholder="Enter your Qualification .."
+            disabled={isBusy}
+          />
+          <Input
+            label="Degree"
+            error={errors.degree?.message}
+            {...register("degree")}
+            placeholder=" Enter your degree .. "
+            disabled={isBusy}
+          />
+        </div>
+
+        <div className="border-t border-slate-100 pt-5 pb-3">
+          <h2 className="text-base font-bold text-slate-900">Employment</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            type="number"
+            min="0"
+            step="0.5"
+            label="Experience (Years)"
+            error={errors.experience_years?.message}
+            {...register("experience_years")}
+            placeholder="Enter your Experience ..."
+            disabled={isBusy}
+          />
+        </div>
+
+        <div className="border-t border-slate-100 pt-5 pb-3">
+          <h2 className="text-base font-bold text-slate-900">Emergency Contact</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            type="tel"
+            label="Emergency Contact Number"
+            error={errors.emergency_contact?.message}
+            {...register("emergency_contact")}
             placeholder="10-digit number"
             disabled={isBusy}
           />
