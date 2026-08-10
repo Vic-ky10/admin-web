@@ -1,5 +1,7 @@
 import AdminExpenseTrackerClient from "@/features/expense/components/analytics/AdminExpenseTrackerClient";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Expense Tracker | InfiniGoal Admin",
   description: "Organization expense overview and statistics",
@@ -19,3 +21,4 @@ export default function ExpenseTrackerPage() {
     </div>
   );
 }
+

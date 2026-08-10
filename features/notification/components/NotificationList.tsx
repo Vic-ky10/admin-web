@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import {
   Bell,
   Calendar,
@@ -26,6 +27,7 @@ interface NotificationListProps {
   emptyTitle?: string;
   emptyMessage?: string;
 }
+
 
 function getNotificationStyles(notification: Notification, isBlue: boolean) {
   const type = (notification.notification_type || "").toLowerCase();
@@ -85,9 +87,18 @@ export default function NotificationList({
 }: NotificationListProps) {
   const isBlue = theme === "blue";
 
+  const [localNotifications, setLocalNotifications] = useState<Notification[]>(notifications);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setLocalNotifications(notifications);
+  }, [notifications]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+
   return (
     <>
-      {notifications.length === 0 ? (
+      {localNotifications.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 px-4 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-4 ring-slate-100/50">
             <Bell className="h-6 w-6 text-slate-400" />
@@ -101,7 +112,7 @@ export default function NotificationList({
         <>
           {variant === "compact" ? (
           <div className="space-y-4">
-              {notifications.map((notification) => (
+              {localNotifications.map((notification: Notification) => (
                 <NotificationCard
                   key={notification.id}
                   notification={notification}
@@ -113,7 +124,7 @@ export default function NotificationList({
             </div>
           ) : (
             <div className="flex flex-col gap-3 sm:gap-4 py-4 md:py-6">
-              {notifications.map((notification) => {
+              {localNotifications.map((notification: Notification) => {
                 let baseActionUrl = notification.action_url;
                 if (!isBlue && baseActionUrl) {
                   if (

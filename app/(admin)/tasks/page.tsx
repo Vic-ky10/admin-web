@@ -3,6 +3,8 @@ import { getTasks } from "@/features/task/task.service";
 import { getProjects } from "@/features/project/project.service";
 import PageHeader from "@/components/layout/PageHeader";
 
+export const dynamic = "force-dynamic";
+
 export default async function TasksPage() {
   const [tasks, projects] = await Promise.all([
     getTasks(),

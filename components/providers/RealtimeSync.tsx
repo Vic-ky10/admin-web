@@ -18,18 +18,20 @@ interface ProjectMemberRecord {
 export default function RealtimeSync({ profileId, role, department }: RealtimeSyncProps) {
   const isAdmin = (role === "Admin" || role === "Super Admin") && department === "Administration";
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // For employees: track their project memberships to filter out irrelevant events
   const [userMemberIds, setUserMemberIds] = useState<string[]>([]);
   const [userProjectIds, setUserProjectIds] = useState<string[]>([]);
-  const supabase = createClient();
+
+  // Stable supabase client reference — never recreated on re-render
+  const supabaseRef = useRef(createClient());
 
   const fetchUserAssociations = useCallback(async () => {
     if (isAdmin) return;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseRef.current
         .from("project_members")
         .select("id, project_id")
         .eq("profile_id", profileId);
@@ -42,25 +44,22 @@ export default function RealtimeSync({ profileId, role, department }: RealtimeSy
     } catch (err) {
       console.error("Failed to fetch user associations for realtime filtering:", err);
     }
-  }, [profileId, role, supabase]);
+  }, [profileId]);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     fetchUserAssociations();
   }, [fetchUserAssociations]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
+    const supabase = supabaseRef.current;
     const triggerRefresh = () => {
-      // Prevent duplicate refresh calls if one is already pending
-      if (isPending) return;
-
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
 
       timeoutRef.current = setTimeout(() => {
         startTransition(() => {
+          console.log("[RealtimeSync] router.refresh() triggered");
           router.refresh();
         });
       }, 100); // 100ms debounce
@@ -106,7 +105,7 @@ export default function RealtimeSync({ profileId, role, department }: RealtimeSy
             return;
           }
 
-          // Employee logic: check if they are part of the changed project
+        
           const affectedProjectId = (payload.new?.id || payload.old?.id) as string | undefined;
           const isRelevant = affectedProjectId && userProjectIds.includes(affectedProjectId);
 
@@ -150,7 +149,7 @@ export default function RealtimeSync({ profileId, role, department }: RealtimeSy
             return;
           }
 
-          // Employee logic: check if the incentive belongs to them
+        
           const newRow = payload.new;
           const oldRow = payload.old;
           const affectedProfileId = (newRow?.profile_id || oldRow?.profile_id) as string | undefined;
@@ -184,27 +183,6 @@ export default function RealtimeSync({ profileId, role, department }: RealtimeSy
       )
       .subscribe();
 
-    const notificationsChannel = supabase
-      .channel("realtime-notifications-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications" },
-        (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (isAdmin) {
-            triggerRefresh();
-            return;
-          }
-
-          const newRow = payload.new;
-          const oldRow = payload.old;
-          const affectedProfileId = (newRow?.profile_id || oldRow?.profile_id) as string | undefined;
-
-          if (affectedProfileId === profileId) {
-            triggerRefresh();
-          }
-        }
-      )
-      .subscribe();
 
     const leaveRequestsChannel = supabase
       .channel("realtime-leave_requests-changes")
@@ -272,6 +250,37 @@ export default function RealtimeSync({ profileId, role, department }: RealtimeSy
       )
       .subscribe();
 
+    const notificationsChannel = supabase
+      .channel("realtime-notifications-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications" },
+        (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
+          const newRow = payload.new;
+          const oldRow = payload.old;
+          const affectedProfileId = (newRow?.profile_id || oldRow?.profile_id) as string | undefined;
+
+          // --- DIAGNOSTIC LOGGING (remove after confirming fix) ---
+          console.log("[RealtimeSync] notifications event received", {
+            eventType: (payload as { eventType?: string }).eventType,
+            affectedProfileId,
+            myProfileId: profileId,
+            matches: affectedProfileId === profileId,
+          });
+
+          if (affectedProfileId === profileId) {
+            console.log("[RealtimeSync] notifications: calling triggerRefresh()");
+            // Signal NotificationDropdown directly so it can re-fetch without
+            // waiting for the layout Server Component to re-run (layouts are cached by Next.js).
+            window.dispatchEvent(new CustomEvent("realtime-notifications-refresh"));
+            triggerRefresh();
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log("[RealtimeSync] notifications channel status:", status);
+      });
+
     const followupsSyncChannel = supabase
       .channel("realtime-customer_followups-sync")
       .on(
@@ -296,13 +305,13 @@ export default function RealtimeSync({ profileId, role, department }: RealtimeSy
       supabase.removeChannel(projectMembersChannel);
       supabase.removeChannel(incentivesChannel);
       supabase.removeChannel(customerPurchasesChannel);
-      supabase.removeChannel(notificationsChannel);
       supabase.removeChannel(leaveRequestsChannel);
       supabase.removeChannel(expensesChannel);
       supabase.removeChannel(attendanceChannel);
+      supabase.removeChannel(notificationsChannel);
       supabase.removeChannel(followupsSyncChannel);
     };
-  }, [router, isPending, userMemberIds, userProjectIds, role, profileId, fetchUserAssociations, supabase]);
+  }, [router, userMemberIds, userProjectIds, role, profileId, fetchUserAssociations, supabaseRef]);
 
   return null;
 }

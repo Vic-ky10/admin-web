@@ -1009,7 +1009,7 @@ export default function AdminProjectClient({
         >
           {assignProject && (
             <div className="space-y-4">
-              <div>
+              {/* <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                   Select Project Role
                 </label>
@@ -1026,7 +1026,7 @@ export default function AdminProjectClient({
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">

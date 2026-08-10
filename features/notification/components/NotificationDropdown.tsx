@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTransition, useState, useEffect, useRef } from "react";
+import { useTransition, useState, useEffect, useRef, useCallback } from "react";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,6 +19,7 @@ interface NotificationDropdownProps {
   notifications: Notification[];
   unreadCount: number;
   theme?: "emerald" | "blue";
+  profileId?: string;
 }
 
 export default function NotificationDropdown({
@@ -42,6 +43,23 @@ export default function NotificationDropdown({
     setPrevNotifications(notifications);
     setLocalNotifications(notifications);
   }
+
+  // Re-fetch from Server Action when the window regains focus, so the dropdown
+  // stays fresh even though the layout Server Component won't re-run on router.refresh().
+  const refreshFromServer = useCallback(async () => {
+    const fresh = await getNotificationsAction();
+    setLocalNotifications(fresh);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("focus", refreshFromServer);
+    return () => window.removeEventListener("focus", refreshFromServer);
+  }, [refreshFromServer]);
+
+  useEffect(() => {
+    window.addEventListener("realtime-notifications-refresh", refreshFromServer);
+    return () => window.removeEventListener("realtime-notifications-refresh", refreshFromServer);
+  }, [refreshFromServer]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -78,19 +96,13 @@ export default function NotificationDropdown({
     };
   }, [open]);
 
-  // Dynamic unread count based on current local/optimistic state
+
   const localUnreadCount = localNotifications.filter((n) => !n.is_read).length;
   const isBlue = theme === "blue";
 
   const notificationPage = isBlue
     ? "/notifications"
     : "/employee/notifications";
-
-  useEffect(() => {
-    // Polling and visibility change fetching have been removed.
-    // Component relies on realtime updates triggering a router.refresh() 
-    // in the parent Layout to provide new `notifications` via props.
-  }, []);
 
   function markRead(id: string) {
     // Add to optimistic pending reads
@@ -118,14 +130,14 @@ export default function NotificationDropdown({
   }
 
   function markAllRead() {
-    // Add to optimistic pending all read
+
     pendingAllReadRef.current = true;
     setLocalNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
 
     startTransition(async () => {
       const result = await markAllNotificationsReadAction();
 
-      // Reset optimistic pending all read
+      
       pendingAllReadRef.current = false;
 
       if (!result.success) {
@@ -242,12 +254,12 @@ export default function NotificationDropdown({
                             {notification.message}
                           </p>
 
-                          <p className="mt-2 text-[11px] font-medium text-slate-400">
+                          {/* <p className="mt-2 text-[11px] font-medium text-slate-400">
                             {new Date(notification.created_at)
                               .toISOString()
                               .replace("T", " ")
                               .slice(0, 16)}
-                          </p>
+                          </p>  */}
                         </div>
 
                         {!notification.is_read && (

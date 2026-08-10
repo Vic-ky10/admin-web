@@ -3,6 +3,8 @@ import { getNotificationsAction } from "@/features/notification/notification.act
 import NotificationList from "@/features/notification/components/NotificationList";
 import PageHeader from "@/components/layout/PageHeader";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminNotificationsPage() {
   const notifications = await getNotificationsAction();
 
@@ -82,3 +84,4 @@ export default async function AdminNotificationsPage() {
     </div>
   );
 }
+

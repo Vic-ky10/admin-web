@@ -69,6 +69,7 @@ export default function Header({
 
         <div className="flex shrink-0 items-center gap-3">
           <NotificationDropdown
+            profileId={profile?.id}
             notifications={notifications}
             unreadCount={unreadNotifications}
             theme="blue"

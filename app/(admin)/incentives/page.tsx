@@ -3,6 +3,8 @@ import { getIncentives } from "@/features/incentive/incentive.service";
 import { getEmployees } from "@/features/employee/employee.service";
 import PageHeader from "@/components/layout/PageHeader";
 
+export const dynamic = "force-dynamic";
+
 export default async function IncentivesPage() {
   const [incentives, employees] = await Promise.all([
     getIncentives(),
@@ -21,3 +23,4 @@ export default async function IncentivesPage() {
     </div>
   );
 }
+

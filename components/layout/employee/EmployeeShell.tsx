@@ -120,10 +120,10 @@ export default function EmployeeShell({
 
           <div className="flex items-center gap-3">
             <NotificationDropdown
+              profileId={profile.id}
               notifications={notifications}
               unreadCount={unreadNotifications} 
-               theme="emerald"
-
+              theme="emerald"
             />
 
             <details className="relative">
