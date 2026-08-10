@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 interface RealtimeSyncProps {
   profileId: string;
   role: string;
+  department: string;
 }
 
 interface ProjectMemberRecord {
@@ -14,7 +15,8 @@ interface ProjectMemberRecord {
   project_id: string;
 }
 
-export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
+export default function RealtimeSync({ profileId, role, department }: RealtimeSyncProps) {
+  const isAdmin = (role === "Admin" || role === "Super Admin") && department === "Administration";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -25,7 +27,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
   const supabase = createClient();
 
   const fetchUserAssociations = useCallback(async () => {
-    if (role === "Admin") return;
+    if (isAdmin) return;
     try {
       const { data, error } = await supabase
         .from("project_members")
@@ -71,7 +73,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "tasks" },
         (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (role === "Admin") {
+          if (isAdmin) {
             triggerRefresh();
             return;
           }
@@ -99,7 +101,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "projects" },
         (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (role === "Admin") {
+          if (isAdmin) {
             triggerRefresh();
             return;
           }
@@ -129,7 +131,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
           if (affectedProfileId === profileId) {
             await fetchUserAssociations();
             triggerRefresh();
-          } else if (role === "Admin") {
+          } else if (isAdmin) {
             // Admin sees all membership updates
             triggerRefresh();
           }
@@ -143,7 +145,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "incentives" },
         (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (role === "Admin") {
+          if (isAdmin) {
             triggerRefresh();
             return;
           }
@@ -166,7 +168,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "customer_purchases" },
         (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (role === "Admin") {
+          if (isAdmin) {
             triggerRefresh();
             return;
           }
@@ -188,7 +190,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications" },
         (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (role === "Admin") {
+          if (isAdmin) {
             triggerRefresh();
             return;
           }
@@ -210,7 +212,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "leave_requests" },
         (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (role === "Admin") {
+          if (isAdmin) {
             triggerRefresh();
             return;
           }
@@ -232,7 +234,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "expenses" },
         (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (role === "Admin") {
+          if (isAdmin) {
             triggerRefresh();
             return;
           }
@@ -254,7 +256,7 @@ export default function RealtimeSync({ profileId, role }: RealtimeSyncProps) {
         "postgres_changes",
         { event: "*", schema: "public", table: "attendance" },
         (payload: { new: Record<string, unknown> | null; old: Record<string, unknown> | null }) => {
-          if (role === "Admin") {
+          if (isAdmin) {
             triggerRefresh();
             return;
           }

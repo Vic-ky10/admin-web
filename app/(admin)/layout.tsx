@@ -43,20 +43,31 @@ export default async function AdminLayout({ children }: LayoutProps) {
     console.error(profileResponse.error);
   }
 
+  const profile = profileResponse.data as unknown as Employee;
+
+  if (profile) {
+    const isAdminRole = profile.role === "Admin" || profile.role === "Super Admin";
+    const isAdministration = profile.department === "Administration";
+    if (!isAdminRole || !isAdministration) {
+      redirect("/employee/dashboard");
+    }
+  }
+
   if (notificationsResponse.error) {
     console.error(notificationsResponse.error);
   }
 
   return (
    <AdminShell
-  profile={profileResponse.data as unknown as Employee}
+  profile={profile}
   unreadNotifications={notificationsResponse.count ?? 0}
   notifications={notifications}
 >
-      {profileResponse.data && (
+      {profile && (
         <RealtimeSync
-          profileId={profileResponse.data.id}
-          role={profileResponse.data.role}
+          profileId={profile.id}
+          role={profile.role}
+          department={profile.department || ""}
         />
       )}
       {children}

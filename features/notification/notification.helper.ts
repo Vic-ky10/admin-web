@@ -29,7 +29,7 @@ export async function createNotification({
   actionUrl,
   createdBy,
 }: CreateNotificationParams) {
-  console.log("Creating notification for:", profileId);
+
 
   if (referenceId) {
     const { data: existing } = await adminClient
@@ -43,7 +43,7 @@ export async function createNotification({
       .maybeSingle();
 
     if (existing) {
-      console.log("Notification already exists, skipping duplicate creation");
+
       return;
     }
   }
@@ -74,14 +74,14 @@ export async function notifyAdmins({
   actionUrl,
   createdBy,
 }: NotifyAdminsParams) {
-    console.log("notifyAdmins called");
+
     
   const { data, error } = await adminClient
     .from("profiles")
     
     .select("id")
     .eq("role", "Admin");
-    console.log("Admins found:", data);
+
 
   if (error) {
     console.error(error);

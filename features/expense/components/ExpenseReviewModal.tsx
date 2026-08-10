@@ -450,16 +450,6 @@ export default function ExpenseReviewModal({
               >
                 {expense.receipt_url.toLowerCase().endsWith(".pdf") ? "Open PDF" : "Open Fullscreen"}
               </a>
-
-              <a
-                href={expense.receipt_url}
-                download={expense.receipt_name || "receipt"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-200 rounded-md hover:bg-slate-300 transition-colors"
-              >
-                Download
-              </a>
             </div>
           </div>
         )}

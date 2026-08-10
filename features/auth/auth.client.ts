@@ -29,7 +29,7 @@ async function authenticate(email: string, password: string) {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, department")
     .eq("id", user.id)
     .single();
 
@@ -47,6 +47,7 @@ async function authenticate(email: string, password: string) {
   return {
     result,
     role: profile.role,
+    department: profile.department,
   };
 }
 
@@ -55,7 +56,10 @@ export async function loginAdmin(email: string, password: string) {
 
   if ("error" in auth) return auth;
 
-  if (auth.role !== "Admin") {
+  const isAdminRole = auth.role === "Admin" || auth.role === "Super Admin";
+  const isAdministration = auth.department === "Administration";
+
+  if (!isAdminRole || !isAdministration) {
     await supabase.auth.signOut();
 
     return {

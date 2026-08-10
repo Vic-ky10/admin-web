@@ -21,46 +21,36 @@ export default function ProjectFilters({
   onPriorityChange,
 }: ProjectFiltersProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <label className="space-y-1">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Status
-        </span>
-        <select
-          value={status}
-          onChange={(event) =>
-            onStatusChange(event.target.value as ProjectStatus | "")
-          }
-          className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-        >
-          <option value="">All statuses</option>
-          {Object.values(PROJECT_STATUS).map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </label>
+    <>
+      <select
+        value={status}
+        onChange={(event) =>
+          onStatusChange(event.target.value as ProjectStatus | "")
+        }
+        className="h-10 w-full sm:w-[130px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+      >
+        <option value="">Status: All</option>
+        {Object.values(PROJECT_STATUS).map((item) => (
+          <option key={item} value={item}>
+            {item}
+          </option>
+        ))}
+      </select>
 
-      <label className="space-y-1">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Priority
-        </span>
-        <select
-          value={priority}
-          onChange={(event) =>
-            onPriorityChange(event.target.value as ProjectPriority | "")
-          }
-          className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-        >
-          <option value="">All priorities</option>
-          {Object.values(PROJECT_PRIORITY).map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </label>
-    </div>
+      <select
+        value={priority}
+        onChange={(event) =>
+          onPriorityChange(event.target.value as ProjectPriority | "")
+        }
+        className="h-10 w-full sm:w-[130px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+      >
+        <option value="">Priority: All</option>
+        {Object.values(PROJECT_PRIORITY).map((item) => (
+          <option key={item} value={item}>
+            {item}
+          </option>
+        ))}
+      </select>
+    </>
   );
 }

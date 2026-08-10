@@ -1,13 +1,12 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import LoadingButton from "@/components/feedback/LoadingButton";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import {
   Table,
@@ -137,25 +136,31 @@ export default function IncentiveTable({
     <>
       <div className="space-y-5">
         <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <Input
-              placeholder="Search ..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="max-w-sm"
-            />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-sm">
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-4 w-4 text-slate-400" />
+              </span>
+              <input
+                type="text"
+                placeholder="Search incentives..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
 
             <Button
               type="button"
               onClick={openCreate}
-              className="inline-flex items-center gap-2"
+              className="inline-flex items-center gap-2 shrink-0"
             >
               <Plus className="h-4 w-4" />
               New Incentive
             </Button>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             <FilterSelect
               label="Type"
               value={type}
@@ -323,21 +328,18 @@ function FilterSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="space-y-1">
-      <span className="text-sm font-semibold text-slate-700">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-      >
-        <option value="">{emptyLabel}</option>
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+    >
+      <option value="">{label}: {emptyLabel}</option>
         {values.map((item) => (
           <option key={item} value={item}>
             {item}
           </option>
         ))}
-      </select>
-    </label>
+    </select>
   );
 }
 

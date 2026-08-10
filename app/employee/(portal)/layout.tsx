@@ -21,6 +21,14 @@ export default async function EmployeePortalLayout({
     redirect("/employee/login");
   }
 
+  if (profile) {
+    const isAdminRole = profile.role === "Admin" || profile.role === "Super Admin";
+    const isAdministration = profile.department === "Administration";
+    if (isAdminRole && isAdministration) {
+      redirect("/dashboard");
+    }
+  }
+
  const [unreadNotifications, notifications] =
   await Promise.all([
     getUnreadNotificationCount(profile.id),
@@ -37,6 +45,7 @@ export default async function EmployeePortalLayout({
         <RealtimeSync
           profileId={profile.id}
           role={profile.role || "Employee"}
+          department={profile.department || ""}
         />
       )}
       {children}

@@ -99,12 +99,15 @@ async function getActionUrlForRecipient(
 ): Promise<string> {
   const { data: profile } = await adminClient
     .from("profiles")
-    .select("role")
+    .select("role, department")
     .eq("id", recipientProfileId)
     .maybeSingle();
 
   const role = profile?.role || "Employee";
-  if (role === "Admin") {
+  const department = profile?.department || "";
+  const isAdmin = (role === "Admin" || role === "Super Admin") && department === "Administration";
+  
+  if (isAdmin) {
     return `/sales?purchaseId=${purchaseId}`;
   } else {
     return `/employee/sales?purchaseId=${purchaseId}`;
@@ -298,7 +301,7 @@ export async function updateCustomerPurchase(
   const { data: existingIncentive } = await adminClient
     .from("incentives")
     .select("id")
-    .eq("title", `Incentive for Purchase ${existing.purchase_code}`)
+    .eq("title", `Incentive for Purchase by ${customerName}`)
     .maybeSingle();
 
   if (incentiveStatus === "Approved" && !existingIncentive) {
@@ -309,8 +312,8 @@ export async function updateCustomerPurchase(
       profile_id: employeeId,
       incentive_code: incentiveCode,
       incentive_type: "Customer Conversion",
-      title: `Incentive for Purchase ${existing.purchase_code}`,
-      description: `Incentive earned from purchase ${existing.purchase_code}`,
+      title: `Incentive for Purchase by ${customerName}`,
+      description: `Incentive earned from purchase by ${customerName}`,
       amount: incentiveAmount,
       month: new Date(purchase.purchase_date).getMonth(),
       year: new Date(purchase.purchase_date).getFullYear(),
@@ -336,8 +339,8 @@ export async function updateCustomerPurchase(
   const isStatusChanged = incentiveStatus !== existingMeta.incentive_status;
   if (isStatusChanged && (incentiveStatus === "Approved" || incentiveStatus === "Rejected")) {
     const msg = incentiveStatus === "Approved"
-      ? "✅ Your incentive has been approved."
-      : "❌ Your incentive request has been rejected.";
+      ? `✅ Your incentive for purchase by ${customerName} has been approved.`
+      : `❌ Your incentive request for purchase by ${customerName} has been rejected.`;
 
     // Ensure the recipient is NOT an Admin
     const { data: ownerProfile } = await adminClient

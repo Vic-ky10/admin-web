@@ -138,16 +138,6 @@ export default function ExpenseDetailsModal({
                   ? "Open PDF"
                   : "View Image"}
               </a>
-              <a
-                href={expense.receipt_url}
-                download={expense.receipt_name || "receipt"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
-              >
-                <Download size={16} />
-                Download
-              </a>
             </div>
           </div>
         )}

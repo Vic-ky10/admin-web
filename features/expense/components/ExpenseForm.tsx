@@ -107,7 +107,7 @@ export default function ExpenseForm({
         .substring(2)}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("receipts")
+        .from("expense-receipts")
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
@@ -116,7 +116,7 @@ export default function ExpenseForm({
 
       const {
         data: { publicUrl },
-      } = supabase.storage.from("receipts").getPublicUrl(filePath);
+      } = supabase.storage .from("expense-receipts").getPublicUrl(filePath);
 
       setValue("receipt_url", publicUrl);
       setValue("receipt_name", file.name);

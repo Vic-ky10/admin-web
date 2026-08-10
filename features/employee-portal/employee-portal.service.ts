@@ -42,8 +42,7 @@ export async function getCurrentEmployeeProfileFromToken(
   } = await adminClient.auth.getUser(token);
 
 
-console.log("Supabase User:", user);
-console.log("Supabase Error:", error);
+
 
   
 
@@ -63,13 +62,14 @@ console.log("Supabase Error:", error);
     return null;
   }
 
-  console.log("Profile:", data);
-console.log("Profile Error:", profileError);
+
 
   return data as Employee | null;
 }
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function getUnreadNotificationCount(profileId: string) {
+  noStore();
   const byProfile = await adminClient
     .from("notifications")
     .select("id", { count: "exact", head: true })

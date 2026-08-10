@@ -528,38 +528,51 @@ export default function EmployeeExpenseTrackerClient() {
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold">
-                      <th className="p-3">Expense Date</th>
-                      <th className="p-3">Expense Title</th>
-                      <th className="p-3">Category</th>
+                      <th className="p-3">Type</th>
                       <th className="p-3">Status</th>
                       <th className="p-3 text-right">Amount</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredHistoricalExpenses.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/40">
-                        <td className="p-3 text-slate-600">
-                          {new Date(row.expense_date).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric"
-                          })}
-                        </td>
-                        <td className="p-3 font-medium text-slate-900">{row.description || "Untitled"}</td>
-                        <td className="p-3 text-slate-500">{row.expense_type}</td>
-                        <td className="p-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                            row.status === "Approved"
-                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/10"
-                              : row.status === "Rejected"
-                              ? "bg-red-50 text-red-700 ring-1 ring-red-600/10"
-                              : "bg-amber-50 text-amber-700 ring-1 ring-amber-600/10"
-                          }`}>
-                            {row.status}
-                          </span>
-                        </td>
-                        <td className="p-3 text-right font-bold text-slate-900">₹{row.amount.toLocaleString("en-IN")}</td>
-                      </tr>
+                    {Object.entries(
+                      filteredHistoricalExpenses.reduce((acc, row) => {
+                        const dateStr = new Date(row.expense_date).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric"
+                        });
+                        if (!acc[dateStr]) acc[dateStr] = [];
+                        acc[dateStr].push(row);
+                        return acc;
+                      }, {} as Record<string, typeof filteredHistoricalExpenses>)
+                    ).map(([date, items]) => (
+                      <React.Fragment key={date}>
+                        <tr className="bg-slate-50/80 border-y border-slate-100">
+                          <td colSpan={3} className="p-2 px-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                            {date}
+                          </td>
+                        </tr>
+                        {items.map((row) => (
+                          <tr key={row.id} className="hover:bg-slate-50/40">
+                            <td className="p-3">
+                              <p className="font-medium text-slate-900">{row.description || "Untitled"}</p>
+                              <p className="text-[10px] text-slate-500 mt-0.5">{row.expense_type}</p>
+                            </td>
+                            <td className="p-3">
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                row.status === "Approved"
+                                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/10"
+                                  : row.status === "Rejected"
+                                  ? "bg-red-50 text-red-700 ring-1 ring-red-600/10"
+                                  : "bg-amber-50 text-amber-700 ring-1 ring-amber-600/10"
+                              }`}>
+                                {row.status}
+                              </span>
+                            </td>
+                            <td className="p-3 text-right font-bold text-slate-900">₹{row.amount.toLocaleString("en-IN")}</td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

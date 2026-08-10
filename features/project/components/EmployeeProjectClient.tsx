@@ -631,10 +631,10 @@ export default function EmployeeProjectClient({
         />
       </div>
 
-      <div className="flex flex-col gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col gap-2 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
           {/* Tab Filters */}
-          <div className="flex bg-slate-105 p-1 rounded-xl border border-slate-200 w-fit">
+          <div className="flex bg-slate-105 rounded-xl border border-slate-200 w-fit shrink-0">
             <button
               type="button"
               onClick={() => setVisibilityFilter("active")}
@@ -671,7 +671,7 @@ export default function EmployeeProjectClient({
           </div>
         </div>
 
-        <div className="w-full sm:w-80">
+        <div className="w-full">
           <ProjectSearch value={search} onChange={setSearch} />
         </div>
       </div>

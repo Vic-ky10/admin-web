@@ -92,6 +92,7 @@ export default function EmployeeCustomerDialog({
           <Input
             label="Phone"
             type="tel"
+            inputMode="numeric"
             placeholder="10-digit number"
             maxLength={10}
             error={errors.phone?.message}
@@ -109,6 +110,7 @@ export default function EmployeeCustomerDialog({
           <Input
             label="Alternate Phone (Optional)"
             type="tel"
+            inputMode="numeric"
             placeholder="Alternate phone..."
             maxLength={10}
             error={errors.alternate_phone?.message}

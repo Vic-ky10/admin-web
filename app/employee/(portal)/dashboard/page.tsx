@@ -28,6 +28,7 @@ import NotificationList from "@/features/notification/components/NotificationLis
 import { getEmployeeExpenseSummary } from "@/features/expense/expense.service";
 import { MonthlyOverview } from "@/features/expense/components/analytics/MonthlyOverview";
 import { adminClient } from "@/lib/supabase/admin";
+import { getEmployeeSalesDashboardData } from "@/features/employee-sales/employee-sales.service";
 
 export const dynamic = "force-dynamic";
 
@@ -44,18 +45,14 @@ export default async function EmployeeDashboardPage() {
     announcements,
     notifications,
     expenseSummary,
-    approvedPurchasesRes,
+    salesData,
   ] = await Promise.all([
     getEmployeeDashboardStats(profile.id),
     getEmployeeRecentActivity(profile.id),
     getAnnouncements(),
     getNotifications(profile.id),
     getEmployeeExpenseSummary(profile.id).catch(() => null),
-    adminClient
-      .from("customer_purchases")
-      .select("amount, purchase_date")
-      .eq("profile_id", profile.id)
-      .eq("status", "Approved"),
+    getEmployeeSalesDashboardData(profile.id),
   ]);
 
   const publishedAnnouncements = announcements
@@ -65,37 +62,8 @@ export default async function EmployeeDashboardPage() {
   const recentNotifications = notifications.slice(0, 5);
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // Process employee monthly sales revenue data (last 6 months)
-  const approvedPurchases = approvedPurchasesRes.data || [];
-  const monthlyRevenueData: { [key: string]: number } = {};
-
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(1);
-    d.setMonth(d.getMonth() - i);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    monthlyRevenueData[key] = 0;
-  }
-
-  approvedPurchases.forEach((p) => {
-    const purchase = p as { amount: number; purchase_date: string };
-    const date = new Date(purchase.purchase_date);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-    if (monthlyRevenueData[key] !== undefined) {
-      monthlyRevenueData[key] += purchase.amount;
-    }
-  });
-
-  const chartData = Object.entries(monthlyRevenueData).map(([key, val]) => {
-    const [year, month] = key.split("-");
-    const label = new Date(
-      Number(year),
-      Number(month) - 1,
-      1,
-    ).toLocaleDateString("en-US", { month: "short" });
-    return { label, amount: val };
-  });
-
+  const chartData = salesData.monthlyTrend;
+  const currentMonthRevenue = salesData.stats.monthlyRevenue;
   const maxChartAmount = Math.max(...chartData.map((d) => d.amount), 5000);
   const firstName = profile.full_name.split(" ")[0];
   const initials = profile.full_name
@@ -300,81 +268,38 @@ export default async function EmployeeDashboardPage() {
                   Your approved personal sales revenue performance over 6 months
                 </p>
               </div>
-              <Link
-                href="/employee/sales"
-                className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 font-bold group"
-              >
-                My Sales{" "}
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-              </Link>
+              <div className="text-right">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  This Month
+                </p>
+                <p className="text-lg font-black text-emerald-600">
+                  ₹{currentMonthRevenue.toLocaleString("en-IN")}
+                </p>
+              </div>
             </div>
 
-            <div className="relative mt-6 h-56">
-              {/* Y-axis */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none text-[10px] font-semibold text-slate-600">
-                <div className="w-full border-t border-dashed border-slate-200 pt-1 flex justify-between">
-                  <span>₹{maxChartAmount.toLocaleString("en-IN")}</span>
-                  <span className="w-full h-0 border-t border-dashed border-slate-200 ml-2" />
-                </div>
-
-                <div className="w-full border-t border-dashed border-slate-200 pt-1 flex justify-between">
-                  <span>
-                    ₹{Math.round(maxChartAmount / 2).toLocaleString("en-IN")}
-                  </span>
-                  <span className="w-full h-0 border-t border-dashed border-slate-200 ml-2" />
-                </div>
-
-                <div className="w-full border-t border-slate-300 pt-1">
-                  <span className="text-slate-600">₹0</span>
-                </div>
-              </div>
-
-              {/* Bars */}
-              <div className="absolute inset-0 flex items-end justify-between gap-3 pb-2 z-10">
-                {chartData.map((data, idx) => {
-                  const heightPercent = (data.amount / maxChartAmount) * 100;
-
-                  return (
-                    <div
-                      key={idx}
-                      className="group relative flex h-full flex-1 flex-col items-center justify-end"
-                    >
-                      {/* Dynamic Tooltip */}
-                      <div
-                        className="absolute left-1/2 -translate-x-1/2
-              opacity-0 scale-95 group-hover:opacity-60 group-hover:scale-100
-              transition-all duration-200 z-30"
-                        style={{
-                          bottom: `calc(${Math.max(heightPercent, 4)}% + 12px)`,
-                        }}
-                      >
-                        <div className="relative rounded-lg bg-slate-900 px-3 py-1.5 text-[11px] font-bold text-white shadow-xl whitespace-nowrap">
-                          ₹{data.amount.toLocaleString("en-IN")}
-                          {/* Arrow */}
-                          <span className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
-                        </div>
-                      </div>
-
-                      {/* Bar */}
-                      <div
-                        className="w-full max-w-[48px] rounded-t-xl bg-gradient-to-t
-              from-emerald-600 to-teal-500
-              hover:from-emerald-700 hover:to-teal-600
-              transition-all duration-300
-              hover:shadow-xl cursor-pointer"
-                        style={{
-                          height: `${Math.max(heightPercent, 4)}%`,
-                        }}
-                      />
-
-                      {/* Label */}
-                      <span className="mt-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 group-hover:text-slate-800 transition-colors">
-                        {data.label}
+            <div className="flex h-64 items-end gap-4 px-2 pt-6">
+              {chartData.map((data, idx) => {
+                const heightPercent = Math.max((data.amount / maxChartAmount) * 100, 3);
+                return (
+                  <div key={idx} className="group flex flex-1 flex-col items-center gap-2 h-full justify-end">
+                    <div className="relative w-full flex justify-center">
+                      {/* Tooltip */}
+                      <span className="absolute -top-10 scale-0 group-hover:scale-100 rounded bg-slate-900 px-2 py-1 text-[11px] font-bold text-white shadow-lg transition duration-200 z-10 whitespace-nowrap">
+                        ₹{data.amount.toLocaleString("en-IN")}
                       </span>
                     </div>
-                  );
-                })}
-              </div>
+                    {/* CSS Chart Bar */}
+                    <div
+                      style={{ height: `${heightPercent}%` }}
+                      className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-emerald-600 to-emerald-400 transition-all duration-300 group-hover:from-emerald-700 group-hover:to-emerald-500 shadow-sm cursor-pointer"
+                    />
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      {data.label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

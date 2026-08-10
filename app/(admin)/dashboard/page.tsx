@@ -580,9 +580,11 @@ export default async function DashboardPage() {
                       key={idx}
                       className="group relative flex h-full flex-1 flex-col items-center justify-end"
                     >
-                      <div className="absolute -top-10 scale-0 rounded-lg bg-slate-900 px-2.5 py-1 text-[11px] text-white transition-all duration-200 group-hover:scale-100 shadow-xl font-bold whitespace-nowrap z-30">
-                        ₹{data.amount.toLocaleString("en-IN")}
-                        <span className="absolute left-1/2 bottom-[-4px] h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-900" />
+                      <div className="relative w-full flex justify-center">
+                        <div className="absolute -top-10 scale-0 rounded-lg bg-slate-900 px-2.5 py-1 text-[11px] text-white transition-all duration-200 group-hover:scale-100 shadow-xl font-bold whitespace-nowrap z-30">
+                          ₹{data.amount.toLocaleString("en-IN")}
+                          <span className="absolute left-1/2 bottom-[-4px] h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-900" />
+                        </div>
                       </div>
 
                       <div

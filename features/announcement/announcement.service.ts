@@ -80,7 +80,7 @@ export async function createAnnouncement(
   createdBy: string,
   values: AnnouncementInput,
 ): Promise<ActionResponse<Announcement>> {
-  console.log(values);
+
   const { data, error } = await adminClient
 
     .from("announcements")
@@ -216,9 +216,6 @@ export async function publishAnnouncement(id: string): Promise<ActionResponse> {
 
   const { data: recipients, error: recipientError } = await query;
 
-  console.log("Target:", announcement.target_audience);
-  console.log("Department:", announcement.department);
-  console.log("Recipients:", recipients);
 
   
   if (recipientError) {

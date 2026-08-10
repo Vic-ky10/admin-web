@@ -59,11 +59,11 @@ export default function EmployeeClient({ employees }: Props) {
         </Button>
       </PageHeader>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4">
+      <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} />
         </div>
-        <div className="w-full sm:w-64">
+        <div className="w-full sm:w-44">
            <select 
              value={department} 
              onChange={(e) => setDepartment(e.target.value)}

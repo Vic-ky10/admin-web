@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginEmployee } from "@/features/auth/auth.client";
+import { toast } from "sonner";
+import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
+import Logo from "@/assets/images/Logo.png";
 
 export default function EmployeeLoginPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
@@ -19,7 +24,7 @@ export default function EmployeeLoginPage() {
     setLoading(false);
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
       return;
     }
 
@@ -30,9 +35,12 @@ export default function EmployeeLoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-slate-100">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
 
-        <h1 className="text-3xl font-bold text-slate-900">
-          InfiniGoal
-        </h1>
+        <div className="flex items-center gap-3">
+          <Image src={Logo} alt="InfiniGoal" width={40} height={40} className="object-contain" />
+          <h1 className="text-3xl font-bold text-slate-900">
+            InfiniGoal
+          </h1>
+        </div>
 
         <p className="mt-2 text-slate-500">
           Employee Portal Login
@@ -57,13 +65,22 @@ export default function EmployeeLoginPage() {
             Password
           </label>
 
-          <input
-            type="password"
-            placeholder="Enter your password"
-            className="w-full rounded-lg border p-3"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              className="w-full rounded-lg border p-3 pr-10"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
         </div>
 
         <button

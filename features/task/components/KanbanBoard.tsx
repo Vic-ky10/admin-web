@@ -331,9 +331,11 @@ export default function KanbanBoard({
                         <div className="space-y-3">
                           {/* Card Header Info */}
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-mono font-bold text-slate-400 group-hover:text-blue-500 transition-colors">
-                              {task.task_code}
-                            </span>
+                     
+                              <h4 className="font-bold text-slate-900 text-xs leading-relaxed line-clamp-2 group-hover:text-blue-600 transition-colors"></h4>
+                                {task.project?.project_name}
+                              {/* {task.task_code} */}
+                            {/* </span> */}
                             <span
                               className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ring-inset ${getPriorityBadgeColor(
                                 task.priority
@@ -356,7 +358,7 @@ export default function KanbanBoard({
                             </p>
                           )}
 
-                          {/* Card Progress Bar Mock (Future ready layout) */}
+                          {/* Card Progress Bar Mock  */}
                           <div className="space-y-1">
                             <div className="flex justify-between items-center text-[10px] font-semibold text-slate-400">
                               <span>Progress</span>
@@ -382,6 +384,57 @@ export default function KanbanBoard({
                               />
                             </div>
                           </div>
+
+                          
+                          {completionConfirm?.task.id === task.id && (
+                            <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-emerald-100 space-y-3 animate-fade-in shadow-sm" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-start gap-2">
+                                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-600">
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                </div>
+                                <div>
+                                  <h3 className="font-bold text-slate-900 text-xs">Complete Task?</h3>
+                                  <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                                    Log actual hours worked
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="pt-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.5"
+                                  value={actualHoursInput}
+                                  onChange={(e) => setActualHoursInput(parseFloat(e.target.value) || 0)}
+                                  className="w-full bg-white border border-slate-200 rounded-md p-1.5 text-xs font-semibold focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              <div className="flex justify-end gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCompletionConfirm(null);
+                                  }}
+                                  className="px-2 py-1 text-[10px] font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleConfirmCompletion();
+                                  }}
+                                  className="px-2 py-1 text-[10px] font-bold text-white bg-emerald-600 border border-emerald-600 rounded-md hover:bg-emerald-700 flex items-center gap-1 transition-colors"
+                                >
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Confirm
+                                </button>
+                              </div>
+                            </div>
+                          )}
  
                           {/* Assignee Name (Replaced avatar bubble) */}
                           <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 bg-slate-50 px-2 py-1 rounded-lg w-fit border border-slate-100">
@@ -408,7 +461,7 @@ export default function KanbanBoard({
                             </div>
                           </div>
 
-                          {/* Future Proof Reserved Space Block (Checklist, Comments, Attachments placeholders) */}
+                     
                           <div className="flex items-center gap-3 text-[10px] text-slate-350 font-semibold pt-1">
                             <span className="flex items-center gap-0.5">
                               <CheckSquare className="h-3 w-3 text-slate-300" />
@@ -432,19 +485,59 @@ export default function KanbanBoard({
                             )}
                           </div>
 
-                          {/* Delete Button for Completed Tasks (Admins only) */}
+                         
                           {isAdmin && task.status === TASK_STATUS.COMPLETED && (
-                            <div className="flex justify-end pt-1 border-t border-slate-100 mt-2">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteConfirm(task);
-                                }}
-                                className="px-2.5 py-1 text-[11px] font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-lg transition-all duration-150 cursor-pointer"
-                              >
-                                Delete
-                              </button>
+                            <div className="flex flex-col pt-1 border-t border-slate-100 mt-2">
+                              {deleteConfirm?.id === task.id ? (
+                                <div className="mt-2 p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-3 animate-fade-in shadow-sm" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-start gap-2">
+                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-rose-100 text-rose-600">
+                                      <AlertCircle className="h-3.5 w-3.5" />
+                                    </div>
+                                    <div>
+                                      <h3 className="font-bold text-rose-900 text-xs">Delete Task?</h3>
+                                      <p className="text-[10px] text-rose-600/80 mt-0.5 leading-tight">
+                                        This cannot be undone.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-end gap-2 pt-1">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeleteConfirm(null);
+                                      }}
+                                      className="px-2 py-1 text-[10px] font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleConfirmDelete();
+                                      }}
+                                      className="px-2 py-1 text-[10px] font-bold text-white bg-rose-600 border border-rose-600 rounded-md hover:bg-rose-700 transition-colors"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex justify-end mt-1">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDeleteConfirm(task);
+                                    }}
+                                    className="px-2.5 py-1 text-[11px] font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-lg transition-all duration-150 cursor-pointer"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -457,94 +550,6 @@ export default function KanbanBoard({
           );
         })}
       </div>
-
-      {/* Completion Confirmation Modal */}
-      {completionConfirm && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 max-w-sm w-full shadow-2xl space-y-4 animate-fade-in">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                <CheckCircle2 className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-sm">Complete Task?</h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Marking <span className="font-semibold text-slate-800">&quot;{completionConfirm.task.title}&quot;</span> as finished.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-150">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                Log Actual Hours Worked
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.5"
-                value={actualHoursInput}
-                onChange={(e) => setActualHoursInput(parseFloat(e.target.value) || 0)}
-                className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setCompletionConfirm(null)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="success"
-                size="sm"
-                onClick={handleConfirmCompletion}
-                className="flex items-center gap-1"
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Complete Task
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 max-w-sm w-full shadow-2xl space-y-4 animate-fade-in">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-rose-100">
-                <AlertCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-sm">Delete this completed task?</h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  This action cannot be undone.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setDeleteConfirm(null)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={handleConfirmDelete}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Details Modal */}
       {isDetailsOpen && (

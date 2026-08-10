@@ -14,10 +14,8 @@ export async function POST(request: Request) {
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
-      console.log("Mobile Token:", token.substring(0, 20) + "...");
 
      currentUser = await getCurrentEmployeeProfileFromToken(token);
-      console.log("Current User:", currentUser);
 
       if (!currentUser) {
         return NextResponse.json(

@@ -17,10 +17,12 @@ created_by,
 created_at,
 updated_at
 `;
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function getNotifications(  // nnotification table to lateest notifications
   profileId: string
 ): Promise<Notification[]> {
+  noStore();
   const { data, error } = await adminClient
     .from("notifications")
     .select(NOTIFICATION_SELECT)

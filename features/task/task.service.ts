@@ -196,10 +196,7 @@ export async function createTask(
 ): Promise<ActionResponse<Task>> {
   const taskCode = await generateTaskCode();
 
-   console.log({
-  estimated_hours: values.estimated_hours,
-  actual_hours: values.actual_hours,
-});
+
   const { data, error } = await adminClient
     .from("tasks")
     .insert({
@@ -337,6 +334,8 @@ export async function updateTaskStatus(
       title: "Task Completed",
       message: "An employee has completed a task.",
       notificationType: "Task",
+      referenceId: id,
+      actionUrl: "/tasks",
     });
   }
 

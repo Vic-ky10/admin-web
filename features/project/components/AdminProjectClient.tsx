@@ -115,7 +115,7 @@ export default function AdminProjectClient({
 
       const matchesPriority = !priority || project.priority === priority;
 
-      // Handle visibility filter tabs
+    
       let matchesVisibility = true;
       if (visibilityFilter === "active") {
         matchesVisibility =
@@ -128,7 +128,7 @@ export default function AdminProjectClient({
         matchesVisibility = project.status !== "Archived";
       }
 
-      // Explicit status select overrides visibility tabs
+    
       const matchesStatus = !status
         ? matchesVisibility
         : project.status === status;
@@ -232,7 +232,7 @@ export default function AdminProjectClient({
       }
       toast.success(result.message ?? "Project deleted.");
       setProjectToDelete(null);
-      // If we deleted the project we were viewing, go back to list
+   
       if (selectedProjectId === projectToDelete.id) {
         setViewMode("list");
         setSelectedProjectId(null);
@@ -271,7 +271,7 @@ export default function AdminProjectClient({
     );
   }
 
-  // Group employees by department for the assign members modal
+
   const employeesByDepartment = useMemo(() => {
     const groups: { [key: string]: Employee[] } = {};
     employees.forEach((emp) => {
@@ -282,7 +282,7 @@ export default function AdminProjectClient({
     return groups;
   }, [employees]);
 
-  // Project Dashboard statistics and details
+
   const stats = useMemo(() => {
     if (projectTasks.length === 0) {
       return {
@@ -406,7 +406,7 @@ export default function AdminProjectClient({
     projectTasks.forEach((task) => {
       const assigneeName = task.member?.profile?.full_name || "Someone";
 
-      // 1. Creation event
+
       feed.push({
         id: `${task.id}-created`,
         date: new Date(task.created_at),
@@ -414,7 +414,7 @@ export default function AdminProjectClient({
         text: `${assigneeName} was assigned task ${task.task_code}: ${task.title}`,
       });
 
-      // 2. Completion event
+
       if (task.completed_at) {
         feed.push({
           id: `${task.id}-completed`,
@@ -424,7 +424,7 @@ export default function AdminProjectClient({
         });
       }
 
-      // 3. In Progress event (approximate if updated_at is different from created_at and status is In Progress)
+      // 3. In Progress event 
       if (
         task.status === "In Progress" &&
         task.updated_at !== task.created_at
@@ -774,7 +774,7 @@ export default function AdminProjectClient({
                 {/* Overdue tasks warning panel */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
                   <h3 className="text-sm font-bold text-rose-600 flex items-center gap-1.5">
-                    <AlertCircle className="h-4 w-4 text-rose-500 animate-pulse" />
+                   
                     ⚠️ Overdue Tasks
                   </h3>
                   {overdueTasksList.length === 0 ? (
@@ -853,7 +853,7 @@ export default function AdminProjectClient({
                 </div>
               </div>
 
-              {/* Right 1 Column: Activity Feed timeline */}
+             
               <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4 h-fit">
                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                   <TrendingUp className="h-4 w-4 text-blue-500" />
@@ -1000,7 +1000,7 @@ export default function AdminProjectClient({
           />
         </Modal>
 
-        {/* Grouped Available Staff Assign Modal */}
+      
         <Modal
           open={!!assignProject}
           title="Assign Team Members"
@@ -1107,7 +1107,7 @@ export default function AdminProjectClient({
           )}
         </Modal>
 
-        {/* Delete Confirmation Modal */}
+        {/* delete Confirmation Modal */}
         <Modal
           open={!!projectToDelete}
           title="Confirm Delete"
@@ -1177,10 +1177,10 @@ export default function AdminProjectClient({
         />
       </div>
 
-      <div className="flex flex-col gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col gap-2 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
           {/* Tab Filters */}
-          <div className="flex bg-slate-105 p-1 rounded-xl border border-slate-200 w-fit">
+          <div className="flex bg-slate-105 rounded-xl border border-slate-200 w-fit">
             <button
               type="button"
               onClick={() => setVisibilityFilter("active")}
@@ -1215,14 +1215,8 @@ export default function AdminProjectClient({
               All Projects
             </button>
           </div>
-        </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="w-full sm:w-72">
-            <ProjectSearch value={search} onChange={setSearch} />
-          </div>
-
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
             <ProjectFilters
               status={status}
               priority={priority}
@@ -1230,25 +1224,23 @@ export default function AdminProjectClient({
               onPriorityChange={setPriority}
             />
 
-           <div className="flex flex-col gap-1">
-  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-    Sort
-  </label>
-
-  <select
-    value={sortBy}
-    onChange={(e) =>
-      setSortBy(e.target.value as "newest" | "oldest" | "az" | "za")
-    }
-    className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-  >
-    <option value="newest">Recent</option>
-    <option value="oldest">Oldest</option>
-    <option value="az">Name (A-Z)</option>
-    <option value="za">Name (Z-A)</option>
-  </select>
-</div>
+            <select
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value as "newest" | "oldest" | "az" | "za")
+              }
+              className="h-10 w-full sm:w-[130px] rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="newest">Sort: Recent</option>
+              <option value="oldest">Sort: Oldest</option>
+              <option value="az">Sort: A-Z</option>
+              <option value="za">Sort: Z-A</option>
+            </select>
           </div>
+        </div>
+
+        <div className="w-full">
+          <ProjectSearch value={search} onChange={setSearch} />
         </div>
       </div>
 

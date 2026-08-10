@@ -312,8 +312,10 @@ export default function SalesDashboard({
             return (
               <div key={idx} className="group relative flex h-full flex-1 flex-col items-center justify-end">
                 {/* Tooltip */}
-                <div className="absolute -top-10 scale-0 rounded bg-slate-900 px-2 py-1 text-xs text-white transition duration-200 group-hover:scale-100 shadow-lg font-semibold whitespace-nowrap z-10">
-                  ₹{data.amount.toLocaleString("en-IN")}
+                <div className="relative w-full flex justify-center">
+                  <div className="absolute -top-10 scale-0 rounded bg-slate-900 px-2 py-1 text-xs text-white transition duration-200 group-hover:scale-100 shadow-lg font-semibold whitespace-nowrap z-10">
+                    ₹{data.amount.toLocaleString("en-IN")}
+                  </div>
                 </div>
                 {/* Visual Bar */}
                 <div

@@ -176,7 +176,7 @@ export default function EmployeeDetailsModal({
      
         <div className="relative overflow-hidden border-b border-slate-100 bg-white px-6 pb-6 pt-7">
           <div className="relative flex flex-col items-center gap-4 sm:flex-row sm:items-end">
-            {/* Avatar */}
+            {/* avatar */}
             <div className="shrink-0">
               {employee.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -262,7 +262,7 @@ export default function EmployeeDetailsModal({
             </div>
           </SectionCard>
 
-          {/* Employment */}
+     
           <SectionCard
             id="emp-employment"
             icon={Briefcase}

@@ -112,24 +112,36 @@ export default function NotificationList({
               ))}
             </div>
           ) : (
-            <div className="border-b border-dashed border-slate-200 py-5">
+            <div className="flex flex-col gap-3 sm:gap-4 py-4 md:py-6">
               {notifications.map((notification) => {
+                let baseActionUrl = notification.action_url;
+                if (!isBlue && baseActionUrl) {
+                  if (
+                    baseActionUrl === "/employee/expenses" ||
+                    baseActionUrl === "/(employee)/expenses" ||
+                    baseActionUrl === "/(employee)/expense"
+                  ) {
+                    baseActionUrl = "/employee/expense-tracker";
+                  } else if (baseActionUrl === "/(employee)/leave") {
+                    baseActionUrl = "/employee/leave";
+                  }
+                }
                 const actionUrl =
-                  theme === "blue"
-                    ? notification.action_url?.replace("/employee", "")
-                    : notification.action_url;
+                  isBlue
+                    ? baseActionUrl?.replace("/employee", "")
+                    : baseActionUrl;
                 const { Icon, iconBg } = getNotificationStyles(notification, isBlue);
 
                 return (
                   <div
                     key={notification.id}
                     className={[
-                      "relative px-5 py-4.5 md:px-6 md:py-5 transition-all duration-300 hover:bg-slate-50/40 flex items-start gap-4",
+                      "group relative overflow-hidden rounded-2xl border px-5 py-4.5 md:px-6 md:py-5 transition-all duration-300 hover:shadow-sm flex items-start gap-4",
                       !notification.is_read
                         ? theme === "blue"
-                          ? "bg-blue-50/15"
-                          : "bg-emerald-50/15"
-                        : "",
+                          ? "border-blue-100 bg-blue-50/40 hover:bg-blue-50/60"
+                          : "border-emerald-100 bg-emerald-50/40 hover:bg-emerald-50/60"
+                        : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50",
                     ].join(" ")}
                   >
                     {/* Left border indicator for unread states */}
@@ -145,7 +157,7 @@ export default function NotificationList({
                     {/* Icon Badge */}
                     <div
                       className={[
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1",
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 shadow-sm",
                         iconBg,
                       ].join(" ")}
                     >
@@ -154,14 +166,14 @@ export default function NotificationList({
 
                     <div className="flex-1 min-w-0 space-y-1.5">
                       <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-sm font-semibold text-slate-800 leading-snug">
+                        <h3 className="text-sm font-semibold text-slate-900 leading-snug group-hover:text-slate-950 transition-colors">
                           {notification.title}
                         </h3>
 
                         {!notification.is_read && (
                           <span
                             className={[
-                              "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase",
+                              "shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase",
                               theme === "blue"
                                 ? "bg-blue-100 text-blue-800"
                                 : "bg-emerald-100 text-emerald-800",
@@ -172,11 +184,11 @@ export default function NotificationList({
                         )}
                       </div>
 
-                      <p className="text-xs md:text-sm text-slate-500 leading-relaxed max-w-3xl break-words">
+                      <p className="text-sm text-slate-500 leading-relaxed break-words">
                         {notification.message}
                       </p>
 
-                      <div className="pt-1 flex items-center gap-4">
+                      <div className="pt-2 flex items-center justify-between">
                         <span className="text-[11px] font-medium text-slate-400">
                           {new Date(notification.created_at).toLocaleString("en-IN", {
                             day: "2-digit",
@@ -191,9 +203,10 @@ export default function NotificationList({
                           <Link
                             href={actionUrl}
                             className={[
-                              "text-xs font-semibold flex items-center gap-1 hover:underline",
+                              "text-xs font-semibold flex items-center gap-1 opacity-0 translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 hover:underline",
                               theme === "blue" ? "text-blue-600" : "text-emerald-600",
                             ].join(" ")}
+                            prefetch={false}
                           >
                             View Details <span>→</span>
                           </Link>

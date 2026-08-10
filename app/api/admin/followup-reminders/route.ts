@@ -27,6 +27,19 @@ export async function POST() {
       return NextResponse.json({ success: false, error: cError.message });
     }
 
+    const recipientIds = Array.from(
+      new Set(customers?.map((c) => c.assigned_employee_id).filter(Boolean))
+    );
+
+    let profiles: { id: string; role: string; department: string }[] = [];
+    if (recipientIds.length > 0) {
+      const { data: pData } = await adminClient
+        .from("profiles")
+        .select("id, role, department")
+        .in("id", recipientIds as string[]);
+      profiles = pData || [];
+    }
+
     const todayStr = new Date().toISOString().split("T")[0];
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -60,14 +73,20 @@ export async function POST() {
       if (title && message) {
         // Notify assigned representative
         if (recipientId) {
+          const profile = profiles.find((p) => p.id === recipientId);
+          const isAssigneeAdmin =
+            (profile?.role === "Admin" || profile?.role === "Super Admin") &&
+            profile?.department === "Administration";
+
           await createNotification({
             profileId: recipientId,
             title,
             message,
             notificationType: "General",
             referenceId: f.id,
-            actionUrl: `/sales/customers?customerId=${f.customer_id}&followupId=${f.id}`,
-            createdBy: "system",
+            actionUrl: isAssigneeAdmin
+              ? `/sales?customerId=${f.customer_id}&followupId=${f.id}`
+              : `/employee/sales?customerId=${f.customer_id}&followupId=${f.id}`,
           });
           createdCount++;
         }
@@ -78,8 +97,7 @@ export async function POST() {
           message,
           notificationType: "General",
           referenceId: f.id,
-          actionUrl: `/sales/customers?customerId=${f.customer_id}&followupId=${f.id}`,
-          createdBy: "system",
+          actionUrl: `/sales?customerId=${f.customer_id}&followupId=${f.id}`,
         });
       }
     }
