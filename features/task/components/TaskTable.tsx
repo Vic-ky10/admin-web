@@ -232,14 +232,13 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
           <Table className="animate-fade-in">
             <TableHead>
               <TableRow>
-                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Task Code</TableHeader>
-                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Title</TableHeader>
-                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Project</TableHeader>
-                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Employee</TableHeader>
-                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Priority</TableHeader>
-                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Status</TableHeader>
-                <TableHeader className="!text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Due Date</TableHeader>
-                <TableHeader className="text-right !text-sm !text-slate-700 !font-extrabold !py-4.5 uppercase tracking-wider">Actions</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !py-4.5 uppercase tracking-wider">Title</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !py-4.5 uppercase tracking-wider">Project</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !py-4.5 uppercase tracking-wider">Employee</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !py-4.5 uppercase tracking-wider">Priority</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !py-4.5 uppercase tracking-wider">Status</TableHeader>
+                <TableHeader className="!text-sm !text-slate-700 !py-4.5 uppercase tracking-wider">Due Date</TableHeader>
+                <TableHeader className="text-right !text-sm !text-slate-700 !py-4.5 uppercase tracking-wider">Actions</TableHeader>
               </TableRow>
             </TableHead>
 
@@ -247,12 +246,8 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
               {filteredTasks.map((task) => (
                 <TableRow key={task.id}>
                   <TableCell className="!py-4.5">
-                    <span className="font-bold text-slate-700 text-[14px]">{task.task_code}</span>
-                  </TableCell>
-
-                  <TableCell className="!py-4.5">
                     <div className="space-y-1">
-                      <p className="font-bold text-slate-900 text-[15px] leading-snug">{task.title}</p>
+                      <p className="font-medium text-slate-900 text-[15px] leading-snug">{task.title}</p>
                       <p className="text-[13px] text-slate-500 max-w-md line-clamp-1">
                         {task.description || "No description"}
                       </p>
@@ -261,7 +256,7 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
 
                   <TableCell className="!py-4.5">
                     <div>
-                      <p className="font-semibold text-slate-800 text-[14px]">
+                      <p className="font-medium text-slate-800 text-[14px]">
                         {task.project?.project_name}
                       </p>
                     </div>
@@ -269,24 +264,21 @@ export default function TaskTable({ tasks, projects }: TaskTableProps) {
 
                   <TableCell className="!py-4.5">
                     <div className="space-y-0.5">
-                      <p className="font-semibold text-slate-800 text-[14px]">
+                      <p className="font-medium text-slate-800 text-[14px]">
                         {task.member?.profile?.full_name}
-                      </p>
-                      <p className="text-[13px] text-slate-500 font-medium">
-                        {task.member?.profile?.employee_id}
                       </p>
                     </div>
                   </TableCell>
 
                   <TableCell className="!py-4.5">
-                    <TaskPriorityBadge priority={task.priority} className="text-[12px] px-2.5 py-0.5 font-bold" />
+                    <TaskPriorityBadge priority={task.priority} className="text-[12px] px-2.5 py-0.5 font-medium" />
                   </TableCell>
 
                   <TableCell className="!py-4.5">
-                    <TaskStatusBadge status={task.status} className="text-[12px] px-2.5 py-0.5 font-bold" />
+                    <TaskStatusBadge status={task.status} className="text-[12px] px-2.5 py-0.5 font-medium" />
                   </TableCell>
 
-                  <TableCell className="text-slate-600 font-semibold !text-sm md:!text-[14px] !py-4.5">
+                  <TableCell className="text-slate-600 font-medium !text-sm md:!text-[14px] !py-4.5">
                     {task.due_date
                       ? new Date(task.due_date).toLocaleDateString("en-IN", {
                           day: "2-digit",

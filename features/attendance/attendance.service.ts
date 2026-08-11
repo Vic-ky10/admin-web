@@ -10,6 +10,7 @@ import {
   AttendanceStatus,
   AttendanceSummary,
   AttendanceWithEmployee,
+  MonthlyEmployeeReport,
 } from "./attendance.types";
 import {
   calculateWorkingHours,
@@ -457,4 +458,102 @@ export async function getTodayAttendanceDashboard(
     incomplete,
     absent,
   };
+}
+
+export async function getMonthlyEmployeeReport(
+  year: number,
+  month: number
+): Promise<MonthlyEmployeeReport[]> {
+  const startDate = new Date(year, month, 1).toISOString().split("T")[0];
+  const endDate = new Date(year, month + 1, 0).toISOString().split("T")[0];
+
+  // Fetch active employees
+  const { data: employees, error: employeeError } = await adminClient
+    .from("profiles")
+    .select("id, employee_id, full_name, department");
+
+  if (employeeError) {
+    console.error(employeeError);
+    return [];
+  }
+
+  // Fetch attendance records for the given month
+  const { data: attendanceRecords, error: attendanceError } = await adminClient
+    .from("attendance")
+    .select("profile_id, status")
+    .gte("attendance_date", startDate)
+    .lte("attendance_date", endDate);
+
+  if (attendanceError) {
+    console.error(attendanceError);
+    return [];
+  }
+
+  // Fetch approved leave requests overlapping with the given month
+  const { data: leaveRecords, error: leaveError } = await adminClient
+    .from("leave_requests")
+    .select("profile_id, start_date, end_date, total_days, leave_duration")
+    .eq("status", "Approved")
+    .lte("start_date", endDate)
+    .gte("end_date", startDate);
+
+  if (leaveError) {
+    console.error(leaveError);
+    return [];
+  }
+
+  // Process attendance and leaves per employee
+  const reportMap = new Map<string, MonthlyEmployeeReport>();
+
+  for (const emp of (employees || [])) {
+    reportMap.set(emp.id, {
+      profileId: emp.id,
+      employeeName: emp.full_name || emp.employee_id,
+      department: emp.department || "-",
+      leave: 0,
+      halfDay: 0,
+      shortHours: 0,
+      present: 0,
+    });
+  }
+
+  // Count attendance
+  for (const record of (attendanceRecords || [])) {
+    const rep = reportMap.get(record.profile_id);
+    if (!rep) continue;
+
+    if (record.status === ATTENDANCE_STATUS.PRESENT) {
+      rep.present++;
+    } else if (record.status === ATTENDANCE_STATUS.SHORT_HOURS) {
+      rep.shortHours++;
+    } else if (record.status === ATTENDANCE_STATUS.HALF_DAY) {
+      rep.halfDay++;
+    }
+  }
+
+  // Count leaves
+  for (const leave of (leaveRecords || [])) {
+    const rep = reportMap.get(leave.profile_id);
+    if (!rep) continue;
+
+    // Calculate overlap days in the current month
+    const start = leave.start_date < startDate ? startDate : leave.start_date;
+    const end = leave.end_date > endDate ? endDate : leave.end_date;
+
+    const startDateObj = new Date(`${start}T00:00:00`);
+    const endDateObj = new Date(`${end}T00:00:00`);
+    const diff = endDateObj.getTime() - startDateObj.getTime();
+    
+    let overlapDays = Math.floor(diff / 86_400_000) + 1;
+
+    if (leave.leave_duration === "Half Day") {
+      overlapDays = 0.5;
+    }
+
+    if (overlapDays > 0) {
+      rep.leave += overlapDays;
+    }
+  }
+
+  return Array.from(reportMap.values());
 }

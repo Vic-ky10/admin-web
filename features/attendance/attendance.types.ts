@@ -57,3 +57,13 @@ export interface AttendanceDashboard {
   incomplete: AttendanceWithEmployee[];
   absent: AttendanceWithEmployee[];
 }
+
+export interface MonthlyEmployeeReport {
+  profileId: string;
+  employeeName: string;
+  department: string;
+  leave: number;
+  halfDay: number;
+  shortHours: number;
+  present: number;
+}

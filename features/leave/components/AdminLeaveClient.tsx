@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { 
   Calendar, 
@@ -10,7 +10,9 @@ import {
   CalendarDays, 
   Filter, 
   Search, 
-  RefreshCw 
+  RefreshCw,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 import LoadingButton from "@/components/feedback/LoadingButton";
@@ -27,6 +29,8 @@ import {
 import { Employee } from "@/features/employee/employee.types";
 import { DEPARTMENTS } from "@/features/employee/employee.constants";
 
+import { getMonthlyEmployeeReportAction } from "@/features/attendance/attendance.actions";
+import { MonthlyEmployeeReport } from "@/features/attendance/attendance.types";
 import { reviewLeaveAction } from "../leave.actions";
 import {
   LEAVE_STATUS,
@@ -65,10 +69,44 @@ export default function AdminLeaveClient({
   const [leaveType, setLeaveType] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  const [summaryEmployeeId, setSummaryEmployeeId] = useState("");
-  const [summaryMonth, setSummaryMonth] = useState(
-    new Date().getMonth().toString()
-  );
+  // Report Filters State
+  const [reportYear, setReportYear] = useState(new Date().getFullYear().toString());
+  const [reportMonth, setReportMonth] = useState(new Date().getMonth().toString());
+  const [reportDepartment, setReportDepartment] = useState("");
+  const [reportSearch, setReportSearch] = useState("");
+  const [isReportVisible, setIsReportVisible] = useState(false);
+
+  const [reportData, setReportData] = useState<MonthlyEmployeeReport[]>([]);
+  const [isReportLoading, setIsReportLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadReport() {
+      setIsReportLoading(true);
+      const res = await getMonthlyEmployeeReportAction(parseInt(reportYear), parseInt(reportMonth));
+      if (res.success && res.data) {
+        setReportData(res.data);
+      } else {
+        toast.error(res.error || "Failed to load report");
+      }
+      setIsReportLoading(false);
+    }
+    loadReport();
+  }, [reportYear, reportMonth]);
+
+  const filteredReportData = useMemo(() => {
+    return reportData.filter((row) => {
+      if (reportDepartment && row.department !== reportDepartment) {
+        return false;
+      }
+      if (reportSearch) {
+        const keyword = reportSearch.toLowerCase();
+        if (!row.employeeName.toLowerCase().includes(keyword)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [reportData, reportDepartment, reportSearch]);
 
   // Client-Side Multi-Filtering
   const filteredLeaves = useMemo(() => {
@@ -145,33 +183,7 @@ export default function AdminLeaveClient({
     return { total, pending, approved, rejected, thisMonth };
   }, [filteredLeaves]);
 
-  // Employee Monthly Leave Summary
-  const employeeSummary = useMemo(() => {
-    let total = 0;
-    let approved = 0;
-    let pending = 0;
-    let rejected = 0;
-    let totalDays = 0;
 
-    if (!summaryEmployeeId || !summaryMonth) {
-      return { total, approved, pending, rejected, totalDays };
-    }
-
-    leaves.forEach((leave) => {
-      if (leave.profile_id !== summaryEmployeeId) return;
-
-      const leaveStart = new Date(leave.start_date);
-      if (leaveStart.getMonth() === parseInt(summaryMonth, 10)) {
-        total++;
-        totalDays += leave.total_days;
-        if (leave.status === LEAVE_STATUS.PENDING) pending++;
-        else if (leave.status === LEAVE_STATUS.APPROVED) approved++;
-        else if (leave.status === LEAVE_STATUS.REJECTED) rejected++;
-      }
-    });
-
-    return { total, approved, pending, rejected, totalDays };
-  }, [leaves, summaryEmployeeId, summaryMonth]);
 
   function openReview(
     leave: LeaveRequestWithEmployee,
@@ -236,76 +248,110 @@ export default function AdminLeaveClient({
       </div>
 
       {/* 1.5 Employee Monthly Leave Summary */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-        <h3 className="mb-4 text-sm font-bold text-slate-800 flex items-center gap-2">
-          <CalendarDays className="h-4 w-4 text-indigo-600" />
-          Employee Monthly Leave Summary
-        </h3>
-        <div className="flex flex-col sm:flex-row gap-4 mb-5">
-          <div className="flex-1 space-y-1.5">
-            <label className="block text-xs font-bold text-slate-600">Employee</label>
-            <select
-              value={summaryEmployeeId}
-              onChange={(e) => setSummaryEmployeeId(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-2xs text-slate-700"
-            >
-              <option value="">Select Employee...</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.full_name} ({emp.employee_id})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1 space-y-1.5">
-            <label className="block text-xs font-bold text-slate-600">Month</label>
-            <select
-              value={summaryMonth}
-              onChange={(e) => setSummaryMonth(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-2xs text-slate-700"
-            >
-              <option value="0">January</option>
-              <option value="1">February</option>
-              <option value="2">March</option>
-              <option value="3">April</option>
-              <option value="4">May</option>
-              <option value="5">June</option>
-              <option value="6">July</option>
-              <option value="7">August</option>
-              <option value="8">September</option>
-              <option value="9">October</option>
-              <option value="10">November</option>
-              <option value="11">December</option>
-            </select>
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden flex flex-col">
+        <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between cursor-pointer" onClick={() => setIsReportVisible(!isReportVisible)}>
+          <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-indigo-600" />
+            Employee-wise Monthly Report
+          </h3>
+          <button className="text-slate-400 hover:text-slate-600 transition-colors">
+            {isReportVisible ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </button>
+        </div>
+        
+        {isReportVisible && (
+          <>
+            <div className="p-5 border-b border-slate-100 bg-slate-50/50">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-600">Year</label>
+              <select
+                value={reportYear}
+                onChange={(e) => setReportYear(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all shadow-2xs text-slate-700"
+              >
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const y = new Date().getFullYear() - 2 + i;
+                  return <option key={y} value={y}>{y}</option>;
+                })}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-600">Month</label>
+              <select
+                value={reportMonth}
+                onChange={(e) => setReportMonth(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all shadow-2xs text-slate-700"
+              >
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <option key={i} value={i}>
+                    {new Date(2000, i, 1).toLocaleString('default', { month: 'long' })}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-600">Department</label>
+              <select
+                value={reportDepartment}
+                onChange={(e) => setReportDepartment(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all shadow-2xs text-slate-700"
+              >
+                <option value="">All Departments</option>
+                {DEPARTMENTS.map((dept) => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-600">Search Employee</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={reportSearch}
+                  onChange={(e) => setReportSearch(e.target.value)}
+                  placeholder="Name..."
+                  className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs outline-none focus:border-indigo-500 transition-all shadow-2xs"
+                />
+              </div>
+            </div>
           </div>
         </div>
-        {summaryEmployeeId ? (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Leaves</p>
-              <p className="mt-1 text-xl font-black text-slate-900">{employeeSummary.total}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Approved</p>
-              <p className="mt-1 text-xl font-black text-emerald-600">{employeeSummary.approved}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pending</p>
-              <p className="mt-1 text-xl font-black text-amber-500">{employeeSummary.pending}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Rejected</p>
-              <p className="mt-1 text-xl font-black text-rose-500">{employeeSummary.rejected}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Days Used</p>
-              <p className="mt-1 text-xl font-black text-indigo-600">{employeeSummary.totalDays}</p>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-4 text-xs font-medium text-slate-500 bg-slate-50 rounded-xl border border-slate-100 border-dashed">
-            Select an employee to view their summary.
-          </div>
+        
+        <div className="overflow-x-auto">
+          {isReportLoading ? (
+            <div className="p-12 text-center text-sm text-slate-500 animate-pulse">Loading report data...</div>
+          ) : filteredReportData.length === 0 ? (
+            <div className="p-12 text-center text-sm text-slate-500">No data found for the selected filters.</div>
+          ) : (
+            <Table>
+              <TableHead className="bg-slate-50">
+                <TableRow>
+                  <TableHeader className="py-3 px-4 font-bold text-slate-700">Employee</TableHeader>
+                  <TableHeader className="py-3 px-4 font-bold text-slate-700">Department</TableHeader>
+                  <TableHeader className="py-3 px-4 font-bold text-slate-700 text-center">Leave</TableHeader>
+                  <TableHeader className="py-3 px-4 font-bold text-slate-700 text-center">Half Day</TableHeader>
+                  <TableHeader className="py-3 px-4 font-bold text-slate-700 text-center">Short Hours</TableHeader>
+                  <TableHeader className="py-3 px-4 font-bold text-slate-700 text-center">Present</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredReportData.map((row) => (
+                  <TableRow key={row.profileId} className="hover:bg-slate-50/50 transition-colors">
+                    <TableCell className="py-3 px-4 font-medium text-slate-900">{row.employeeName}</TableCell>
+                    <TableCell className="py-3 px-4 text-slate-600">{row.department}</TableCell>
+                    <TableCell className="py-3 px-4 text-center font-semibold text-rose-600">{row.leave}</TableCell>
+                    <TableCell className="py-3 px-4 text-center font-semibold text-amber-500">{row.halfDay}</TableCell>
+                    <TableCell className="py-3 px-4 text-center font-semibold text-orange-500">{row.shortHours}</TableCell>
+                    <TableCell className="py-3 px-4 text-center font-semibold text-emerald-600">{row.present}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+          </>
         )}
       </div>
 
@@ -445,7 +491,6 @@ export default function AdminLeaveClient({
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeader>Employee ID</TableHeader>
                 <TableHeader>Employee Name</TableHeader>
                 <TableHeader>Department</TableHeader>
                 <TableHeader>Leave Type</TableHeader>
@@ -457,21 +502,18 @@ export default function AdminLeaveClient({
             <TableBody>
               {filteredLeaves.map((leave) => (
                 <TableRow key={leave.id} className="hover:bg-slate-50/50 transition-colors">
-                  <TableCell className="font-mono text-xs font-semibold text-slate-600">
-                    {leave.employee?.employee_id ?? leave.profile_id}
-                  </TableCell>
-                  <TableCell className="font-bold text-slate-900">
+                  <TableCell className="font-medium text-slate-900">
                     {leave.employee?.full_name ?? "Unknown Employee"}
                   </TableCell>
                   <TableCell className="text-slate-600">
                     {leave.employee?.department ?? "-"}
                   </TableCell>
-                  <TableCell className="text-slate-700 font-medium">
+                  <TableCell className="text-slate-700">
                     {leave.leave_type}
                   </TableCell>
                   <TableCell className="text-slate-600">
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-slate-800">
+                      <span className="text-sm font-medium text-slate-800">
                         {formatDate(leave.start_date)} &rarr; {formatDate(leave.end_date)}
                       </span>
                       <span className="text-[11px] text-slate-500 font-medium">

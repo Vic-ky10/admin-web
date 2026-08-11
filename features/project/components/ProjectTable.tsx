@@ -52,9 +52,6 @@ export default function ProjectTable({
                 <p className="font-semibold text-slate-900">
                   {project.project_name}
                 </p>
-                <p className="text-xs text-slate-500">
-                  {project.project_code}
-                </p>
               </div>
             </TableCell>
             <TableCell>

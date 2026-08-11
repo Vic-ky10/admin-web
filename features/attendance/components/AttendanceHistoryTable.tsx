@@ -46,7 +46,6 @@ export default function AttendanceHistoryTable({
         <TableRow>
           {showEmployee && (
             <>
-              <TableHeader>Employee ID</TableHeader>
               <TableHeader>Employee Name</TableHeader>
               <TableHeader>Department</TableHeader>
             </>
@@ -64,12 +63,7 @@ export default function AttendanceHistoryTable({
           <TableRow key={record.id}>
             {showEmployee && (
               <>
-                <TableCell className="font-mono text-xs font-semibold text-slate-600">
-                  {"employee" in record && record.employee
-                    ? record.employee.employee_id
-                    : "-"}
-                </TableCell>
-                <TableCell className="font-bold text-slate-900">
+                <TableCell className="font-medium text-slate-900">
                   {"employee" in record && record.employee
                     ? record.employee.full_name
                     : "-"}

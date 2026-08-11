@@ -62,7 +62,6 @@ export function CustomerTable({
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeader>Code</TableHeader>
           <TableHeader>Name</TableHeader>
           <TableHeader>Phone</TableHeader>
           <TableHeader>Email</TableHeader>
@@ -76,11 +75,6 @@ export function CustomerTable({
       <TableBody>
         {customers.map((c) => (
           <TableRow key={c.id}>
-            <TableCell>
-              <span className="font-semibold text-slate-900">
-                {c.customer_code}
-              </span>
-            </TableCell>
             <TableCell>
               <button
                 onClick={() => onView(c)}
@@ -210,7 +204,6 @@ export function PurchaseTable({
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeader>Purchase Code</TableHeader>
           <TableHeader>Customer</TableHeader>
           <TableHeader>Sales Area</TableHeader>
           <TableHeader>Representative</TableHeader>
@@ -227,11 +220,6 @@ export function PurchaseTable({
           const meta = parsePurchaseRemarks(p.remarks, p.status);
           return (
             <TableRow key={p.id}>
-              <TableCell>
-                <span className="font-semibold text-slate-900">
-                  {p.purchase_code}
-                </span>
-              </TableCell>
               <TableCell>
                 <span className="font-medium text-slate-700">
                   {getCustomerName(p.customer_id)}
@@ -339,7 +327,6 @@ export function SalesAreaTable({
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeader>Code</TableHeader>
           <TableHeader>Area Name</TableHeader>
           <TableHeader>Area Type</TableHeader>
           <TableHeader>Assigned Representatives</TableHeader>
@@ -351,11 +338,6 @@ export function SalesAreaTable({
       <TableBody>
         {salesAreas.map((area) => (
           <TableRow key={area.id}>
-            <TableCell>
-              <span className="font-semibold text-slate-900">
-                {area.area_code}
-              </span>
-            </TableCell>
             <TableCell>
               <div>
                 <span className="font-bold text-slate-800 block">

@@ -8,9 +8,30 @@ import {
   getCurrentProfileId,
   loginAttendance,
   logoutAttendance,
+  getMonthlyEmployeeReport,
 } from "./attendance.service";
-import { Attendance } from "./attendance.types";
+import { Attendance, MonthlyEmployeeReport } from "./attendance.types";
 import { attendanceNotesSchema } from "./attendance.validation";
+
+export async function getMonthlyEmployeeReportAction(
+  year: number,
+  month: number
+): Promise<ActionResponse<MonthlyEmployeeReport[]>> {
+  try {
+    const report = await getMonthlyEmployeeReport(year, month);
+    return {
+      success: true,
+      message: "Report generated successfully.",
+      data: report,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to generate report.";
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
 
 export async function loginAttendanceAction(
   values: unknown

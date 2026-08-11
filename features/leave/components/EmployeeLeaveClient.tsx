@@ -323,10 +323,10 @@ export default function EmployeeLeaveClient({
             <TableBody>
               {filteredLeaves.map((leave) => (
                 <TableRow key={leave.id}>
-                  <TableCell className="font-bold text-slate-900">{leave.leave_type}</TableCell>
+                  <TableCell className="font-medium text-slate-900">{leave.leave_type}</TableCell>
                   <TableCell className="text-slate-600">{formatDate(leave.start_date)}</TableCell>
                   <TableCell className="text-slate-600">{formatDate(leave.end_date)}</TableCell>
-                  <TableCell className="font-bold text-slate-900">
+                  <TableCell className="font-medium text-slate-900">
                     {leave.total_days} {leave.total_days === 1 ? "day" : "days"}
                   </TableCell>
                   <TableCell className="text-xs text-slate-500">

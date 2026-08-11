@@ -76,7 +76,6 @@ export default function EmployeeTable({
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeader>Employee ID</TableHeader>
           <TableHeader>Name</TableHeader>
           <TableHeader>Email</TableHeader>
           <TableHeader>Department</TableHeader>
@@ -93,11 +92,7 @@ export default function EmployeeTable({
             className="cursor-pointer"
             onClick={() => onView(employee)}
           >
-            <TableCell className="font-mono text-xs font-semibold text-slate-600">
-              {employee.employee_id}
-            </TableCell>
-
-            <TableCell className="font-bold text-slate-900">
+            <TableCell className="font-medium text-slate-900">
               {employee.full_name}
             </TableCell>
 

@@ -188,7 +188,6 @@ export default function ExpenseTable({
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Expense Code</TableHeader>
 
               <TableHeader>Employee</TableHeader>
 
@@ -221,20 +220,11 @@ export default function ExpenseTable({
             ) : (
               expenses.map((expense) => (
                 <TableRow key={expense.id}>
-                  <TableCell>
-                    <span className="font-semibold">
-                      {expense.expense_code}
-                    </span>
-                  </TableCell>
 
                   <TableCell>
                     <div>
                       <p className="font-medium">
                         {expense.employee?.full_name}
-                      </p>
-
-                      <p className="text-xs text-slate-500">
-                        {expense.employee?.employee_id}
                       </p>
                     </div>
                   </TableCell>

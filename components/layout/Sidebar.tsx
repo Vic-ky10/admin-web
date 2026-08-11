@@ -27,7 +27,7 @@ const adminNavItems = [
   { label: "Employees", href: "/employees", icon: UsersRound },
   { label: "Attendance", href: "/attendance", icon: CalendarCheck },
   { label: "Projects", href: "/projects", icon: BriefcaseBusiness },
-  { label: "Leave", href: "/leave", icon: BarChart3 },
+  { label: "Leave Management", href: "/leave", icon: BarChart3 },
   {
   label: "Sales",
   href: "/sales",

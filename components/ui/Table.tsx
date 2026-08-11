@@ -13,7 +13,7 @@ export function Table({
   containerClassName,
 }: TableProps) {
   return (
-    <div className={clsx("w-full overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-xs", containerClassName)}>
+    <div className={clsx("w-full overflow-x-auto rounded-3xl border border-slate-200/60 bg-white/50 backdrop-blur-xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]", containerClassName)}>
       <table className={clsx("min-w-full text-left border-collapse", className)}>
         {children}
       </table>
@@ -29,7 +29,7 @@ export function TableHead({
   className?: string;
 }) {
   return (
-    <thead className={clsx("bg-slate-50/90 backdrop-blur-xs sticky top-0 z-10 border-b border-slate-200/80", className)}>
+    <thead className={clsx("bg-slate-50/50 sticky top-0 z-10 border-b border-slate-200/60", className)}>
       {children}
     </thead>
   );
@@ -42,7 +42,7 @@ export function TableBody({
   children: ReactNode;
   className?: string;
 }) {
-  return <tbody className={clsx("divide-y divide-slate-100/80 bg-white", className)}>{children}</tbody>;
+  return <tbody className={clsx("divide-y divide-slate-100/60 bg-white", className)}>{children}</tbody>;
 }
 
 export function TableRow({
@@ -55,7 +55,7 @@ export function TableRow({
   return (
     <tr
       className={clsx(
-        "transition-colors duration-150 hover:bg-slate-50/80",
+        "transition-all duration-200 ease-in-out hover:bg-slate-50/80 group",
         className
       )}
       {...props}
@@ -73,7 +73,7 @@ export function TableHeader({
   className?: string;
 }) {
   return (
-    <th className={clsx("px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500", className)}>
+    <th className={clsx("px-6 py-4 text-left text-xs font-semibold uppercase tracking-widest text-slate-500", className)}>
       {children}
     </th>
   );
@@ -87,7 +87,7 @@ export function TableCell({
   className?: string;
 }) {
   return (
-    <td className={clsx("px-5 py-4 text-sm text-slate-700 align-middle", className)}>
+    <td className={clsx("px-6 py-5 text-sm text-slate-700 align-middle transition-colors group-hover:text-slate-900", className)}>
       {children}
     </td>
   );

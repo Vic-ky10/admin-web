@@ -190,7 +190,7 @@ export default function IncentiveTable({
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Code</TableHeader>
+              <TableHeader>Title</TableHeader>
               <TableHeader>Employee</TableHeader>
               <TableHeader>Type</TableHeader>
               <TableHeader>Amount</TableHeader>
@@ -217,18 +217,12 @@ export default function IncentiveTable({
                 <TableRow key={incentive.id}>
                   <TableCell>
                     <span className="font-semibold">
-                      {incentive.incentive_code}
-                    </span>
-                    <p className="text-xs text-slate-500">
                       {incentive.title}
-                    </p>
+                    </span>
                   </TableCell>
                   <TableCell>
                     <p className="font-medium">
                       {incentive.employee?.full_name}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {incentive.employee?.employee_id}
                     </p>
                   </TableCell>
                   <TableCell>{incentive.incentive_type}</TableCell>

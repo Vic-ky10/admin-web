@@ -151,6 +151,8 @@ import {
   FolderKanban,
   Hash,
   UserRound,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 
 import Modal from "@/components/ui/Modal";
@@ -163,12 +165,18 @@ import TaskStatusBadge from "./TaskStatusBadge";
 interface TaskDetailsModalProps {
   task: TaskWithProject | null;
   open: boolean;
+  isAdmin?: boolean;
+  onEdit?: (task: TaskWithProject) => void;
+  onDelete?: (task: TaskWithProject) => void;
   onClose: () => void;
 }
 
 export default function TaskDetailsModal({
   task,
   open,
+  isAdmin,
+  onEdit,
+  onDelete,
   onClose,
 }: TaskDetailsModalProps) {
   if (!task) return null;
@@ -201,9 +209,36 @@ export default function TaskDetailsModal({
             <div className="flex flex-wrap items-start justify-between gap-5">
 
               <div>
-                <span className="inline-flex rounded-full bg-blue-600 px-3 py-1 text-xs font-bold tracking-wider text-white">
-                  {task.task_code}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex rounded-full bg-blue-600 px-3 py-1 text-xs font-bold tracking-wider text-white">
+                    {task.task_code}
+                  </span>
+                  
+                  {isAdmin && (
+                    <div className="flex items-center gap-1 ml-2">
+                      {onEdit && (
+                        <button
+                          type="button"
+                          onClick={() => onEdit(task)}
+                          className="p-1.5 text-blue-600/60 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                          title="Edit Task"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(task)}
+                          className="p-1.5 text-rose-500/60 hover:text-rose-600 hover:bg-rose-100 rounded-lg transition-colors"
+                          title="Delete Task"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <h2 className="mt-4 text-2xl font-bold text-slate-900">
                   {task.title}
