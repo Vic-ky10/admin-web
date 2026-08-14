@@ -11,7 +11,7 @@ import { Expense, ExpenseCashOut } from "../../expense.types";
 import { calculateEmployeeWallet } from "../../expense.calculations";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { AlertCircle, RefreshCw, CreditCard, CheckCircle2, AlertTriangle, TrendingUp, Info, Activity } from "lucide-react";
+import { AlertCircle, RefreshCw, CreditCard, CheckCircle2, AlertTriangle, TrendingUp, Info, Activity, ChevronDown, ChevronUp } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 const MONTH_OPTIONS = [
@@ -45,6 +45,7 @@ export default function EmployeeExpenseTrackerClient() {
   // Month & Year selection defaults to current month & current year
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [showMonthlyHistory, setShowMonthlyHistory] = useState<boolean>(true);
 
   const fetchExpenses = async () => {
     setLoading(true);
@@ -216,7 +217,7 @@ export default function EmployeeExpenseTrackerClient() {
         {/* Current Month Spending Card */}
         <div className="group flex flex-col justify-between h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-blue-300">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Month Spending</span>
+            <span className="text-sm font-semibold text-slate-700">Current Month Spending</span>
             <span className="flex h-9 w-9 items-center justify-center rounded-xl ring-1 text-blue-700 bg-blue-50 ring-blue-100">
               <CreditCard className="h-5 w-5" />
             </span>
@@ -229,7 +230,7 @@ export default function EmployeeExpenseTrackerClient() {
         {/* Previous Month Spending Card */}
         <div className="group flex flex-col justify-between h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-indigo-300">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Previous Month Spending</span>
+            <span className="text-sm font-semibold text-slate-700">Previous Month Spending</span>
             <span className="flex h-9 w-9 items-center justify-center rounded-xl ring-1 text-indigo-700 bg-indigo-50 ring-indigo-100">
               <CreditCard className="h-5 w-5" />
             </span>
@@ -245,7 +246,7 @@ export default function EmployeeExpenseTrackerClient() {
         {/* Total Cash In */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Cash In</span>
+            <span className="text-sm font-semibold text-slate-700">Total Cash In</span>
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
               <CheckCircle2 className="h-4 w-4" />
             </span>
@@ -259,7 +260,7 @@ export default function EmployeeExpenseTrackerClient() {
         {/* Cash Out */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Cash Out</span>
+            <span className="text-sm font-semibold text-slate-700">Cash Out</span>
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100">
               <TrendingUp className="h-4 w-4" />
             </span>
@@ -273,7 +274,7 @@ export default function EmployeeExpenseTrackerClient() {
         {/* Balance */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Balance</span>
+            <span className="text-sm font-semibold text-slate-700">Balance</span>
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-100">
               <Activity className="h-4 w-4" />
             </span>
@@ -287,7 +288,7 @@ export default function EmployeeExpenseTrackerClient() {
         {/* Total Requested */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Requested</span>
+            <span className="text-sm font-semibold text-slate-700">Total Requested</span>
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-100">
               <CreditCard className="h-4 w-4" />
             </span>
@@ -301,7 +302,7 @@ export default function EmployeeExpenseTrackerClient() {
         {/* Total Rejected */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Rejected</span>
+            <span className="text-sm font-semibold text-slate-700">Total Rejected</span>
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-700 ring-1 ring-red-100">
               <AlertTriangle className="h-4 w-4" />
             </span>
@@ -325,7 +326,7 @@ export default function EmployeeExpenseTrackerClient() {
             </h4>
             <form onSubmit={handleRecordCashOut} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Amount (₹)</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Amount (₹)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -337,7 +338,7 @@ export default function EmployeeExpenseTrackerClient() {
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Description</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Description</label>
                 <input
                   type="text"
                   value={spendDesc}
@@ -412,27 +413,27 @@ export default function EmployeeExpenseTrackerClient() {
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Pending Claims</span>
+                <span className="text-xs font-medium text-slate-600">Pending Claims</span>
                 <p className="text-base font-bold text-slate-900 mt-0.5">{wallet.pendingCount}</p>
               </div>
               <div>
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Approved Claims</span>
+                <span className="text-xs font-medium text-slate-600">Approved Claims</span>
                 <p className="text-base font-bold text-slate-900 mt-0.5">{wallet.approvedCount}</p>
               </div>
               <div>
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Average Amount</span>
+                <span className="text-xs font-medium text-slate-600">Average Amount</span>
                 <p className="text-base font-bold text-slate-900 mt-0.5">₹{Math.round(wallet.averageExpense).toLocaleString("en-IN")}</p>
               </div>
               <div>
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Total Submissions</span>
+                <span className="text-xs font-medium text-slate-600">Total Submissions</span>
                 <p className="text-base font-bold text-slate-900 mt-0.5">{wallet.totalRequests}</p>
               </div>
               <div>
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Highest Expense</span>
+                <span className="text-xs font-medium text-slate-600">Highest Expense</span>
                 <p className="text-base font-bold text-slate-900 mt-0.5">₹{wallet.highestExpense.toLocaleString("en-IN")}</p>
               </div>
               <div>
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Lowest Expense</span>
+                <span className="text-xs font-medium text-slate-600">Lowest Expense</span>
                 <p className="text-base font-bold text-slate-900 mt-0.5">₹{wallet.lowestExpense.toLocaleString("en-IN")}</p>
               </div>
             </div>
@@ -490,9 +491,27 @@ export default function EmployeeExpenseTrackerClient() {
           {/* Historical Monthly Spending with Month & Year pickers */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-2">
-              <h4 className="text-sm font-bold text-slate-950">
-                Monthly Spending History
-              </h4>
+              <div className="flex items-center gap-3">
+                <h4 className="text-sm font-bold text-slate-950">
+                  Monthly Spending History
+                </h4>
+                <button
+                  onClick={() => setShowMonthlyHistory(!showMonthlyHistory)}
+                  className="flex items-center gap-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-md font-semibold transition border border-slate-200 shadow-sm"
+                >
+                  {showMonthlyHistory ? (
+                    <>
+                      <span>Hide History</span>
+                      <ChevronUp className="h-4 w-4 text-slate-400" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Show History</span>
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                    </>
+                  )}
+                </button>
+              </div>
               <div className="flex items-center gap-2">
                 {/* Month Picker */}
                 <select
@@ -521,42 +540,33 @@ export default function EmployeeExpenseTrackerClient() {
               </div>
             </div>
 
-            {filteredHistoricalExpenses.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-12">No expense claims found for the selected period.</p>
-            ) : (
-              <div className="overflow-hidden border border-slate-100 rounded-lg">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold">
-                      <th className="p-3">Type</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3 text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {Object.entries(
-                      filteredHistoricalExpenses.reduce((acc, row) => {
-                        const dateStr = new Date(row.expense_date).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric"
-                        });
-                        if (!acc[dateStr]) acc[dateStr] = [];
-                        acc[dateStr].push(row);
-                        return acc;
-                      }, {} as Record<string, typeof filteredHistoricalExpenses>)
-                    ).map(([date, items]) => (
-                      <React.Fragment key={date}>
-                        <tr className="bg-slate-50/80 border-y border-slate-100">
-                          <td colSpan={3} className="p-2 px-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            {date}
-                          </td>
+            {showMonthlyHistory && (
+              <>
+                {filteredHistoricalExpenses.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-12">No expense claims found for the selected period.</p>
+                ) : (
+                  <div className="overflow-hidden border border-slate-100 rounded-lg">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold">
+                          <th className="p-3">Date</th>
+                          <th className="p-3">Type</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Amount</th>
                         </tr>
-                        {items.map((row) => (
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredHistoricalExpenses.map((row) => (
                           <tr key={row.id} className="hover:bg-slate-50/40">
+                            <td className="p-3 text-slate-600 font-medium">
+                              {new Date(row.expense_date).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric"
+                              })}
+                            </td>
                             <td className="p-3">
-                              <p className="font-medium text-slate-900">{row.description || "Untitled"}</p>
-                              <p className="text-[10px] text-slate-500 mt-0.5">{row.expense_type}</p>
+                              <p className="font-medium text-slate-900">{row.expense_type}</p>
                             </td>
                             <td className="p-3">
                               <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
@@ -572,20 +582,20 @@ export default function EmployeeExpenseTrackerClient() {
                             <td className="p-3 text-right font-bold text-slate-900">₹{row.amount.toLocaleString("en-IN")}</td>
                           </tr>
                         ))}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                      </tbody >
+                    </table>
+                  </div>
+                )}
 
-            {/* Bottom summary fields */}
-            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg text-xs font-semibold text-slate-700">
-              <span>Total Claims: {filteredHistoricalExpenses.length}</span>
-              <span className="text-slate-900 font-bold text-sm">
-                Total Spending: ₹{historicalTotalSpend.toLocaleString("en-IN")}
-              </span>
-            </div>
+                {/* Bottom summary fields */}
+                <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg text-xs font-semibold text-slate-700">
+                  <span>Total Claims: {filteredHistoricalExpenses.length}</span>
+                  <span className="text-slate-900 font-bold text-sm">
+                    Total Spending: ₹{historicalTotalSpend.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Category Spending Table */}

@@ -539,7 +539,7 @@ export default function KanbanBoard({
                             </div>
                           </div>  */}
 
-                       {/* Card Footer Widgets */} 
+                     
                           <div className="flex items-center justify-between w-full">
                             {/* Assignee - Left Side */}
                             <div className="flex flex-row items-center gap-[3px] px-2 py-[3px] rounded-md border border-slate-200  self-start max-w-full text-[11px] font-semibold text-slate-600 bg-slate-50">
@@ -600,7 +600,6 @@ export default function KanbanBoard({
         })}
       </div>
 
-      {/* Details Modal */}
       {isDetailsOpen && (
         <TaskDetailsModal
           open={isDetailsOpen}
@@ -621,7 +620,6 @@ export default function KanbanBoard({
         />
       )}
 
-      {/* Task Create/Edit form */}
       {(isCreateOpen || editTask) && (
         <TaskForm
           open={isCreateOpen || !!editTask}
@@ -634,7 +632,6 @@ export default function KanbanBoard({
         />
       )}
 
-      {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm animate-fade-in border border-slate-100">

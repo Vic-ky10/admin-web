@@ -52,7 +52,7 @@ export default function IncentiveDetailsModal({
         </div>
 
         {/* Content */}
-       <div className="max-h-[70vh] overflow-y-auto px-6 py-6 sm:px-7 scrollbar-none">
+       <div className="max-h-[70vh] overflow-y-auto px-6 py-6 sm:px-7 scrollbar-none4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {"employee" in incentive && (
               <>

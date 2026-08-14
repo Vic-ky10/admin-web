@@ -47,6 +47,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedEmployee, setSelectedEmployee] = useState<string>("all");
+  const [showMonthlyHistory, setShowMonthlyHistory] = useState<boolean>(true);
 
   // Calculate admin analytics client side
   const analytics = useMemo(() => {
@@ -132,7 +133,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
             {/* Current Month Spending Card */}
             <div className="group flex flex-col justify-between h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:border-blue-300">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Month Spending</span>
+                <span className="text-sm font-semibold text-slate-700">Current Month Spending</span>
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl ring-1 text-blue-700 bg-blue-50 ring-blue-100">
                   <CreditCard className="h-5 w-5" />
                 </span>
@@ -145,7 +146,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
             {/* Previous Month Spending Card */}
             <div className="group flex flex-col justify-between h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:border-indigo-300">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Previous Month Spending</span>
+                <span className="text-sm font-semibold text-slate-700">Previous Month Spending</span>
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl ring-1 text-indigo-700 bg-indigo-50 ring-indigo-100">
                   <CreditCard className="h-5 w-5" />
                 </span>
@@ -158,46 +159,46 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
 
           {/* 2. Company Expense Summary Cards */}
           <div>
-            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Company Expense Summary</h4>
+            <h4 className="text-base font-semibold text-slate-800 mb-4">Company Expense Summary</h4>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
               {/* Total Requests */}
               <div className="rounded-xl border border-slate-100 bg-slate-50/30 p-4 transition hover:bg-slate-50/60">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Requests</span>
+                <span className="text-xs font-medium text-slate-600">Total Requests</span>
                 <p className="mt-2 text-xl font-extrabold text-slate-900">{analytics.totalExpenseCount}</p>
                 <p className="text-[10px] text-slate-400 mt-1">Submitted claims</p>
               </div>
 
               {/* Total Requested Amount */}
               <div className="rounded-xl border border-slate-100 bg-slate-50/30 p-4 transition hover:bg-slate-50/60">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Requested Amount</span>
+                <span className="text-xs font-medium text-slate-600">Requested Amount</span>
                 <p className="mt-2 text-xl font-extrabold text-slate-900">₹{analytics.totalCompanyExpense.toLocaleString("en-IN")}</p>
                 <p className="text-[10px] text-slate-400 mt-1">Total claims value</p>
               </div>
 
               {/* Total Approved Amount */}
               <div className="rounded-xl border border-slate-100 bg-slate-50/30 p-4 transition hover:bg-slate-50/60">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Approved Amount</span>
+                <span className="text-xs font-medium text-slate-600">Approved Amount</span>
                 <p className="mt-2 text-xl font-extrabold text-emerald-700">₹{analytics.approvedAmount.toLocaleString("en-IN")}</p>
                 <p className="text-[10px] text-slate-400 mt-1">Reimbursed amount</p>
               </div>
 
               {/* Total Pending Amount */}
               <div className="rounded-xl border border-slate-100 bg-slate-50/30 p-4 transition hover:bg-slate-50/60">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Pending Amount</span>
+                <span className="text-xs font-medium text-slate-600">Pending Amount</span>
                 <p className="mt-2 text-xl font-extrabold text-amber-700">₹{analytics.pendingAmount.toLocaleString("en-IN")}</p>
                 <p className="text-[10px] text-slate-400 mt-1">Claims in review</p>
               </div>
 
               {/* Total Rejected Amount */}
               <div className="rounded-xl border border-slate-100 bg-slate-50/30 p-4 transition hover:bg-slate-50/60">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Rejected Amount</span>
+                <span className="text-xs font-medium text-slate-600">Rejected Amount</span>
                 <p className="mt-2 text-xl font-extrabold text-red-700">₹{analytics.rejectedAmount.toLocaleString("en-IN")}</p>
                 <p className="text-[10px] text-slate-400 mt-1">Disallowed claims</p>
               </div>
 
               {/* Average Expense Value */}
               <div className="rounded-xl border border-slate-100 bg-slate-50/30 p-4 transition hover:bg-slate-50/60">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Average Value</span>
+                <span className="text-xs font-medium text-slate-600">Average Value</span>
                 <p className="mt-2 text-xl font-extrabold text-slate-900">₹{Math.round(analytics.averageExpenseValue).toLocaleString("en-IN")}</p>
                 <p className="text-[10px] text-slate-400 mt-1">Per submission</p>
               </div>
@@ -215,7 +216,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
               <div className="bg-white p-3.5 rounded-lg border border-slate-100 shadow-sm flex items-start gap-3">
                 <span className="p-2 bg-slate-50 rounded text-slate-600 shrink-0"><Users className="h-4 w-4" /></span>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Highest Spending Employee</p>
+                  <p className="text-xs font-medium text-slate-600">Highest Spending Employee</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">{analytics.topInsights.highestSpendingEmployee}</p>
                 </div>
               </div>
@@ -224,7 +225,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
               <div className="bg-white p-3.5 rounded-lg border border-slate-100 shadow-sm flex items-start gap-3">
                 <span className="p-2 bg-slate-50 rounded text-slate-600 shrink-0"><Award className="h-4 w-4" /></span>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Most Active Employee</p>
+                  <p className="text-xs font-medium text-slate-600">Most Active Employee</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">{analytics.topInsights.mostActiveEmployee}</p>
                 </div>
               </div>
@@ -233,7 +234,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
               <div className="bg-white p-3.5 rounded-lg border border-slate-100 shadow-sm flex items-start gap-3">
                 <span className="p-2 bg-slate-50 rounded text-slate-600 shrink-0"><Building2 className="h-4 w-4" /></span>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Highest Spending Department</p>
+                  <p className="text-xs font-medium text-slate-600">Highest Spending Department</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">{analytics.topInsights.highestSpendingDepartment}</p>
                 </div>
               </div>
@@ -242,7 +243,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
               <div className="bg-white p-3.5 rounded-lg border border-slate-100 shadow-sm flex items-start gap-3">
                 <span className="p-2 bg-slate-50 rounded text-slate-600 shrink-0"><Layers className="h-4 w-4" /></span>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Most Used Category</p>
+                  <p className="text-xs font-medium text-slate-600">Most Used Category</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">{analytics.topInsights.mostUsedCategory}</p>
                 </div>
               </div>
@@ -251,7 +252,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
               <div className="bg-white p-3.5 rounded-lg border border-slate-100 shadow-sm flex items-start gap-3">
                 <span className="p-2 bg-emerald-50 rounded text-emerald-600 shrink-0"><CheckCircle2 className="h-4 w-4" /></span>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Largest Approved Expense</p>
+                  <p className="text-xs font-medium text-slate-600">Largest Approved Expense</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">
                     {analytics.topInsights.largestApprovedExpense
                       ? `₹${analytics.topInsights.largestApprovedExpense.amount.toLocaleString("en-IN")} (${analytics.topInsights.largestApprovedExpense.employeeName})`
@@ -264,7 +265,7 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
               <div className="bg-white p-3.5 rounded-lg border border-slate-100 shadow-sm flex items-start gap-3">
                 <span className="p-2 bg-amber-50 rounded text-amber-600 shrink-0"><Clock className="h-4 w-4" /></span>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Largest Pending Expense</p>
+                  <p className="text-xs font-medium text-slate-600">Largest Pending Expense</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">
                     {analytics.topInsights.largestPendingExpense
                       ? `₹${analytics.topInsights.largestPendingExpense.amount.toLocaleString("en-IN")} (${analytics.topInsights.largestPendingExpense.employeeName})`
@@ -277,8 +278,26 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
 
           {/* Historical Monthly Spending Table */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h4 className="text-sm font-bold text-slate-900">Monthly Spending History</h4>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-3">
+                <h4 className="text-sm font-bold text-slate-900">Monthly Spending History</h4>
+                <button
+                  onClick={() => setShowMonthlyHistory(!showMonthlyHistory)}
+                  className="flex items-center gap-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-md font-semibold transition border border-slate-200 shadow-sm"
+                >
+                  {showMonthlyHistory ? (
+                    <>
+                      <span>Hide History</span>
+                      <ChevronUp className="h-4 w-4 text-slate-400" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Show History</span>
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                    </>
+                  )}
+                </button>
+              </div>
               <div className="flex items-center gap-2">
                 {/* Employee Picker */}
                 <select
@@ -320,49 +339,40 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
               </div>
             </div>
 
-            {filteredHistoricalExpenses.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-12 bg-slate-50/50 rounded-lg border border-slate-100">
-                No organization expense claims found for the selected period.
-              </p>
-            ) : (
-              <div className="overflow-x-auto border border-slate-100 rounded-lg">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold">
-                      <th className="p-3">Employee</th>
-                      <th className="p-3">Type</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3 text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {Object.entries(
-                      filteredHistoricalExpenses.reduce((acc, row) => {
-                        const dateStr = new Date(row.expense_date).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric"
-                        });
-                        if (!acc[dateStr]) acc[dateStr] = [];
-                        acc[dateStr].push(row);
-                        return acc;
-                      }, {} as Record<string, typeof filteredHistoricalExpenses>)
-                    ).map(([date, items]) => (
-                      <React.Fragment key={date}>
-                        <tr className="bg-slate-50/80 border-y border-slate-100">
-                          <td colSpan={4} className="p-2 px-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            {date}
-                          </td>
+            {showMonthlyHistory && (
+              <>
+                {filteredHistoricalExpenses.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-12 bg-slate-50/50 rounded-lg border border-slate-100">
+                    No organization expense claims found for the selected period.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto border border-slate-100 rounded-lg">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold">
+                          <th className="p-3">Date</th>
+                          <th className="p-3">Employee</th>
+                          <th className="p-3">Type</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Amount</th>
                         </tr>
-                        {items.map((row) => (
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredHistoricalExpenses.map((row) => (
                           <tr key={row.id} className="hover:bg-slate-50/40">
+                            <td className="p-3 text-slate-600 font-medium">
+                              {new Date(row.expense_date).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric"
+                              })}
+                            </td>
                             <td className="p-3">
                               <p className="font-semibold text-slate-800">{row.employee?.full_name || "Unknown"}</p>
                               <p className="text-[10px] text-slate-400 mt-0.5">{row.employee?.department || "Other"}</p>
                             </td>
                             <td className="p-3">
-                              <p className="font-medium text-slate-700">{row.description || "Untitled"}</p>
-                              <p className="text-[10px] text-slate-500 mt-0.5">{row.expense_type}</p>
+                              <p className="font-medium text-slate-900">{row.expense_type}</p>
                             </td>
                             <td className="p-3">
                               <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
@@ -378,20 +388,20 @@ export default function AdminExpenseAnalytics({ expenses, cashOuts = [], default
                             <td className="p-3 text-right font-bold text-slate-900">₹{row.amount.toLocaleString("en-IN")}</td>
                           </tr>
                         ))}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
-            {/* Bottom summary fields */}
-            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg text-xs font-semibold text-slate-700">
-              <span>Total Claims: {filteredHistoricalExpenses.length}</span>
-              <span className="text-slate-900 font-bold text-sm">
-                Total Spending: ₹{historicalTotalSpend.toLocaleString("en-IN")}
-              </span>
-            </div>
+                {/* Bottom summary fields */}
+                <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg text-xs font-semibold text-slate-700">
+                  <span>Total Claims: {filteredHistoricalExpenses.length}</span>
+                  <span className="text-slate-900 font-bold text-sm">
+                    Total Spending: ₹{historicalTotalSpend.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Employee Wallet Overview Table */}
